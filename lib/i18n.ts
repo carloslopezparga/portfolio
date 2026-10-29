@@ -18,6 +18,23 @@ export function formatMonth(d: DateISO, lang: Locale) {
   return `${MONTHS[lang][m - 1]} ${y}`;
 }
 
+/** "Nov 3" / "3 nov" for a day date; falls back to the month for "YYYY-MM". */
+export function formatDay(d: DateISO, lang: Locale) {
+  const [, m, day] = d.split("-").map(Number);
+  if (!day) return formatMonth(d, lang);
+  return lang === "en" ? `${MONTHS.en[m - 1]} ${day}` : `${day} ${MONTHS.es[m - 1]}`;
+}
+
+/** Academic year of a degree started in September (`start`), or null outside it. */
+export function studyYear(start: DateISO, end: DateISO, now: Date) {
+  const [sy] = start.split("-").map(Number);
+  const [ey, em] = end.split("-").map(Number);
+  const y = now.getUTCFullYear() - sy + (now.getUTCMonth() >= 8 ? 1 : 0);
+  const total = ey - sy;
+  const ended = now.getUTCFullYear() > ey || (now.getUTCFullYear() === ey && now.getUTCMonth() + 1 > em);
+  return ended || y < 1 ? null : Math.min(y, total);
+}
+
 export function formatRange(start: DateISO | null, end: DateISO | null, lang: Locale) {
   const present = lang === "en" ? "Present" : "Actualidad";
   const s = start ? formatMonth(start, lang) : null;

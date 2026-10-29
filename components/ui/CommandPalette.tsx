@@ -15,7 +15,8 @@ export interface PaletteItem {
   keywords?: string[];
   shortcut?: string;
   disabled?: boolean;
-  /** Return false to keep the palette open. */
+  /** Run while the palette stays open (toggles). Otherwise the palette closes first. */
+  keepOpen?: boolean;
   run: () => void | boolean;
 }
 export interface PaletteGroup {
@@ -138,8 +139,13 @@ export function CommandPalette({
                         keywords={it.keywords}
                         disabled={it.disabled}
                         onSelect={() => {
-                          const keep = it.run() === false;
-                          if (!keep) hide();
+                          if (it.keepOpen) {
+                            it.run();
+                            return;
+                          }
+                          // Close first: scrolling is locked while the palette is open.
+                          hide();
+                          window.setTimeout(() => it.run(), 40);
                         }}
                         className="group/item relative flex h-11 cursor-pointer items-center gap-3 rounded-xl px-3 text-[14px] text-muted transition-colors duration-150 data-[disabled=true]:cursor-not-allowed data-[disabled=true]:opacity-40 data-[selected=true]:bg-[rgb(var(--glow)/0.1)] data-[selected=true]:text-fg"
                       >

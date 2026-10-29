@@ -78,6 +78,11 @@ const GLYPHS = {
   type: "M5 6.5V5h14v1.5 M12 5v14 M9.5 19h5",
   replay: "M5 12a7 7 0 107-7H9 M11.5 2.5L9 5l2.5 2.5",
   phone: "M8 3.5h8v17H8z M11 17.5h2",
+  stats: "M3.5 19.5h17 M5 18c2.5 0 3.2-11 7-11s4.5 11 7 11 M12 7v11.5 M7.5 12.5l9-4.5",
+  globe2: "M12 3.5a8.5 8.5 0 100 17 8.5 8.5 0 000-17z M3.5 12h17",
+  cap: "M2.5 9 12 4.5 21.5 9 12 13.5z M6.5 11v4.5c1.5 1.5 3.4 2.3 5.5 2.3s4-.8 5.5-2.3V11 M21.5 9v5",
+  briefcase: "M4 7.5h16v11H4z M9 7.5V5.5h6v2 M4 12.5h16",
+  pin: "M12 20.5s6-5.6 6-10.5a6 6 0 10-12 0c0 4.9 6 10.5 6 10.5z M12 8a2 2 0 100 4 2 2 0 000-4z",
 } as const;
 export type GlyphName = keyof typeof GLYPHS;
 
@@ -95,6 +100,7 @@ export const glyphPath = (name: GlyphName) => GLYPHS[name];
 export const STACK_ICON: Record<StackId, { brand?: BrandName; glyph?: GlyphName }> = {
   python: { brand: "python" },
   sql: { glyph: "database" },
+  stats: { glyph: "stats" },
   nextjs: { brand: "nextjs" },
   typescript: { brand: "typescript" },
   n8n: { brand: "n8n" },

@@ -12,9 +12,10 @@ export function generateStaticParams() {
   return LOCALES.map((lang) => ({ lang }));
 }
 
-const COL = { ai: "#22d3ee", automation: "#4c8dff", data: "#8b7cff", ops: "#c7d7fe", engineering: "#e8edf5" };
-const S = 118;
-const C = 210;
+// Apple system colours (dark): ai purple, automation blue, data cyan, ops orange.
+const COL = { ai: "#bf5af2", automation: "#0a84ff", data: "#64d2ff", ops: "#ff9f0a", ring: "#a8adb8" };
+const S = 100;
+const C = 200;
 const ring = toothPath(GEAR.zRing, GEAR.rRing, S, C, C, true);
 const sun = toothPath(GEAR.zSun, GEAR.rSun, S, C, C);
 const mesh = neuralMesh(11, 24, C, C);
@@ -23,7 +24,7 @@ const planets = GEAR.planetAngles.map((a, i) => ({
   c: [COL.automation, COL.data, COL.ops][i],
 }));
 
-/** Social card: the gearbox on the right, the title block on the left. Default font (Geist). */
+/** Social card: name, headline and summary on the auroras; the gearbox on the right. Default font (Geist). */
 export default async function Image({ params }: { params: Promise<{ lang: string }> }) {
   const { lang: raw } = await params;
   const lang = hasLocale(raw) ? raw : "en";
@@ -35,38 +36,34 @@ export default async function Image({ params }: { params: Promise<{ lang: string
           height: "100%",
           display: "flex",
           background: "#05060a",
-          backgroundImage: "linear-gradient(rgba(120,150,205,0.07) 1px, transparent 1px), linear-gradient(90deg, rgba(120,150,205,0.07) 1px, transparent 1px)",
-          backgroundSize: "40px 40px",
+          backgroundImage:
+            "radial-gradient(ellipse 60% 70% at 8% 0%, rgba(10,132,255,0.38), transparent 70%), radial-gradient(ellipse 55% 65% at 95% 35%, rgba(191,90,242,0.34), transparent 70%), radial-gradient(ellipse 60% 50% at 40% 110%, rgba(255,55,95,0.28), transparent 70%)",
           color: "#f5f7fa",
-          padding: 56,
+          padding: 64,
         }}
       >
-        <div style={{ display: "flex", flexDirection: "column", justifyContent: "space-between", width: 660 }}>
-          <div style={{ display: "flex", fontSize: 18, letterSpacing: 3, color: "#7d8594", textTransform: "uppercase" }}>
-            {`REV A · ${lang === "en" ? "SHEET" : "LÁMINA"} 01 / 06`}
+        <div style={{ display: "flex", flexDirection: "column", justifyContent: "center", width: 720 }}>
+          <div style={{ display: "flex", alignItems: "center", fontSize: 20, color: "#a8adb8" }}>
+            <div style={{ width: 12, height: 12, borderRadius: 12, background: "#30d158", marginRight: 12 }} />
+            {profile.availability[lang]}
           </div>
-          <div style={{ display: "flex", flexDirection: "column", border: "1px solid rgba(140,165,210,0.28)", padding: 32 }}>
-            <div style={{ fontSize: 64, lineHeight: 1.04, letterSpacing: -2 }}>{profile.name}</div>
-            <div style={{ fontSize: 30, lineHeight: 1.25, marginTop: 18, color: "#f5f7fa" }}>{profile.tagline[lang]}</div>
-            <div style={{ display: "flex", alignItems: "center", marginTop: 26, fontSize: 19, color: "#a1a7b3" }}>
-              <div style={{ width: 10, height: 10, borderRadius: 10, background: COL.ai, marginRight: 12 }} />
-              {`${profile.location[lang]} · ${profile.availability[lang]}`}
-            </div>
-          </div>
+          <div style={{ fontSize: 76, lineHeight: 1, letterSpacing: -3, marginTop: 28 }}>{profile.name}</div>
+          <div style={{ fontSize: 32, lineHeight: 1.25, marginTop: 22, color: "#c9a8ff" }}>{profile.tagline[lang]}</div>
+          <div style={{ fontSize: 22, lineHeight: 1.45, marginTop: 22, color: "#a8adb8" }}>{profile.summary[lang]}</div>
         </div>
         <div style={{ display: "flex", alignItems: "center", justifyContent: "center", flex: 1 }}>
-          <svg width="420" height="420" viewBox="0 0 420 420">
-            <circle cx={C} cy={C} r={(GEAR.rRing + 0.42) * S} fill="none" stroke={COL.engineering} strokeOpacity="0.45" strokeWidth="1.5" />
-            <path d={ring} fill="none" stroke={COL.engineering} strokeOpacity="0.85" strokeWidth="1.5" />
+          <svg width="340" height="340" viewBox="0 0 400 400">
+            <circle cx={C} cy={C} r={(GEAR.rRing + 0.42) * S} fill="none" stroke={COL.ring} strokeOpacity="0.4" strokeWidth="1.5" />
+            <path d={ring} fill="none" stroke={COL.ring} strokeOpacity="0.75" strokeWidth="1.5" />
             {planets.map((p, i) => (
-              <path key={i} d={p.d} fill="none" stroke={p.c} strokeWidth="1.6" />
+              <path key={i} d={p.d} fill="none" stroke={p.c} strokeWidth="2" />
             ))}
-            <path d={sun} fill="none" stroke={COL.ai} strokeWidth="1.8" />
+            <path d={sun} fill="none" stroke={COL.ai} strokeWidth="2" />
             {mesh.edges.map(([a, b], i) => (
-              <line key={i} x1={mesh.nodes[a][0]} y1={mesh.nodes[a][1]} x2={mesh.nodes[b][0]} y2={mesh.nodes[b][1]} stroke={COL.ai} strokeOpacity="0.55" strokeWidth="1" />
+              <line key={i} x1={mesh.nodes[a][0]} y1={mesh.nodes[a][1]} x2={mesh.nodes[b][0]} y2={mesh.nodes[b][1]} stroke={COL.ai} strokeOpacity="0.6" strokeWidth="1" />
             ))}
             {mesh.nodes.map(([x, y], i) => (
-              <circle key={i} cx={x} cy={y} r="2.4" fill={COL.ai} />
+              <circle key={i} cx={x} cy={y} r="2.6" fill={COL.ai} />
             ))}
           </svg>
         </div>

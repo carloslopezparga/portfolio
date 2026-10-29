@@ -2,7 +2,8 @@
 
 import { useEffect, useMemo, useRef, useState, type CSSProperties, type KeyboardEvent } from "react";
 import type { DomainId, RefId, StackId } from "@/content/types";
-import { StackIcon, stackColor } from "@/components/ui/icons";
+import { StackIcon } from "@/components/ui/icons";
+import { brandStyle, type BrandTones } from "@/lib/brand";
 import type { Cluster, Layout } from "@/lib/constellation";
 import { usePrefs } from "@/lib/prefs";
 import { dispatchUI, onUI } from "@/lib/ui-bus";
@@ -17,8 +18,14 @@ export interface CStar {
 export interface CNode {
   id: RefId;
   label: string;
-  domain: DomainId;
-  kind: "project" | "work" | "other";
+  /** Projects and this site: their skill domain. Organisations: their brand. */
+  domain: DomainId | null;
+  tone: BrandTones | null;
+  kind: "project" | "work" | "study" | "other";
+  /** What it is, for the inspector ("Experience", "Automation"…). */
+  kindLabel: string;
+  /** The card a click takes you to (data-target-id elsewhere on the page). */
+  card: string | null;
 }
 export interface CLink {
   skill: StackId;
@@ -72,6 +79,21 @@ export function Constellation({
 
   useEffect(() => onUI("filter_domain", (a) => setFilter(a.domain)), []);
 
+  // Render only the drawing that fits the screen, after the first load.
+  const [view, setView] = useState<"landscape" | "portrait" | null>(null);
+  useEffect(() => {
+    const mq = matchMedia("(min-width: 768px)");
+    const set = () => setView(mq.matches ? "landscape" : "portrait");
+    const w = window as Window & { requestIdleCallback?: (cb: () => void, o?: { timeout: number }) => number; cancelIdleCallback?: (id: number) => void };
+    const id = w.requestIdleCallback ? w.requestIdleCallback(set, { timeout: 1500 }) : window.setTimeout(set, 200);
+    mq.addEventListener("change", set);
+    return () => {
+      if (w.cancelIdleCallback) w.cancelIdleCallback(id);
+      else window.clearTimeout(id);
+      mq.removeEventListener("change", set);
+    };
+  }, []);
+
   // Gentle drift with the cursor.
   useEffect(() => {
     if (touch || reduced) return;
@@ -115,8 +137,11 @@ export function Constellation({
     if (n.kind === "project") {
       dispatchUI({ type: "open_project", projectId: n.id as never });
       window.setTimeout(() => dispatchUI({ type: "highlight", targetId: n.id }), 700);
-    } else dispatchUI({ type: "highlight", targetId: n.id });
+    } else if (n.card) dispatchUI({ type: "highlight", targetId: n.card });
   };
+  /** Colour scope for a node: its domain, or its brand. */
+  const tone = (n: CNode): { "data-domain"?: DomainId; className?: string; style?: CSSProperties } =>
+    n.domain ? { "data-domain": n.domain } : { className: "brand", style: n.tone ? brandStyle(n.tone) : undefined };
   const keyAct = (fn: () => void) => (e: KeyboardEvent) => {
     if (e.key === "Enter" || e.key === " ") {
       e.preventDefault();
@@ -126,7 +151,7 @@ export function Constellation({
 
   const renderSvg = (L: Layout, idx: number, className: string) => {
     const pos = (id: string) => L.stars.find((s) => s.id === id) ?? L.nodes.find((n) => n.id === id);
-    const fs = L.w > 900 ? 1 : 1.25;
+    const fs = L.w > 900 ? 1.12 : 1.45;
     return (
       <svg viewBox={`0 0 ${L.w} ${L.h}`} className={className} role="group" aria-label={labels.list}>
         <g
@@ -141,9 +166,11 @@ export function Constellation({
             const pts = members.map((m) => `${m.x},${m.y}`).join(" ");
             return (
               <g key={c.id} data-domain={c.id} opacity={filter && filter !== c.id && !sel ? 0.25 : 1} style={{ transition: "opacity 400ms" }}>
-                {members.length > 2 && c.id !== "languages" ? <polygon points={pts} fill="none" className="stroke-[var(--d)]" strokeOpacity="0.16" strokeDasharray="2 4" /> : null}
-                {c.id === "languages" && members.length > 1 ? <polyline points={pts} fill="none" className="stroke-[var(--d)]" strokeOpacity="0.16" strokeDasharray="2 4" /> : null}
-                <text x={c.x} y={c.id === "languages" ? c.y - 22 : c.y + 4} textAnchor="middle" className="fill-[var(--d)] font-mono uppercase tracking-[0.16em]" style={{ fontSize: 10.5 * fs }} opacity="0.85">
+                {members.length > 1 && c.id !== "languages" && L.w > 900 ? (
+                  <polyline points={[...members].sort((a, b) => a.y - b.y).map((m) => `${m.x},${m.y}`).join(" ")} fill="none" className="stroke-[var(--d)]" strokeOpacity="0.22" strokeDasharray="2 4" />
+                ) : null}
+                {c.id === "languages" && members.length > 1 && L.w > 900 ? <polyline points={pts} fill="none" className="stroke-[var(--d)]" strokeOpacity="0.16" strokeDasharray="2 4" /> : null}
+                <text x={c.x} y={c.y + 4} textAnchor={c.anchor ?? "middle"} className="fill-[var(--d)] font-mono uppercase tracking-[0.16em]" style={{ fontSize: 10.5 * fs }} opacity="0.85">
                   {labels.clusters[c.id]}
                 </text>
               </g>
@@ -177,17 +204,18 @@ export function Constellation({
           {nodes.map((n) => {
             const p = L.nodes.find((x) => x.id === n.id)!;
             const on = sel ? lit.has(n.id) : false;
+            const t = tone(n);
             return (
               <g
                 key={n.id}
-                data-domain={n.domain}
-                data-target-id={idx === 0 ? n.id : undefined}
+                data-domain={t["data-domain"]}
+                data-target-id={!n.card ? n.id : undefined}
                 role="button"
                 tabIndex={0}
                 aria-label={`${n.label}: ${links.filter((l) => l.ref === n.id).map((l) => stars.find((s) => s.id === l.skill)?.label).join(", ")}`}
-                className="c-node cursor-pointer outline-none"
-                opacity={dimmed(n.id, n.domain) ? 0.22 : 1}
-                style={{ transition: "opacity 300ms" }}
+                className={`c-node cursor-pointer outline-none ${t.className ?? ""}`}
+                opacity={dimmed(n.id, n.domain ?? "") ? 0.22 : 1}
+                style={{ transition: "opacity 300ms", ...t.style }}
                 onPointerEnter={() => !touch && setHover({ kind: "node", id: n.id })}
                 onPointerLeave={() => !touch && setHover(null)}
                 onFocus={() => setHover({ kind: "node", id: n.id })}
@@ -198,7 +226,13 @@ export function Constellation({
                 <circle cx={p.x} cy={p.y} r={18} fill="transparent" />
                 <circle cx={p.x} cy={p.y} r={on ? 9 : 7} className="fill-bg stroke-[var(--d)]" strokeWidth={1.4} style={{ transition: "r 200ms" }} />
                 <circle cx={p.x} cy={p.y} r={2.6} className="fill-[var(--d)]" />
-                <text x={p.x} y={p.y + 22 * fs} textAnchor="middle" className={on ? "fill-fg" : "fill-muted"} style={{ fontSize: 12 * fs }}>
+                <text
+                  x={p.labelSide ? p.x + 16 : p.x}
+                  y={p.labelSide ? p.y + 5 : p.y + 22 * fs}
+                  textAnchor={p.labelSide ? "start" : "middle"}
+                  className={on ? "fill-fg" : "fill-muted"}
+                  style={{ fontSize: 12 * fs }}
+                >
                   {n.label}
                 </text>
               </g>
@@ -210,13 +244,13 @@ export function Constellation({
             const s = stars.find((x) => x.id === p.id)!;
             const on = sel?.id === s.id || (sel?.kind === "node" && lit.has(s.id));
             const isSkill = s.kind === "skill";
-            const color = isSkill ? stackColor(s.id as StackId) : "var(--d)";
-            const ic = 16 * fs;
+            const ic = (12 + p.weight * 3.5) * fs;
+            const halo = 7 + p.weight * 3.5;
             return (
               <g
                 key={p.id}
                 data-domain={s.cluster}
-                data-target-id={idx === 0 ? s.id : undefined}
+                data-target-id={s.id}
                 role="button"
                 tabIndex={0}
                 aria-label={`${s.label}${s.sub ? ` ${s.sub}` : ""}`}
@@ -231,9 +265,9 @@ export function Constellation({
                 onKeyDown={keyAct(() => select({ kind: "star", id: s.id }, true))}
               >
                 <circle cx={p.x} cy={p.y} r={22} fill="transparent" />
-                <circle cx={p.x} cy={p.y} r={on ? 16 : 11} className="fill-[rgb(var(--d-rgb)/0.08)]" style={{ transition: "r 250ms" }} />
+                <circle cx={p.x} cy={p.y} r={on ? halo + 5 : halo} className={on ? "fill-[rgb(var(--d-rgb)/0.2)]" : "fill-[rgb(var(--d-rgb)/0.1)]"} style={{ transition: "r 250ms" }} />
                 {isSkill ? (
-                  <g transform={`translate(${p.x - ic / 2} ${p.y - ic / 2})`} style={{ color: on ? color : undefined }} className={on ? "" : "text-dim"}>
+                  <g transform={`translate(${p.x - ic / 2} ${p.y - ic / 2})`} className="text-[var(--d)]" opacity={on ? 1 : 0.85}>
                     <svg width={ic} height={ic} viewBox="0 0 24 24" overflow="visible">
                       <StackIcon id={s.id as StackId} />
                     </svg>
@@ -242,7 +276,7 @@ export function Constellation({
                   <circle cx={p.x} cy={p.y} r={p.r} className="twinkle fill-[var(--d)]" style={{ "--tw": `${3 + (i % 4)}s`, "--tw-d": `${(i * 0.37) % 2}s` } as CSSProperties} />
                 )}
                 <text
-                  x={p.labelSide === "r" ? p.x + 20 : p.x - 20}
+                  x={p.labelSide === "r" ? p.x + halo + 9 : p.x - halo - 9}
                   y={p.y + 4}
                   textAnchor={p.labelSide === "r" ? "start" : "end"}
                   className={on ? "fill-fg" : "fill-muted"}
@@ -268,7 +302,7 @@ export function Constellation({
       return (
         <div data-domain={s.cluster}>
           {s.kind === "skill" ? (
-            <span className="block" style={{ color: stackColor(s.id as StackId) }}>
+            <span className="block text-[var(--d)]">
               <StackIcon id={s.id as StackId} className="size-10" />
             </span>
           ) : null}
@@ -283,8 +317,9 @@ export function Constellation({
               <ul className="mt-2 space-y-2">
                 {used.map((l) => {
                   const n = nodes.find((x) => x.id === l.ref)!;
+                  const t = tone(n);
                   return (
-                    <li key={l.ref} data-domain={n.domain}>
+                    <li key={l.ref} data-domain={t["data-domain"]} className={t.className} style={t.style}>
                       <button type="button" onClick={() => activateNode(n)} className="group flex w-full items-center gap-3 text-left text-[14.5px] text-fg">
                         <span className="h-[3px] shrink-0 rounded-full bg-[var(--d)]" style={{ width: 10 + (l.w / maxW) * 22 }} />
                         <span className="link-draw">{n.label}</span>
@@ -300,33 +335,34 @@ export function Constellation({
     }
     const n = nodes.find((x) => x.id === sel.id)!;
     const used = links.filter((l) => l.ref === n.id);
+    const t = tone(n);
     return (
-      <div data-domain={n.domain}>
+      <div data-domain={t["data-domain"]} className={t.className} style={t.style}>
         <p className="text-[22px] font-medium leading-tight text-fg">{n.label}</p>
-        <p className="mono-label mt-1 !text-[var(--d)]">{labels.clusters[n.domain]}</p>
+        <p className="mono-label mt-1 !text-[var(--d)]">{n.kindLabel}</p>
         <p className="mono-label mt-5 !text-[10px]">{labels.uses}</p>
         <div className="mt-2 flex flex-wrap gap-2">
           {used.map((l) => {
             const s = stars.find((x) => x.id === l.skill)!;
             return (
-              <span key={l.skill} className="flex items-center gap-2 rounded-full py-1 pl-2 pr-3 text-[13px] text-muted shadow-[inset_0_0_0_1px_var(--line)]">
-                <span style={{ color: stackColor(l.skill) }}>
-                  <StackIcon id={l.skill} className="size-4" />
-                </span>
+              <span key={l.skill} data-domain={s.cluster} className="chip">
+                <StackIcon id={l.skill} className="size-3.5 text-[var(--d)]" />
                 {s.label}
               </span>
             );
           })}
         </div>
-        <button type="button" onClick={() => activateNode(n)} className="group mt-5 inline-flex items-center gap-1.5 text-[14px] text-fg">
-          <span className="link-draw">{labels.go}</span> →
-        </button>
+        {n.card || n.kind === "project" ? (
+          <button type="button" onClick={() => activateNode(n)} className="group mt-5 inline-flex items-center gap-1.5 text-[14px] text-fg">
+            <span className="link-draw">{labels.go}</span> →
+          </button>
+        ) : null}
       </div>
     );
   };
 
   return (
-    <div className="mx-auto grid max-w-[1400px] gap-6 px-5 sm:px-8 md:px-12 lg:grid-cols-[minmax(0,1fr)_300px]">
+    <div className="mx-auto grid max-w-[1200px] gap-6 px-5 sm:px-8 lg:grid-cols-[minmax(0,1fr)_280px]">
       <div ref={wrapRef} className="relative" onPointerLeave={() => setHover(null)}>
         {filter ? (
           <button
@@ -339,8 +375,15 @@ export function Constellation({
             {labels.filter}: {labels.clusters[filter]} <span className="text-dim">× {labels.clear}</span>
           </button>
         ) : null}
-        {renderSvg(landscape, 0, "hidden h-auto w-full overflow-visible md:block")}
-        {renderSvg(portrait, 1, "block h-auto w-full overflow-visible md:hidden")}
+        {/* one drawing, chosen on the client once the page is idle; the boxes reserve its space meanwhile */}
+        {view === "landscape" ? renderSvg(landscape, 0, "block h-auto max-h-[64vh] w-full overflow-visible") : null}
+        {view === "portrait" ? renderSvg(portrait, 1, "block h-auto w-full overflow-visible") : null}
+        {view === null ? (
+          <>
+            <div className="hidden max-h-[64vh] w-full md:block" style={{ aspectRatio: `${landscape.w} / ${landscape.h}` }} />
+            <div className="w-full md:hidden" style={{ aspectRatio: `${portrait.w} / ${portrait.h}` }} />
+          </>
+        ) : null}
 
         {/* screen-reader equivalent */}
         <div className="sr-only">
@@ -372,14 +415,14 @@ export function Constellation({
       </div>
 
       {/* inspector: side panel on desktop */}
-      <aside className="hidden self-center rounded-[var(--radius-card)] p-5 shadow-[inset_0_0_0_1px_var(--line-strong)] lg:block" aria-live="polite">
+      <aside className="material hidden self-center rounded-[var(--radius-card)] p-5 lg:block" aria-live="polite">
         <p className="mono-label mb-4 !text-[10px]">{labels.inspector}</p>
         {inspector()}
       </aside>
 
       {/* inspector: bottom sheet on touch */}
       {touch && sheet && sel ? (
-        <div className="panel-blur fixed inset-x-2 bottom-2 z-[170] max-h-[60svh] overflow-y-auto rounded-[20px] p-5 shadow-[0_0_0_1px_var(--line-strong),0_30px_80px_-20px_rgb(0_0_0/0.7)] lg:hidden" role="dialog" aria-label={labels.inspector}>
+        <div className="material-blur fixed inset-x-2 bottom-2 z-[170] max-h-[60svh] overflow-y-auto rounded-[20px] p-5 shadow-[0_0_0_1px_var(--line-strong),0_30px_80px_-20px_rgb(0_0_0/0.7)] lg:hidden" role="dialog" aria-label={labels.inspector}>
           <button
             type="button"
             onClick={() => {

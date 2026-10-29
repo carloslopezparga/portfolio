@@ -110,8 +110,8 @@ export function LabBar({ sheets }: { sheets: { id: string; code: string; title: 
             toast("Email copiado");
           },
         },
-        { id: "stars", label: "Mostrar / ocultar estrellas", icon: "spark", run: () => (toggleLayer("stars"), false) },
-        { id: "grid", label: "Mostrar / ocultar retícula", icon: "sheet", run: () => (toggleLayer("grid"), false) },
+        { id: "stars", label: "Mostrar / ocultar estrellas", icon: "spark", keepOpen: true, run: () => toggleLayer("stars") },
+        { id: "grid", label: "Mostrar / ocultar retícula", icon: "sheet", keepOpen: true, run: () => toggleLayer("grid") },
         { id: "site", label: "Ir a la home (en construcción)", icon: "globe", run: () => router.push("/") },
         { id: "cv", label: "Descargar CV", hint: "Fase 2", icon: "download", disabled: true, run: () => {} },
         { id: "chat", label: "Abrir chat con IA", hint: "Fase 2", icon: "chat", disabled: true, run: () => {} },

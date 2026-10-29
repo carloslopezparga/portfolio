@@ -46,8 +46,8 @@ function makeSprite(color: string) {
 }
 
 /**
- * Fixed backdrop: nebula glows, a three-layer starfield (canvas) with
- * pointer / gyro / scroll parallax, and a static blueprint grid.
+ * Fixed backdrop: slow colour auroras (CSS) under a discreet three-layer
+ * starfield (canvas) with pointer / gyro / scroll parallax.
  * One rAF loop; paused when the tab is hidden.
  */
 export function Backdrop() {
@@ -221,10 +221,12 @@ export function Backdrop() {
 
   return (
     <div aria-hidden>
-      <div className="nebula" />
+      <div className="aurora">
+        <span className="au-1" />
+        <span className="au-2" />
+        <span className="au-3" />
+      </div>
       <canvas ref={canvasRef} className="starfield pointer-events-none fixed left-0 top-0 -z-[2]" />
-      <div className="bp-grid bp-grid--h" />
-      <div className="bp-grid bp-grid--v" />
     </div>
   );
 }

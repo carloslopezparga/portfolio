@@ -18,14 +18,14 @@ export function agentTools(): Anthropic.Tool[] {
       eager_input_streaming: true,
       input_schema: {
         type: "object",
-        properties: { sectionId: { type: "string", enum: registry.sections, description: "top = gearbox hero, systems = projects, trajectory = timeline, toolkit = skills, beyond = leadership, contact." } },
+        properties: { sectionId: { type: "string", enum: registry.sections, description: "top = hero, now = current job and studies, experience, education, projects, skills, leadership, contact." } },
         required: ["sectionId"],
         additionalProperties: false,
       },
     },
     {
       name: "highlight",
-      description: "Pulse and outline one element on the page (a project, job, school, leadership item, skill or language) while the rest dims for a moment.",
+      description: "Scroll to and outline one element on the page (a job, school, course, project, skill, language or leadership item) while the rest dims for a moment.",
       eager_input_streaming: true,
       input_schema: {
         type: "object",
@@ -36,7 +36,7 @@ export function agentTools(): Anthropic.Tool[] {
     },
     {
       name: "open_project",
-      description: "Scroll to Systems and open one project's panel with its live demo and case study.",
+      description: "Scroll to Projects and open one project's panel with its demo and case study.",
       eager_input_streaming: true,
       input_schema: {
         type: "object",
@@ -58,7 +58,7 @@ export function agentTools(): Anthropic.Tool[] {
     },
     {
       name: "focus_part",
-      description: "Separate and light up one part of the hero's gearbox. Parts: ai = sun gear (AI core), automation / data / ops = the three planet gears, engineering = the ring gear.",
+      description: "A purely decorative effect: briefly light up one part of the gearbox drawing in the hero (ai = the AI core, automation / data / ops = the planet gears). It does not scroll. Use at most once, and only when it adds a playful touch to an answer about that area.",
       eager_input_streaming: true,
       input_schema: {
         type: "object",

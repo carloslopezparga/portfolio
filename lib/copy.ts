@@ -4,31 +4,27 @@ import type { L } from "@/content/types";
 export const copy = {
   nav: {
     menu: { en: "Menu", es: "Menú" },
+    close: { en: "Close menu", es: "Cerrar menú" },
     command: { en: "Search or jump to…", es: "Buscar o ir a…" },
+    top: { en: "Back to top", es: "Volver arriba" },
+    skip: { en: "Skip to content", es: "Saltar al contenido" },
+    dark: { en: "Switch to dark theme", es: "Cambiar a tema oscuro" },
+    light: { en: "Switch to light theme", es: "Cambiar a tema claro" },
   },
   cursor: {
     view: { en: "View", es: "Ver" },
     drag: { en: "Drag", es: "Arrastrar" },
   },
-  sheet: {
-    rev: { en: "Rev", es: "Rev" },
-    sheet: { en: "Sheet", es: "Lámina" },
-    scale: { en: "Scale", es: "Escala" },
-    drawn: { en: "Drawn", es: "Dibujó" },
-  },
   hero: {
-    hintScroll: { en: "Scroll to assemble · hover a part", es: "Haz scroll para ensamblar · pasa por una pieza" },
-    hintTouch: { en: "Tap a part", es: "Toca una pieza" },
-    clickHint: { en: "Click to explore", es: "Clic para explorar" },
+    experience: { en: "Experience", es: "Experiencia" },
     cv: { en: "CV", es: "CV" },
-    assembly: { en: "Assembly", es: "Montaje" },
   },
   agent: {
     name: { en: "Ask my agent", es: "Pregúntale a mi agente" },
     prompt: { en: "Ask my agent anything about Carlos", es: "Pregúntale a mi agente lo que quieras sobre Carlos" },
     examples: {
-      en: ["What is Carlos building with AI right now?", "What will he do at PropHero?", "Is he available for an internship in 2027?", "Which projects use Python?"],
-      es: ["¿Qué está construyendo Carlos con IA?", "¿Qué hará en PropHero?", "¿Está disponible para prácticas en 2027?", "¿Qué proyectos usan Python?"],
+      en: ["What will he do at PropHero?", "What is he studying at ETSII-UPM?", "Is he available for an internship in 2027?", "Which projects use Python?"],
+      es: ["¿Qué hará en PropHero?", "¿Qué estudia en la ETSII-UPM?", "¿Está disponible para prácticas en 2027?", "¿Qué proyectos usan Python?"],
     } satisfies L<string[]>,
     grounded: { en: "Answers only from Carlos's profile", es: "Responde solo con el perfil de Carlos" },
     inputPlaceholder: { en: "Ask a follow-up…", es: "Pregunta algo más…" },
@@ -46,7 +42,7 @@ export const copy = {
     rateLimited: { en: "Too many questions in a short time. Try again in a few minutes.", es: "Demasiadas preguntas seguidas. Prueba de nuevo en unos minutos." },
     limit: { en: "That's the limit for this conversation. For anything else, write to Carlos:", es: "Has llegado al límite de esta conversación. Para lo demás, escribe a Carlos:" },
     error: { en: "Something went wrong. Try again in a moment.", es: "Algo ha fallado. Prueba otra vez en un momento." },
-    refusal: { en: "I can't help with that. Ask me about Carlos's work, projects or availability.", es: "No puedo ayudar con eso. Pregúntame por el trabajo, los proyectos o la disponibilidad de Carlos." },
+    refusal: { en: "I can't help with that. Ask me about Carlos's work, studies, projects or availability.", es: "No puedo ayudar con eso. Pregúntame por el trabajo, los estudios, los proyectos o la disponibilidad de Carlos." },
     budget: { en: "messages", es: "mensajes" },
     actions: {
       scroll_to: { en: "Taking you to {x}", es: "Te llevo a {x}" },
@@ -54,20 +50,59 @@ export const copy = {
       open_project: { en: "Opening {x}", es: "Te abro {x}" },
       download_cv: { en: "Downloading the CV ({x})", es: "Descargando el CV ({x})" },
       open_booking: { en: "Opening the calendar", es: "Te abro la agenda" },
-      focus_part: { en: "Showing {x} on the gearbox", es: "Te enseño {x} en la reductora" },
+      focus_part: { en: "Lighting up {x} on the gearbox", es: "Enciendo {x} en la reductora" },
     },
   },
-  systems: {
-    title: { en: "Systems", es: "Sistemas" },
+  now: {
+    title: { en: "Right now", es: "Ahora mismo" },
+    work: { en: "Work", es: "Trabajo" },
+    study: { en: "Studies", es: "Estudios" },
+    current: { en: "Current", es: "Actual" },
+    starts: { en: "Starts {x}", es: "Empieza el {x}" },
+    year: { en: "Year {x}", es: "{x}º curso" },
+    specialisation: { en: "Specialisation", es: "Especialidad" },
+    more: { en: "See in Experience", es: "Ver en Experiencia" },
+    moreStudy: { en: "See in Education", es: "Ver en Formación" },
+  },
+  experience: {
+    title: { en: "Experience", es: "Experiencia" },
     intro: {
-      en: "Three systems I'm building. Each one takes a manual process and turns it into something that runs on its own.",
-      es: "Tres sistemas que estoy construyendo. Cada uno coge un proceso manual y lo convierte en algo que funciona solo.",
+      en: "Where I work and have worked. Operations first, then the technology to make it run by itself.",
+      es: "Dónde trabajo y he trabajado. Primero las operaciones, luego la tecnología para que funcionen solas.",
     },
+    present: { en: "Present", es: "Actualidad" },
+    current: { en: "Current", es: "Actual" },
+    incoming: { en: "Incoming", es: "Próximamente" },
+  },
+  education: {
+    title: { en: "Education", es: "Formación" },
+    intro: {
+      en: "Industrial engineering at ETSII-UPM, specialising in intelligent systems. Engineering method for everything else.",
+      es: "Ingeniería industrial en la ETSII-UPM, especialidad en sistemas inteligentes. Método de ingeniero para todo lo demás.",
+    },
+    specialisation: { en: "Specialisation", es: "Especialidad" },
+    year: { en: "Year {x}", es: "{x}º curso" },
+    erasmus: { en: "Erasmus exchange", es: "Erasmus" },
+    complementary: { en: "Also", es: "Además" },
+    school: { en: "School", es: "Colegio" },
+    course: { en: "Course", es: "Curso" },
+    cone: { en: "Graduation · Jun 2028 → full-time", es: "Graduación · jun 2028 → full-time" },
+    coneNote: { en: "Full-time from Jan 2028; many possible paths, one destination.", es: "Tiempo completo desde ene 2028; muchos caminos posibles, un destino." },
+  },
+  projects: {
+    title: { en: "Projects", es: "Proyectos" },
+    intro: {
+      en: "Systems I build in my own time. Each one takes a manual process and makes it run on its own.",
+      es: "Sistemas que construyo por mi cuenta. Cada uno coge un proceso manual y hace que funcione solo.",
+    },
+    open: { en: "See demo", es: "Ver demo" },
+    openNoDemo: { en: "See details", es: "Ver detalles" },
+    close: { en: "Close", es: "Cerrar" },
     problem: { en: "Problem", es: "Problema" },
     built: { en: "What I built", es: "Qué construí" },
     next: { en: "Next", es: "Siguiente" },
-    stack: { en: "Stack", es: "Stack" },
     repoSoon: { en: "Repo coming soon", es: "Repo próximamente" },
+    demoSoon: { en: "The recorded demo is on its way.", es: "La demo grabada está en camino." },
     illustrative: { en: "Illustrative", es: "Ilustrativo" },
     realFlow: { en: "Real workflow", es: "Flujo real" },
     animated: { en: "Diagram", es: "Diagrama" },
@@ -89,35 +124,14 @@ export const copy = {
       best: { en: "best generation", es: "mejor generación" },
     },
   },
-  trajectory: {
-    title: { en: "Trajectory", es: "Trayectoria" },
+  skills: {
+    title: { en: "Skills", es: "Skills" },
     intro: {
-      en: "Study, work and leadership on one timeline, 2023 → 2028. The future stretch is drawn as what it is: many possible paths that converge.",
-      es: "Formación, trabajo y liderazgo en una sola línea, 2023 → 2028. El tramo futuro se dibuja como lo que es: muchos caminos posibles que convergen.",
-    },
-    lanes: {
-      education: { en: "Education", es: "Formación" },
-      work: { en: "Work", es: "Trabajo" },
-      leadership: { en: "Leadership", es: "Liderazgo" },
-    },
-    now: { en: "Now", es: "Ahora" },
-    present: { en: "Present", es: "Actualidad" },
-    fullTime: { en: "Full-time · Jan 2028", es: "Tiempo completo · ene 2028" },
-    erasmus: { en: "Erasmus", es: "Erasmus" },
-    paths: { en: "Monte Carlo paths", es: "Trayectorias Monte Carlo" },
-    incoming: { en: "Incoming", es: "Próximamente" },
-    current: { en: "Current", es: "Actual" },
-    also: { en: "Also", es: "Además" },
-    close: { en: "Close", es: "Cerrar" },
-  },
-  toolkit: {
-    title: { en: "Toolkit", es: "Toolkit" },
-    intro: {
-      en: "Every skill is a star, grouped by domain. Hover one to see where I used it — the thicker the line, the more it mattered.",
+      en: "Each skill is a star, grouped by domain. Hover one to see where I used it — the thicker the line, the more it mattered.",
       es: "Cada skill es una estrella, agrupada por dominio. Pasa por una para ver dónde la usé: cuanto más gruesa la línea, más pesó.",
     },
     introTouch: {
-      en: "Every skill is a star, grouped by domain. Tap one to see where I used it.",
+      en: "Each skill is a star, grouped by domain. Tap one to see where I used it.",
       es: "Cada skill es una estrella, agrupada por dominio. Toca una para ver dónde la usé.",
     },
     usedIn: { en: "Used in", es: "Usado en" },
@@ -130,9 +144,9 @@ export const copy = {
     list: { en: "Skills by domain", es: "Skills por dominio" },
     go: { en: "Show on the page", es: "Ver en la página" },
   },
-  beyond: {
-    title: { en: "Beyond", es: "Más allá" },
-    intro: { en: "Leadership and impact outside the job description.", es: "Liderazgo e impacto fuera de la descripción del puesto." },
+  leadership: {
+    title: { en: "Leadership & impact", es: "Liderazgo e impacto" },
+    intro: { en: "What I do outside the job description.", es: "Lo que hago fuera de la descripción del puesto." },
     offTheClock: { en: "Off the clock", es: "Fuera del horario" },
   },
   contact: {
@@ -153,6 +167,7 @@ export const copy = {
   },
   palette: {
     placeholder: { en: "Type a command or a section…", es: "Escribe un comando o una sección…" },
+    search: { en: "Search", es: "Buscar" },
     empty: { en: "No results", es: "Sin resultados" },
     navigate: { en: "Go to", es: "Ir a" },
     actions: { en: "Actions", es: "Acciones" },
@@ -172,7 +187,7 @@ export const copy = {
     rnd: { en: "In development", es: "En desarrollo" },
   },
   footer: {
-    built: { en: "Drawn in Madrid", es: "Dibujado en Madrid" },
+    built: { en: "Made in Madrid", es: "Hecho en Madrid" },
   },
 };
 

@@ -14,7 +14,10 @@ export async function generateStaticParams() {
 }
 
 export const viewport: Viewport = {
-  themeColor: "#05060a",
+  themeColor: [
+    { media: "(prefers-color-scheme: dark)", color: "#05060a" },
+    { media: "(prefers-color-scheme: light)", color: "#fbfbfd" },
+  ],
   colorScheme: "dark light",
 };
 
@@ -25,7 +28,7 @@ export async function generateMetadata({ params }: LayoutProps<"/[lang]">): Prom
   return {
     metadataBase: new URL(SITE_URL),
     title,
-    description: profile.subtitle[l],
+    description: profile.summary[l],
     robots: robotsMeta,
     alternates: {
       canonical: l === "en" ? "/" : "/es",
@@ -34,7 +37,7 @@ export async function generateMetadata({ params }: LayoutProps<"/[lang]">): Prom
     openGraph: {
       type: "profile",
       title,
-      description: profile.subtitle[l],
+      description: profile.summary[l],
       locale: l === "en" ? "en_US" : "es_ES",
       siteName: profile.name,
     },
@@ -48,8 +51,9 @@ function personJsonLd(lang: "en" | "es") {
     name: profile.name,
     url: SITE_URL,
     email: `mailto:${profile.email}`,
-    jobTitle: profile.tagline[lang],
-    description: profile.subtitle[lang],
+    jobTitle: profile.experience.find((e) => e.featured)!.role[lang],
+    worksFor: { "@type": "Organization", name: profile.experience.find((e) => e.featured)!.company },
+    description: profile.summary[lang],
     address: { "@type": "PostalAddress", addressLocality: "Madrid", addressCountry: "ES" },
     alumniOf: { "@type": "CollegeOrUniversity", name: "Universidad Politécnica de Madrid" },
     sameAs: [profile.links.linkedin, profile.links.github],

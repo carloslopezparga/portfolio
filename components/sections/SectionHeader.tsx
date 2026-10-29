@@ -1,21 +1,21 @@
 import type { ReactNode } from "react";
-import { Cota } from "@/components/ui/Cota";
+import { SECTIONS } from "@/content/profile";
+import type { SectionId } from "@/content/types";
 
-/** Sheet number, title, one-line intro and a live dimension line. */
-export function SectionHeader({ index, title, intro, aside }: { index: number; title: string; intro?: ReactNode; aside?: ReactNode }) {
+const pad = (n: number) => String(n).padStart(2, "0");
+
+/** Sheet number (the only blueprint detail left), title and a one-line intro. */
+export function SectionHeader({ id, title, intro }: { id: SectionId; title: string; intro?: ReactNode }) {
   return (
-    <header className="mx-auto w-full max-w-[1400px] px-5 sm:px-8 md:px-12">
-      <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
-        <div className="max-w-[760px]">
-          <p className="mono-label">
-            <span className="text-fg">{String(index).padStart(2, "0")}</span> / 06
-          </p>
-          <h2 className="mt-2 text-[clamp(1.9rem,3.6vw,3rem)] leading-[1.02] text-fg">{title}</h2>
-          {intro ? <p className="mt-3 max-w-[64ch] text-[15px] leading-relaxed text-muted">{intro}</p> : null}
-        </div>
-        {aside}
-      </div>
-      <Cota className="mt-6" />
+    <header className="mx-auto w-full max-w-[1200px] px-5 sm:px-8">
+      <p className="mono-label">
+        <span className="text-fg">{pad(SECTIONS.indexOf(id) + 1)}</span> / {pad(SECTIONS.length)}
+      </p>
+      <h2 className="mt-2 text-[clamp(1.9rem,3.6vw,2.9rem)] leading-[1.04] text-fg">{title}</h2>
+      {intro ? <p className="mt-3 max-w-[62ch] text-[15.5px] leading-relaxed text-muted">{intro}</p> : null}
     </header>
   );
 }
+
+/** data-sheet for a section (the header's progress gear reads it). */
+export const sheetOf = (id: SectionId) => SECTIONS.indexOf(id) + 1;

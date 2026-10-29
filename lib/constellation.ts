@@ -1,4 +1,4 @@
-import { profile, refDomain } from "@/content/profile";
+import { profile, refLabels } from "@/content/profile";
 import type { DomainId, RefId, StackId } from "@/content/types";
 
 export type Cluster = DomainId | "languages";
@@ -10,18 +10,22 @@ export interface StarPos {
   x: number;
   y: number;
   r: number;
+  /** 1–3: star and icon size. */
+  weight: number;
   labelSide: "l" | "r";
 }
 export interface NodePos {
   id: RefId;
-  domain: DomainId;
   x: number;
   y: number;
+  /** Label beside the dot (phones) instead of under it. */
+  labelSide?: "r";
 }
 export interface ClusterPos {
   id: Cluster;
   x: number;
   y: number;
+  anchor?: "start" | "middle";
 }
 export interface Layout {
   w: number;
@@ -31,14 +35,6 @@ export interface Layout {
   clusters: ClusterPos[];
 }
 
-const CLUSTERS = {
-  landscape: { w: 1200, h: 620, c: { ai: [235, 150], automation: [965, 150], data: [235, 470], ops: [965, 470], engineering: [600, 70], languages: [600, 575] }, ell: [600, 305, 230, 128] },
-  portrait: { w: 600, h: 900, c: { ai: [150, 130], automation: [450, 130], data: [150, 700], ops: [450, 700], engineering: [300, 40], languages: [300, 850] }, ell: [300, 415, 200, 165] },
-} as const;
-
-/** Base angle (screen coords, y down) where each domain's big nodes sit on the central ellipse. */
-const BASE: Record<DomainId, number> = { ai: -150, automation: -30, data: 150, ops: 30, engineering: -90 };
-
 export function weightOf(u: RefId | { id: RefId; w: number }) {
   return typeof u === "string" ? 1 : u.w;
 }
@@ -47,10 +43,6 @@ export function idOf(u: RefId | { id: RefId; w: number }) {
 }
 
 export function constellationLayout(orientation: "landscape" | "portrait"): Layout {
-  const cfg = CLUSTERS[orientation];
-  const stars: StarPos[] = [];
-  const clusters: ClusterPos[] = [];
-
   const byCluster = new Map<Cluster, { id: string; kind: StarPos["kind"]; weight: number }[]>();
   profile.stack.forEach((s) => {
     const list = byCluster.get(s.domain) ?? [];
@@ -61,42 +53,113 @@ export function constellationLayout(orientation: "landscape" | "portrait"): Layo
     "languages",
     profile.languages.map((l) => ({ id: `lang-${l.id}`, kind: "language" as const, weight: 1 })),
   );
+  return orientation === "portrait" ? portraitLayout(byCluster) : landscapeLayout(byCluster);
+}
 
-  byCluster.forEach((list, cluster) => {
-    const [cx, cy] = cfg.c[cluster];
-    clusters.push({ id: cluster, x: cx, y: cy });
-    if (cluster === "languages") {
-      const span = orientation === "landscape" ? 320 : 360;
-      list.forEach((s, i) => {
-        const x = cx - span / 2 + (span * i) / Math.max(1, list.length - 1);
-        stars.push({ id: s.id, kind: s.kind, cluster, x, y: cy, r: 3.5, labelSide: "r" });
+/** Big nodes in reading order: jobs, studies, projects, this site. */
+const NODE_ORDER: RefId[] = ["prophero", "grupo-lalala", "induforum", "classy-night-society", "giti", "cs50", "job-hunt-copilot", "mail-autopilot", "cooling-agent", "this-site"];
+
+type Groups = Map<Cluster, { id: string; kind: StarPos["kind"]; weight: number }[]>;
+
+const starPos = (it: { id: string; kind: StarPos["kind"]; weight: number }, cluster: Cluster, x: number, y: number): StarPos => ({
+  id: it.id,
+  kind: it.kind,
+  cluster,
+  x,
+  y,
+  r: it.kind === "language" ? 3.5 : 4 + (it.weight - 1) * 2.5,
+  weight: it.weight,
+  labelSide: "r",
+});
+
+/**
+ * Wide screens: domains as short columns on both sides (labels to the right,
+ * so they never collide), the projects and jobs on an ellipse in the centre,
+ * languages in a row underneath.
+ */
+function landscapeLayout(groups: Groups): Layout {
+  const W = 1000;
+  const stars: StarPos[] = [];
+  const clusters: ClusterPos[] = [];
+  const column = (ids: Cluster[], x: number) => {
+    let y = 30;
+    ids.forEach((cluster) => {
+      const list = groups.get(cluster) ?? [];
+      clusters.push({ id: cluster, x: x - 6, y, anchor: "start" });
+      y += 38;
+      list.forEach((it) => {
+        stars.push(starPos(it, cluster, x + 12, y));
+        y += 40;
       });
-      return;
-    }
-    const n = list.length;
-    const radius = n <= 2 ? 52 : 48 + n * 9;
-    const offset = cluster === "ai" || cluster === "data" ? Math.PI : 0;
-    list.forEach((s, i) => {
-      const a = offset + (n === 1 ? 0 : (i / n) * Math.PI * 2) + 0.4;
-      const x = cx + Math.cos(a) * radius;
-      const y = cy + Math.sin(a) * radius * 0.72;
-      stars.push({ id: s.id, kind: s.kind, cluster, x, y, r: 4 + (s.weight - 1) * 2.5, labelSide: x < cx ? "l" : "r" });
+      y += 18;
     });
+    return y;
+  };
+  const bottom = Math.max(column(["ai", "automation", "software"], 24), column(["data", "ops"], 740));
+  const langY = bottom + 64;
+  clusters.push({ id: "languages", x: W / 2, y: langY - 30 });
+  (groups.get("languages") ?? []).forEach((it, i, all) => stars.push(starPos(it, "languages", W / 2 - 200 + (400 * i) / Math.max(1, all.length - 1), langY)));
+  const cy = (bottom - 20) / 2 + 10;
+  const nodes: NodePos[] = NODE_ORDER.map((id, i) => {
+    const a = ((-90 + (i * 360) / NODE_ORDER.length) * Math.PI) / 180;
+    return { id, x: W / 2 + Math.cos(a) * 165, y: cy + Math.sin(a) * (cy - 34) };
   });
+  return { w: W, h: langY + 26, stars, nodes, clusters };
+}
 
-  // Big nodes evenly spaced on a central ellipse, grouped by domain and
-  // ordered by angle so each group faces its domain's corner.
-  const [ex, ey, rx, ry] = cfg.ell;
-  const refs = (Object.keys(refDomain) as RefId[]).sort((a, b) => BASE[refDomain[a]] - BASE[refDomain[b]]);
-  const step = 360 / refs.length;
-  const firstGroup = refs.filter((id) => refDomain[id] === refDomain[refs[0]]).length;
-  const start = BASE[refDomain[refs[0]]] - ((firstGroup - 1) * step) / 2;
-  const nodes: NodePos[] = refs.map((id, i) => {
-    const a = ((start + i * step) * Math.PI) / 180;
-    return { id, domain: refDomain[id], x: ex + Math.cos(a) * rx, y: ey + Math.sin(a) * ry };
+/** Longest label of a star across both languages, in characters. */
+function labelLength(id: string) {
+  const s = profile.stack.find((x) => x.id === id);
+  if (s) return Math.max(s.label.en.length, s.label.es.length);
+  const l = profile.languages.find((x) => `lang-${x.id}` === id);
+  return l ? Math.max(l.name.en.length + l.level.en.length, l.name.es.length + l.level.es.length) + 1 : 10;
+}
+
+/**
+ * Phones: each domain as a short list (two per row when the labels fit, one
+ * when they don't), labels always to the right so nothing overflows; the big
+ * nodes on an ellipse underneath.
+ */
+function portraitLayout(byCluster: Map<Cluster, { id: string; kind: StarPos["kind"]; weight: number }[]>): Layout {
+  const W = 600;
+  const ORDER: Cluster[] = ["ai", "automation", "data", "software", "ops", "languages"];
+  const COLS = [34, 316];
+  const CHAR = 10; // label width per character, in viewBox units
+  const stars: StarPos[] = [];
+  const clusters: ClusterPos[] = [];
+  let y = 26;
+  ORDER.forEach((cluster) => {
+    const list = byCluster.get(cluster) ?? [];
+    if (!list.length) return;
+    clusters.push({ id: cluster, x: COLS[0] - 6, y, anchor: "start" });
+    y += 40;
+    for (let i = 0; i < list.length; ) {
+      const a = list[i];
+      const b = list[i + 1];
+      const fits = (it: { id: string }) => 50 + labelLength(it.id) * CHAR < COLS[1] - COLS[0] - 10;
+      const pair = b && fits(a) && fits(b);
+      [a, ...(pair ? [b] : [])].forEach((it, col) =>
+        stars.push({ id: it.id, kind: it.kind, cluster, x: COLS[col] + 14, y, r: it.kind === "language" ? 3.5 : 4 + (it.weight - 1) * 2.5, weight: it.weight, labelSide: "r" }),
+      );
+      i += pair ? 2 : 1;
+      y += 44;
+    }
+    y += 14;
   });
-
-  return { w: cfg.w, h: cfg.h, stars, nodes, clusters };
+  // the projects and jobs: two per row when both labels fit
+  const nodes: NodePos[] = [];
+  const nodeLen = (id: RefId) => Math.max(refLabels[id].en.length, refLabels[id].es.length);
+  y += 18;
+  for (let i = 0; i < NODE_ORDER.length; ) {
+    const a = NODE_ORDER[i];
+    const b = NODE_ORDER[i + 1];
+    const fits = (id: RefId) => 40 + nodeLen(id) * CHAR < COLS[1] - COLS[0] - 10;
+    const pair = b && fits(a) && fits(b);
+    [a, ...(pair ? [b] : [])].forEach((id, col) => nodes.push({ id, x: COLS[col] + 14, y, labelSide: "r" }));
+    i += pair ? 2 : 1;
+    y += 46;
+  }
+  return { w: W, h: y + 6, stars, nodes, clusters };
 }
 
 /** skill → [{ref, w}] and ref → [skill] lookups. */

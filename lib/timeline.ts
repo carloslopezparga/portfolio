@@ -1,21 +1,3 @@
-import type { DateISO } from "@/content/types";
-
-/** Axis of the trajectory chart: Jan 2023 → Jul 2028, in months. */
-export const AXIS = { startYear: 2023, months: 66 };
-
-/** Month index (fractional) from the start of the axis. */
-export function monthIndex(d: DateISO | Date): number {
-  if (d instanceof Date) return (d.getUTCFullYear() - AXIS.startYear) * 12 + d.getUTCMonth() + (d.getUTCDate() - 1) / 30;
-  const [y, m, day] = d.split("-").map(Number);
-  return (y - AXIS.startYear) * 12 + (m - 1) + (day ? (day - 1) / 30 : 0);
-}
-
-/** End of a month given as YYYY-MM (inclusive) → index of the following month start. */
-export function monthEnd(d: DateISO): number {
-  const parts = d.split("-");
-  return parts.length === 3 ? monthIndex(d) : monthIndex(d) + 1;
-}
-
 /** Brownian bridges from 0 to 0: a fan of plausible paths that converge at both ends. */
 export function brownianBridges(n: number, steps: number, seed = 11): number[][] {
   let s = seed;
@@ -36,4 +18,17 @@ export function brownianBridges(n: number, steps: number, seed = 11): number[][]
     out.push(w.map((v, i) => v - (i / steps) * end));
   }
   return out;
+}
+
+/** Smooth polyline through points (quadratic segments via midpoints). */
+export function smoothPath(pts: number[][]) {
+  const f = (n: number) => n.toFixed(1);
+  let d = `M${f(pts[0][0])} ${f(pts[0][1])}`;
+  for (let i = 1; i < pts.length - 1; i++) {
+    const mx = (pts[i][0] + pts[i + 1][0]) / 2;
+    const my = (pts[i][1] + pts[i + 1][1]) / 2;
+    d += ` Q${f(pts[i][0])} ${f(pts[i][1])} ${f(mx)} ${f(my)}`;
+  }
+  const last = pts[pts.length - 1];
+  return `${d} L${f(last[0])} ${f(last[1])}`;
 }

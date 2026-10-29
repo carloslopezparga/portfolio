@@ -18,13 +18,13 @@ Font.registerHyphenationCallback((word) => [word]);
 const C = { ink: "#111318", muted: "#4a505c", rule: "#c9ced8", accent: "#1f5fd1" };
 
 const s = StyleSheet.create({
-  page: { paddingTop: 28, paddingBottom: 24, paddingHorizontal: 36, fontFamily: "Helvetica", fontSize: 8.9, lineHeight: 1.34, color: C.ink },
+  page: { paddingTop: 28, paddingBottom: 24, paddingHorizontal: 36, fontFamily: "Helvetica", fontSize: 8.8, lineHeight: 1.32, color: C.ink },
   name: { fontFamily: "Helvetica-Bold", fontSize: 18, lineHeight: 1.15 },
   tagline: { fontSize: 10, lineHeight: 1.3, marginTop: 2 },
   contact: { marginTop: 4, color: C.muted, fontSize: 8.4 },
   link: { color: C.muted, textDecoration: "none" },
   avail: { marginTop: 1, color: C.accent, fontFamily: "Helvetica-Bold", fontSize: 8.4 },
-  h2: { marginTop: 9, marginBottom: 3, paddingBottom: 1.5, borderBottomWidth: 0.6, borderBottomColor: C.rule, fontFamily: "Helvetica-Bold", fontSize: 9.2 },
+  h2: { marginTop: 8, marginBottom: 3, paddingBottom: 1.5, borderBottomWidth: 0.6, borderBottomColor: C.rule, fontFamily: "Helvetica-Bold", fontSize: 9.2 },
   row: { flexDirection: "row", justifyContent: "space-between" },
   item: { marginBottom: 3.5 },
   cols: { flexDirection: "row", gap: 16 },
@@ -38,11 +38,11 @@ const s = StyleSheet.create({
 });
 
 const H = {
-  en: { edu: "EDUCATION", exp: "EXPERIENCE", proj: "PROJECTS", lead: "LEADERSHIP & VOLUNTEERING", skills: "SKILLS", langs: "Languages", courses: "Courses", interests: "Interests", incoming: "Incoming", erasmus: "Erasmus exchange" },
-  es: { edu: "FORMACIÓN", exp: "EXPERIENCIA", proj: "PROYECTOS", lead: "LIDERAZGO Y VOLUNTARIADO", skills: "HABILIDADES", langs: "Idiomas", courses: "Cursos", interests: "Intereses", incoming: "Próximamente", erasmus: "Erasmus" },
+  en: { edu: "EDUCATION", exp: "EXPERIENCE", proj: "PROJECTS", lead: "LEADERSHIP & VOLUNTEERING", skills: "SKILLS", langs: "Languages", interests: "Interests", incoming: "Incoming", erasmus: "Erasmus exchange", spec: "Specialisation", course: "Course" },
+  es: { edu: "FORMACIÓN", exp: "EXPERIENCIA", proj: "PROYECTOS", lead: "LIDERAZGO Y VOLUNTARIADO", skills: "HABILIDADES", langs: "Idiomas", interests: "Intereses", incoming: "Próximamente", erasmus: "Erasmus", spec: "Especialidad", course: "Curso" },
 };
 
-const DOMAIN_ORDER: DomainId[] = ["ai", "automation", "data", "ops"];
+const DOMAIN_ORDER: DomainId[] = ["ai", "automation", "data", "software", "ops"];
 
 function Bullet({ children }: { children: string }) {
   return (
@@ -75,8 +75,6 @@ function CV({ lang, now }: { lang: Locale; now: Date }) {
     items: p.stack.filter((x) => x.domain === d).map((x) => x.label[lang]),
   })).filter((g) => g.items.length);
   const erasmus = p.future.erasmus;
-  const work = p.experience.filter((e) => e.lane === "work");
-  const leadershipRoles = p.experience.filter((e) => e.lane === "leadership");
   const site = (u: string) => u.replace(/^https?:\/\/(www\.)?/, "");
 
   return (
@@ -100,39 +98,38 @@ function CV({ lang, now }: { lang: Locale; now: Date }) {
         </Text>
         <Text style={s.avail}>{p.availability[lang]}</Text>
 
-        <Text style={s.h2}>{h.edu}</Text>
-        {p.education.map((e) => (
-          <Entry key={e.id} title={e.institution[lang]} right={formatRange(e.start, e.end, lang)} sub={e.degree[lang]}>
-            {[e.details, e.honors].map((list, i) =>
-              list.some(has) ? (
-                <Bullet key={i}>
-                  {list
-                    .filter(has)
-                    .map((x) => x[lang])
-                    .join(" · ")}
-                </Bullet>
-              ) : null,
-            )}
-            {e.id === "upm" ? (
-              <Bullet>{`${h.erasmus}${has(erasmus.destination) ? ` · ${erasmus.destination[lang]}` : ""} · ${formatMonth(erasmus.start, lang)} – ${formatMonth(erasmus.end, lang)}`}</Bullet>
-            ) : null}
-          </Entry>
-        ))}
-
         <Text style={s.h2}>{h.exp}</Text>
-        {work.map((e) => {
+        {p.experience.map((e) => {
           const upcoming = timeStatus(e.start, e.end, now) === "upcoming";
-          const sub = [e.role[lang], e.context?.[lang]].filter(Boolean).join(" · ");
+          const sub = [e.role[lang], e.context?.[lang], has(e.location) ? e.location[lang] : null, e.mode && has(e.mode) ? e.mode[lang] : null].filter(Boolean).join(" · ");
+          const bullets = e.bullets.filter(has);
           return (
             <Entry key={e.id} title={e.company} right={`${upcoming ? `${h.incoming} · ` : ""}${formatRange(e.start, e.end, lang)}`} sub={sub}>
-              {has(e.summary) ? <Text>{e.summary[lang]}</Text> : null}
-              {(e.highlights ?? []).map((x, i) => (
+              {bullets.map((x, i) => (
                 <Bullet key={i}>{x[lang]}</Bullet>
               ))}
+              {!bullets.length && has(e.summary) ? <Text>{e.summary[lang]}</Text> : null}
               {has(e.results) ? <Bullet>{e.results[lang]}</Bullet> : null}
             </Entry>
           );
         })}
+
+        <Text style={s.h2}>{h.edu}</Text>
+        {p.education.map((e) => {
+          const chips = e.chips.filter(has).map((c) => c.label[lang]);
+          return (
+            <Entry key={e.id} title={e.institution[lang]} right={formatRange(e.start, e.end, lang)} sub={e.degree[lang]}>
+              {e.specialisation ? <Bullet>{`${h.spec}: ${e.specialisation[lang]}`}</Bullet> : null}
+              {chips.length ? <Bullet>{chips.join(" · ")}</Bullet> : null}
+              {e.id === "upm" ? (
+                <Bullet>{`${h.erasmus}${has(erasmus.destination) ? ` · ${erasmus.destination[lang]}` : ""} · ${formatMonth(erasmus.start, lang)} – ${formatMonth(erasmus.end, lang)}`}</Bullet>
+              ) : null}
+            </Entry>
+          );
+        })}
+        {p.courses.map((c) => (
+          <Entry key={c.id} title={`${c.name} · ${c.provider}`} right={h.course} sub={c.detail[lang]} />
+        ))}
 
         <Text style={s.h2}>{h.proj}</Text>
         {p.projects.map((pr) => (
@@ -152,11 +149,6 @@ function CV({ lang, now }: { lang: Locale; now: Date }) {
         ))}
 
         <Text style={s.h2}>{h.lead}</Text>
-        {leadershipRoles.map((e) => (
-          <Entry key={e.id} title={`${e.company} · ${e.role[lang]}`} right={formatRange(e.start, e.end, lang)} sub={e.context?.[lang]}>
-            {has(e.summary) ? <Text>{e.summary[lang]}</Text> : null}
-          </Entry>
-        ))}
         {p.leadership.map((l) => (
           <View key={l.id} style={s.bullet}>
             <Text style={s.dot}>•</Text>
@@ -170,7 +162,7 @@ function CV({ lang, now }: { lang: Locale; now: Date }) {
         <Text style={s.h2}>{h.skills}</Text>
         <View style={s.cols}>
           <View style={s.col}>
-            {skills.map((g) => (
+            {skills.slice(0, 3).map((g) => (
               <Text key={g.d}>
                 <Text style={s.strong}>{domainLabel[g.d]}: </Text>
                 {g.items.join(", ")}
@@ -178,13 +170,15 @@ function CV({ lang, now }: { lang: Locale; now: Date }) {
             ))}
           </View>
           <View style={s.col}>
+            {skills.slice(3).map((g) => (
+              <Text key={g.d}>
+                <Text style={s.strong}>{domainLabel[g.d]}: </Text>
+                {g.items.join(", ")}
+              </Text>
+            ))}
             <Text>
               <Text style={s.strong}>{h.langs}: </Text>
               {p.languages.map((l) => `${l.name[lang]} (${l.level[lang]})`).join(", ")}
-            </Text>
-            <Text>
-              <Text style={s.strong}>{h.courses}: </Text>
-              {p.courses.map((c) => `${c.name} (${c.detail[lang]})`).join(", ")}
             </Text>
             <Text>
               <Text style={s.strong}>{h.interests}: </Text>

@@ -117,8 +117,8 @@ export default async function LabPage() {
       org: e.company,
       meta: e.context?.[lang],
       body: t(e.summary, lang) ?? undefined,
-      bullets: e.highlights?.map((h) => h[lang]),
-      logo: <Logo src={logoSrc(e.logo)} name={e.company} monogram={e.monogram} size={44} />,
+      bullets: e.bullets.filter(has).map((h) => h[lang]),
+      logo: <Logo src={logoSrc(e.brand.logo)} name={e.company} monogram={e.brand.monogram} size={44} />,
     };
   });
   const education: TimelineItem[] = [
@@ -127,9 +127,9 @@ export default async function LabPage() {
       period: formatRange(ed.start, ed.end, lang),
       title: ed.degree[lang],
       org: ed.institution[lang],
-      bullets: ed.details.filter(has).map((d) => d[lang]),
-      chips: ed.honors.filter(has).map((h) => h[lang]),
-      logo: <Logo src={logoSrc(ed.logo)} name={ed.institution[lang]} monogram={ed.monogram} size={44} />,
+      bullets: ed.specialisation ? [ed.specialisation[lang]] : [],
+      chips: ed.chips.filter(has).map((c) => c.label[lang]),
+      logo: <Logo src={logoSrc(ed.brand.logo)} name={ed.institution[lang]} monogram={ed.brand.monogram} size={44} />,
     })),
     ...profile.courses.map((c) => ({
       id: c.id,
@@ -303,9 +303,9 @@ export default async function LabPage() {
                 {profile.tagline.es}
               </p>
               <p className="mt-3 text-[15px] leading-relaxed text-muted" style={{ fontFamily: f.key === "inter" ? f.family : "var(--font-geist)" }}>
-                {profile.subtitle.es}
+                {profile.summary.es}
               </p>
-              <p className="mono-label mt-5">Madrid · {profile.coordinates} · Geist Mono</p>
+              <p className="mono-label mt-5">Madrid · {"40.4168°N 3.7038°W"} · Geist Mono</p>
               <div className="mt-auto">
                 <FontButton font={f.key as "geist" | "inter" | "archivo"}>Aplicar a toda la página</FontButton>
               </div>
@@ -417,7 +417,7 @@ export default async function LabPage() {
         }}
       >
         <div className="flex flex-wrap items-center gap-4">
-          {[...profile.experience.map((e) => ({ k: e.logo, name: e.company, mono: e.monogram })), ...profile.education.map((e) => ({ k: e.logo, name: e.institution.es, mono: e.monogram }))].map((l) => (
+          {[...profile.experience.map((e) => ({ k: e.brand.logo, name: e.company, mono: e.brand.monogram })), ...profile.education.map((e) => ({ k: e.brand.logo, name: e.institution.es, mono: e.brand.monogram }))].map((l) => (
             <div key={l.k} className="flex items-center gap-3 rounded-full py-1.5 pl-1.5 pr-4 shadow-[inset_0_0_0_1px_var(--line)]">
               <Logo src={logoSrc(l.k)} name={l.name} monogram={l.mono} size={40} />
               <span className="font-mono text-[11px] text-dim">logos/{l.k}.svg</span>
@@ -533,7 +533,7 @@ export default async function LabPage() {
               <div>
                 <p className="mono-label">Decode · etiquetas (pasa el ratón)</p>
                 <div className="mt-3 flex flex-wrap gap-2">
-                  {["Madrid", profile.coordinates, "Rev A", "Sheet 09/19", "Tech Operations"].map((l) => (
+                  {["Madrid", "40.4168°N 3.7038°W", "Rev A", "Sheet 09/19", "Tech Operations"].map((l) => (
                     <span key={l} className="mono-label rounded-full px-3 py-1.5 !text-fg shadow-[inset_0_0_0_1px_var(--line-strong)]">
                       <Scramble text={l.toUpperCase()} trigger="view-hover" duration={600} />
                     </span>
@@ -543,7 +543,7 @@ export default async function LabPage() {
               <div>
                 <p className="mono-label">Por palabras</p>
                 <RevealText as="p" mode="words" className="mt-3 max-w-[40ch] text-[20px] leading-snug text-muted">
-                  {profile.subtitle.es}
+                  {profile.summary.es}
                 </RevealText>
               </div>
             </div>

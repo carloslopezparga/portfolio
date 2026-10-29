@@ -42,7 +42,7 @@ export function LayerToggles() {
   const layers = [
     ["stars", "Estrellas"],
     ["grid", "Retícula"],
-    ["nebula", "Nebulosa"],
+    ["nebula", "Auroras"],
   ] as const;
   return (
     <div className="flex flex-wrap gap-2">

@@ -1,6 +1,6 @@
 # carloslopezparga — personal site
 
-Next.js 16 (App Router, Cache Components) · TypeScript · Tailwind 4 · three.js / React Three Fiber · GSAP · Lenis · Anthropic SDK · @react-pdf/renderer · Cal.com embed.
+Next.js 16 (App Router, Cache Components) · TypeScript · Tailwind 4 · three.js / React Three Fiber · GSAP · Lenis · Anthropic SDK · @react-pdf/renderer · Cal.com embed · sharp.
 
 `/` (English) and `/es` (Spanish). `/lab` is the motion lab: still reachable and noindexed, but not linked from the site. Approved and pending decisions are in [`DECISIONS.md`](DECISIONS.md).
 
@@ -22,7 +22,7 @@ npm run todos      # lists every TODO still missing in content/profile.ts
 
 ## Logos, photos and demos
 
-- `public/logos/`: company and school logos. Expected names are in [`public/logos/README.md`](public/logos/README.md). If a file is missing, a monogram is shown.
+- `public/logos/`: company and school logos. Expected names are in [`public/logos/README.md`](public/logos/README.md). If a file is missing, a monogram is shown. The logo also sets the card's brand colour, which is read from the file at build time.
 - `public/photos/`: portrait, card photos and the n8n screenshot. Expected names are in [`public/photos/README.md`](public/photos/README.md). If a file is missing, it is left out.
 - `content/demos/job-hunt-copilot.txt`: a real CLI run, replayed as an animated terminal. The format is in [`content/demos/README.md`](content/demos/README.md).
 

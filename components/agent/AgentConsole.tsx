@@ -22,9 +22,9 @@ function actionLine(a: UIAction, lang: Locale): Part {
     case "scroll_to":
       return { kind: "action", label: fill(t.scroll_to[lang], sectionLabels[a.sectionId as SectionId][lang]) };
     case "highlight":
-      return { kind: "action", label: fill(t.highlight[lang], targetLabel(a.targetId, lang)), domain: targetDomain(a.targetId) };
+      return { kind: "action", label: fill(t.highlight[lang], targetLabel(a.targetId, lang)), domain: targetDomain(a.targetId) ?? undefined };
     case "open_project":
-      return { kind: "action", label: fill(t.open_project[lang], targetLabel(a.projectId, lang)), domain: targetDomain(a.projectId) };
+      return { kind: "action", label: fill(t.open_project[lang], targetLabel(a.projectId, lang)), domain: targetDomain(a.projectId) ?? undefined };
     case "download_cv":
       return { kind: "action", label: fill(t.download_cv[lang], a.lang.toUpperCase()) };
     case "open_booking":
@@ -214,9 +214,9 @@ export default function AgentConsole({ lang }: { lang: Locale }) {
           setTucked(false);
         }}
         aria-label={copy.agent.expand[lang]}
-        className="panel-blur fixed bottom-5 left-1/2 z-[160] flex h-11 -translate-x-1/2 items-center gap-2.5 rounded-full px-4 text-[13px] text-fg shadow-[0_0_0_1px_var(--line-strong),0_0_30px_-8px_rgb(var(--ai-rgb)/0.6)] md:left-auto md:right-6 md:translate-x-0"
+        className="material-blur fixed bottom-5 left-1/2 z-[160] flex h-11 -translate-x-1/2 items-center gap-2.5 rounded-full px-4 text-[13px] text-fg shadow-[0_0_0_1px_var(--line-strong),0_0_30px_-8px_rgb(var(--ai-rgb)/0.6)] md:left-auto md:right-6 md:translate-x-0"
       >
-        <span className={`size-2 rounded-full bg-[var(--ai)] shadow-[0_0_8px_rgb(var(--ai-rgb))] ${busy ? "animate-pulse" : ""}`} />
+        <span className={`ai-dot size-2 rounded-full ${busy ? "animate-pulse" : ""}`} />
         {copy.agent.name[lang]}
       </button>
     );
@@ -225,11 +225,11 @@ export default function AgentConsole({ lang }: { lang: Locale }) {
   return (
     <section
       aria-label={copy.agent.name[lang]}
-      className="agent-console panel-blur fixed inset-x-2 bottom-2 z-[160] flex max-h-[72svh] flex-col overflow-hidden rounded-[20px] shadow-[0_0_0_1px_var(--line-strong),0_40px_120px_-30px_rgb(0_0_0/0.7),0_0_60px_-30px_rgb(var(--ai-rgb)/0.7)] md:inset-x-auto md:bottom-6 md:right-6 md:max-h-[min(70vh,640px)] md:w-[440px]"
+      className="agent-console material-blur fixed inset-x-2 bottom-2 z-[160] flex max-h-[72svh] flex-col overflow-hidden rounded-[20px] shadow-[0_0_0_1px_var(--line-strong),0_40px_120px_-30px_rgb(0_0_0/0.7),0_0_60px_-30px_rgb(var(--ai-rgb)/0.7)] md:inset-x-auto md:bottom-6 md:right-6 md:max-h-[min(70vh,640px)] md:w-[440px]"
     >
       {/* header */}
       <header className="flex items-center gap-3 border-b border-line px-4 py-3">
-        <span className={`size-2 shrink-0 rounded-full bg-[var(--ai)] shadow-[0_0_10px_rgb(var(--ai-rgb))] ${busy ? "animate-pulse" : ""}`} aria-hidden />
+        <span className={`ai-dot size-2.5 shrink-0 rounded-full ${busy ? "animate-pulse" : ""}`} aria-hidden />
         <div className="min-w-0 flex-1">
           <p className="text-[14px] font-medium leading-tight text-fg">{copy.agent.name[lang]}</p>
           <p className="mono-label truncate !text-[9.5px]">{copy.agent.grounded[lang]}</p>

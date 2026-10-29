@@ -14,7 +14,7 @@ import { SplitChars } from "@/components/ui/SplitChars";
  */
 export function HeroCopy({ lang, play = true, projectsHref = "#projects" }: { lang: Locale; play?: boolean; projectsHref?: string }) {
   const [first, ...rest] = profile.name.split(" ");
-  const status = `${profile.location[lang]} · ${profile.coordinates} · ${profile.availability[lang]}`.toUpperCase();
+  const status = `${profile.location[lang]} · 40.4168°N 3.7038°W · ${profile.availability[lang]}`.toUpperCase();
   const statusShort = `${profile.location[lang]} · ${profile.availability[lang]}`.toUpperCase();
 
   return (
@@ -40,7 +40,7 @@ export function HeroCopy({ lang, play = true, projectsHref = "#projects" }: { la
           <Scramble text={profile.tagline[lang]} trigger="mount" mode="sweep" delay={200} duration={1100} />
         </p>
         <p className="rise mt-4 max-w-[60ch] text-[15px] leading-relaxed text-muted md:text-base" style={{ "--d": "380ms" } as CSSProperties}>
-          {profile.subtitle[lang]}
+          {profile.summary[lang]}
         </p>
 
         <div className="rise pointer-events-auto mt-8 flex flex-wrap items-center gap-3" style={{ "--d": "520ms" } as CSSProperties}>

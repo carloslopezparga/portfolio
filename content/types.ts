@@ -15,18 +15,24 @@ export const has = <T>(v: Maybe<T> | undefined | null): v is T => v != null && !
 /** ISO month ("2026-11") or day ("2026-11-03"). */
 export type DateISO = `${number}-${number}` | `${number}-${number}-${number}`;
 
-/**
- * Areas of the "Carlos as a system" gearbox. Each one has a colour:
- * ai = cyan, automation = electric blue, data = indigo, ops = ice/silver,
- * engineering = white (the ring gear the rest runs inside).
- */
-export type DomainId = "ai" | "automation" | "data" | "ops" | "engineering";
+/** A hex colour, e.g. "#2050F6". */
+export type Hex = `#${string}`;
 
-export type SectionId = "top" | "systems" | "trajectory" | "toolkit" | "beyond" | "contact";
+/**
+ * Skill domains. Each has an Apple system colour:
+ * ai = purple, automation = blue, data = cyan, ops = orange, software = green.
+ */
+export type DomainId = "ai" | "automation" | "data" | "ops" | "software";
+
+/** Apple system accents (light / dark variants live in globals.css). */
+export type Accent = "blue" | "indigo" | "purple" | "pink" | "orange" | "green" | "cyan";
+
+export type SectionId = "top" | "now" | "experience" | "education" | "projects" | "skills" | "leadership" | "contact";
 
 export type StackId =
   | "python"
   | "sql"
+  | "stats"
   | "nextjs"
   | "typescript"
   | "n8n"
@@ -37,30 +43,17 @@ export type StackId =
   | "sales"
   | "negotiation";
 
-/** Projects, jobs and courses: the big nodes skills point to. */
-export type RefId =
-  | "job-hunt-copilot"
-  | "mail-autopilot"
-  | "cooling-agent"
-  | "prophero"
-  | "grupo-lalala"
-  | "classy-night-society"
-  | "induforum"
-  | "cs50"
-  | "this-site";
+export type ExperienceId = "prophero" | "grupo-lalala" | "induforum" | "classy-night-society";
+export type ProjectId = "job-hunt-copilot" | "mail-autopilot" | "cooling-agent";
 
-export type ProjectId = Extract<RefId, "job-hunt-copilot" | "mail-autopilot" | "cooling-agent">;
+/** Everything a skill can point to: the big nodes of the constellation. */
+export type RefId = ProjectId | ExperienceId | "giti" | "cs50" | "this-site";
+
 export type ProjectStatus = "live" | "building" | "rnd";
 
 export interface Domain {
   id: DomainId;
   label: L;
-  /** The gearbox part that represents it. */
-  part: L;
-  /** 2–3 real things from this area, shown on hover. */
-  highlights: L[];
-  /** Where a click on the part leads. */
-  section: SectionId;
 }
 
 export interface ImpactMetric {
@@ -75,7 +68,7 @@ export interface Project {
   id: ProjectId;
   domain: DomainId;
   name: L;
-  /** One line for the project list. */
+  /** One line for the project card. */
   oneLiner: L;
   status: ProjectStatus;
   problem: L;
@@ -88,64 +81,88 @@ export interface Project {
   screenshot?: string;
 }
 
-export interface Experience {
-  id: Extract<RefId, "prophero" | "grupo-lalala" | "classy-night-society" | "induforum">;
-  domain: DomainId;
-  /** Trajectory lane. */
-  lane: "work" | "leadership";
-  company: string;
+/**
+ * Brand colour of an organisation. The site reads it from the logo file in
+ * public/logos when there is one; this value is the fallback until then.
+ */
+export interface Brand {
   logo: string;
   monogram: string;
+  color: Hex;
+}
+
+export interface Experience {
+  id: ExperienceId;
+  company: string;
+  brand: Brand;
   role: L;
+  /** Short context shown next to the company ("Proptech"). */
   context?: L;
+  location: Maybe<L>;
+  /** On-site / hybrid / remote. */
+  mode?: Maybe<L>;
   start: DateISO;
   /** null = present. */
   end: DateISO | null;
+  /** Two lines: what I do there (the "Now" card and the agent use it). */
   summary: Maybe<L>;
-  highlights?: L[];
+  /** 3–4 short, concrete bullets for the experience card and the CV. */
+  bullets: Maybe<L>[];
   results?: Maybe<L>;
-  /** Optional photo in public/photos for the detail card. */
+  /** Bigger card with the "Current" badge. */
+  featured?: boolean;
+  /** Optional photo in public/photos. */
   photo?: string;
+}
+
+export interface Chip {
+  label: L;
+  /** A registry target to jump to (e.g. a leadership card). */
+  target?: string;
+}
+
+export interface Education {
+  id: "upm" | "retamar";
+  institution: L;
+  /** Short name for cards ("ETSII-UPM"). */
+  short: string;
+  brand: Brand;
+  degree: L;
+  specialisation?: L;
+  start: DateISO | null;
+  end: DateISO;
+  /** Chips: honours, programmes. */
+  chips: Maybe<Chip>[];
+  featured?: boolean;
+}
+
+export interface Course {
+  id: "cs50";
+  name: string;
+  provider: string;
+  brand: Brand;
+  detail: L;
 }
 
 export interface Leadership {
   id: string;
-  domain: DomainId;
+  accent: Accent;
   title: L;
   description: L;
   metric?: Maybe<L>;
-  /** Dates place it on the trajectory chart; undated items only appear in "Beyond". */
   start?: Maybe<DateISO>;
   end?: Maybe<DateISO>;
   photo?: string;
 }
 
-export interface Education {
-  id: string;
-  institution: L;
-  logo: string;
-  monogram: string;
-  degree: L;
-  start: DateISO | null;
-  end: DateISO;
-  details: Maybe<L>[];
-  honors: Maybe<L>[];
-}
-
-export interface Course {
-  id: RefId;
-  name: string;
-  detail: L;
-}
-
-/** A link from a skill to where it was used; w = attention weight (default 1). */
+/** A link from a skill to where it was used; w = attention weight (line thickness, default 1). */
 export type UsedIn = RefId | { id: RefId; w: number };
 
 export interface StackItem {
   id: StackId;
   label: L;
   domain: DomainId;
-  /** Star size in the constellation (default 1). */
+  /** Star size in the constellation, 1–3 (default 1). */
   weight?: number;
   usedIn: UsedIn[];
 }
@@ -164,29 +181,32 @@ export interface Hobby {
 export interface FuturePlan {
   erasmus: { start: DateISO; end: DateISO; destination: Maybe<L> };
   thesis: L;
+  /** Full-time availability. */
   fullTime: DateISO;
+  graduation: DateISO;
 }
 
 export interface Profile {
   name: string;
   initials: string;
+  /** Headline under the name. */
   tagline: L;
-  subtitle: L;
+  /** Two-line summary in the hero. */
+  summary: L;
   location: L;
-  coordinates: string;
   availability: L;
   email: string;
   links: { linkedin: string; github: string };
   domains: Domain[];
   /** Not rendered at the moment; kept for when real numbers exist. */
   impact: ImpactMetric[];
-  projects: Project[];
   experience: Experience[];
-  leadership: Leadership[];
   education: Education[];
   courses: Course[];
   future: FuturePlan;
+  projects: Project[];
   stack: StackItem[];
   languages: Language[];
+  leadership: Leadership[];
   offTheClock: Hobby[];
 }

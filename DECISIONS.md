@@ -1,125 +1,109 @@
 # Decisiones
 
-Lo aprobado, lo que he decidido yo al construir (para que lo revises) y lo que falta. Fecha: 29-10-2026.
+Lo aprobado, lo que he decidido yo al construir (para que lo revises) y lo que falta. Última actualización: 29-10-2026 (cambio de rumbo: «al grano y con color»).
 
 ## 1. Aprobado
 
-**Concepto: «Carlos como sistema».** Plano técnico sobre espacio profundo. Tres motivos:
-- Ingeniería: la reductora planetaria (protagonista del hero).
-- IA: núcleo neuronal y respuestas token a token.
-- Quant: trayectorias de Monte Carlo.
+### Dirección
+- **Al grano.** Lo principal es la experiencia (sobre todo PropHero) y los estudios (sobre todo la ETSII-UPM), cada uno en su propia sección y con protagonismo.
+- **Mucho más color, estilo Apple × Windows 11.**
+- **Menos elementos y efectos.** Las estructuras animadas (reductora, núcleo, cono de Monte Carlo) son un extra estético, no el contenido.
+- **Eliminado:** el Gantt de trayectoria, el cajetín y las cotas como estructura, la reductora con etiquetas de dominio y el hover complejo, el bloque fijo de lámina y la barra de progreso.
+- **Del plano solo quedan detalles finos:** el número de sección en las cabeceras («03 / 08») y el engranaje de progreso de la barra superior.
 
-**Color por dominio**, solo en acentos, líneas, glows y estados:
+### Color
+- **Colores de sistema de Apple.** Modo oscuro: azul `#0A84FF`, índigo `#5E5CE6`, morado `#BF5AF2`, rosa `#FF375F`, naranja `#FF9F0A`, verde `#30D158`, cian `#64D2FF`. Modo claro: sus variantes de modo claro. Para texto se usan las variantes accesibles de Apple (AA): por ejemplo, el índigo oscuro pasa a `#7D7AFF` y en claro el naranja a `#C93400` y el verde a `#1E7A35`.
+- **Dominios de skills:** IA morado, Automatización azul, Datos y quant cian, Operaciones naranja, Software verde.
+- **Fondo «Bloom»:** tres auroras difuminadas en azul, morado y rosa que se mueven muy despacio sobre la base oscura. Sustituyen a la nebulosa. Las estrellas siguen, más discretas (55 % de opacidad).
+- **Materiales Mica/Acrylic/vibrancy:** tarjetas translúcidas con borde fino y brillo superior. La barra superior, la consola del agente, el menú y los paneles flotantes llevan además un blur sutil.
+- **Barra del agente:** borde multicolor animado estilo Apple Intelligence (azul → morado → rosa → naranja), con halo.
+- **Color de marca por organización:** cada empresa y centro usa el suyo como acento de su tarjeta.
+- **Contraste AA en ambos temas,** verificado con axe (0 incidencias en claro y oscuro, escritorio y móvil) y con Lighthouse (accesibilidad 100).
 
-| Dominio | Color | Pieza de la reductora |
-| --- | --- | --- |
-| IA | cian `#22D3EE` | sol (núcleo neuronal) |
-| Automatización | azul `#4C8DFF` | satélite |
-| Datos y quant | índigo `#8B7CFF` | satélite |
-| Operaciones | hielo/plata `#C7D7FE` | satélite |
-| Ingeniería | blanco | corona |
+### Estructura (8 secciones)
+1. **Hero.** Nombre, titular y resumen de 2 líneas. Barra «Pregúntale a mi agente», botones «Experiencia ↓», «CV ↓» y LinkedIn. La reductora queda a la derecha (debajo en móvil), más pequeña, como decoración.
+2. **Ahora mismo.** Dos tarjetas grandes: PropHero y ETSII-UPM, con logo, color de marca y badge. El clic lleva a su entrada.
+3. **Experiencia.** Timeline vertical en dos columnas en desktop. La línea se dibuja con el scroll y cada hito se enciende en su color. Orden: PropHero (destacada), Grupo Lalala, Induforum 2027, Classy Night Society.
+4. **Formación.** Mismo lenguaje visual: ETSII-UPM destacada (chips MH ×2 y Programa Mentor, que enlaza a Liderazgo; Erasmus), después Retamar y CS50. Al final, el cono «Graduación jun 2028 → full-time».
+5. **Proyectos.** 3 tarjetas compactas. Al abrir una se despliega su demo: debajo de la fila en desktop, justo debajo de la tarjeta en móvil.
+6. **Skills.** La constelación, compacta (máximo 64 % de la altura de pantalla en desktop), con el inspector.
+7. **Liderazgo e impacto.** Bento compacto con «Off the clock».
+8. **Contacto.** Como antes.
 
-Contraste AA en los dos temas. Oscuro por defecto; el modo claro se activa con revelado circular.
+### Cursor
+- **Nunca desaparece.** El punto propio está siempre por encima de todo (z-index máximo): sobre el canvas 3D, durante el scroll, dentro del resaltado y en el panel del agente.
+- **Cursor nativo** donde el propio no sirve: antes de hidratar, fuera de la ventana, en campos de texto, en iframes (Cal.com) y con un diálogo modal abierto.
+- **Regla:** `cursor: none` solo se aplica mientras el punto propio está pintado. Verificado con Playwright en los 8 casos.
 
-**Tipografía y movimiento**
-- Geist para todo y Geist Mono para etiquetas.
-- Clip-path solo «hacia arriba».
-- Un protagonista por pantalla.
-- Decode solo en el tagline.
+### Ajustes aplicados
+- **Nuevo «Problema» del correo en piloto automático.**
+- **Stack:**
+  - Claude Code también se usa en job-hunt-copilot.
+  - Next.js y TypeScript pasan a «Software».
+  - Nueva skill «Estadística y regresión» (Datos y quant), usada en el Grado GITI.
+  - Pesos según tu tabla.
+- **Móvil:** «Menú» abre un menú a pantalla completa (buscador arriba, secciones, agente, CV, email, idioma y tema). ⌘K sigue en desktop.
 
-**Eliminado:** marquee de stack, proyectos horizontales con pin, galería con parallax, decode en etiquetas, rejilla iluminada por el cursor (ahora estática y más tenue) y botones magnéticos (queda solo el de enviar del prompt). El tilt con spotlight solo está en el panel de proyectos.
+### Se mantiene
+- Agente con tool use (IDs ajustados a la nueva estructura), Cal.com, CV en PDF, i18n, noindex hasta el lanzamiento, ⌘K, tema con revelado circular y movimiento reducido.
+- No se inventan cifras, los `TODO:` nunca se muestran y no se publican teléfono ni dirección.
 
-**Cursor estilo iPadOS:** punto sin retraso que se transforma en el fondo del elemento interactivo (forma y radio, unos 150 ms). Etiquetas «Ver», «Arrastrar» y «Copiar» solo en demos, imágenes y el email. Sin anillo perseguidor.
+## 2. Decidido por mí (revisar)
 
-**Estructura en 6 láminas**
-1. Hero: reductora explotada, se ensambla con el scroll, cajetín con el nombre y prompt al agente.
-2. Sistemas: lista y panel en una pantalla; pestañas en móvil.
-3. Trayectoria: Gantt 2023 → 2028 en una pantalla con cono de Monte Carlo; lista plegable en móvil.
-4. Toolkit: constelación de skills.
-5. Más allá: bento de liderazgo + «Off the clock».
-6. Contacto: email grande (clic = copiar), reservar, LinkedIn, GitHub y CV.
+### Contenido
+- **Badge de PropHero: hoy dice «Empieza el 3 nov».** Pediste «Actual» con pulso, pero hoy, 29 de octubre, todavía no has empezado. La página se regenera cada día y el 3 de noviembre pasa sola a «Actual» con pulso.
+- **«4º curso» se calcula** desde septiembre de 2023, así que cambia cada septiembre y desaparece al terminar el grado.
+- **Bullets de cada puesto,** redactados solo con lo que ya había en `profile.ts`, sin cifras:
+  - Grupo Lalala e Induforum tienen 3, no 4: no había material para un cuarto sin inventar.
+  - Classy Night Society no tiene bullets; queda pendiente como `TODO:`.
+- **Chips de skills de cada puesto:** salen del «Usado en» del stack, que es la única fuente. PropHero muestra «Automatización de procesos» y «Operaciones». Si quieres más chips, añade el puesto al `usedIn` de esas skills.
+- **Induforum 2027 está en Experiencia, como pediste,** y en el CV también ha pasado a Experiencia. El CV ahora va en este orden: Experiencia, Formación (con CS50), Proyectos, Liderazgo y Skills. Sigue cabiendo en una página.
 
-**Agente «Pregúntale a mi agente» / «Ask my agent»** (nunca «Talk to my AI»)
-- Modelo `claude-haiku-5-5`, `max_tokens` 400, streaming.
-- Máximo 12 mensajes por conversación, contando las acciones; entrada de 500 caracteres como máximo.
-- Rate limit con Upstash si existen las variables. Sin `ANTHROPIC_API_KEY` funciona en modo offline (remite al email).
-- Herramientas solo de interfaz, en lista blanca con IDs del registro de `profile.ts`: `scroll_to`, `highlight`, `open_project`, `download_cv`, `open_booking` y `focus_part`.
-- Máximo 3 acciones por respuesta, cada una visible como línea mono «→ …». Nunca sale de la web.
+### Colores de marca
+- **Se leen del propio logo.** En cuanto subas `public/logos/<nombre>.svg` (o PNG/JPG), el color sale del archivo: el relleno saturado más frecuente del SVG, o el color dominante de la imagen.
+- **Mientras no hay logo,** se usa el color de respaldo:
+  - de sus webs: PropHero `#2050F6`, ETSII `#003262` y Retamar `#001E60`;
+  - CS50: carmesí de Harvard `#A51C30`;
+  - provisionales, sin fuente fiable: Grupo Lalala `#FF375F`, Induforum `#5E5CE6` y Classy Night Society `#BF5AF2`.
+- **Dos tonos por marca:** uno para cada tema, ambos AA sobre las tarjetas. Por eso el azul marino de la ETSII se ve como un azul más claro en modo oscuro.
 
-**Reserva:** Cal.com embebido en un modal con el tema de la web. Sin `NEXT_PUBLIC_CALCOM_LINK` los botones desaparecen. La web no guarda nada de la reserva.
-
-**Se mantiene del plan:** CV en PDF, SEO, i18n (inglés por defecto en `/`, español en `/es`), noindex hasta el lanzamiento, paleta ⌘K, intro de menos de 1 s, movimiento reducido y rendimiento. `/lab` sigue accesible, fuera de la navegación y con noindex.
-
-**Contenido**
-- No se inventan cifras: los `TODO:` nunca se muestran.
-- Las cifras de impacto quedan ocultas hasta que haya números reales.
-- No se publican teléfono ni dirección.
-- PropHero empieza el 3-11-2026. Portugués: básico.
-
-## 2. Decidido por mí al construir (revisar)
-
-**Hero**
-- **Portaplanetas de tres lóbulos** en vez de disco: al ensamblarse, el sol y su núcleo cian siguen viéndose. La cámara se acerca un poco al ensamblar para que la reductora siga siendo la protagonista.
-- **Clic en una pieza del hero:** la corona lleva a Trayectoria; el resto filtra la constelación por su dominio y lleva a Toolkit.
-- **Hero en móvil:** reductora 2D que gira sola, limitada al 38 % de la altura para que el cajetín asome antes.
-
-**Navegación**
-- **Navegación en móvil:** el botón «Menú» abre la paleta ⌘K (secciones, agente, CV, email, idioma y tema); no hay menú aparte.
-- **Indicador de progreso:** un engranaje en un mini-cajetín fijo (abajo a la izquierda en escritorio, en la cabecera en móvil) con el número de lámina. Se quitó la barra de progreso superior para no duplicar.
-
-**Trayectoria**
-- Las etiquetas que no caben dentro de su barra van fuera y ocupan sitio en la fila (así nada se solapa).
-- El cono son 26 puentes brownianos suavizados, con semilla fija (el mismo dibujo en servidor y cliente).
-- Solo aparecen en el Gantt los liderazgos con fechas; los demás solo en «Más allá».
-
-**Toolkit:** los nodos grandes (proyectos y trabajos) se reparten uniformes en una elipse, agrupados por dominio.
-
-**CV en PDF (`/api/cv?lang=en|es`)**
-- Una página, Helvetica y una sola columna, sin guiones automáticos ni espaciado entre letras (para que un ATS lo lea como texto).
-- Incluye formación, experiencia, proyectos, liderazgo, skills, idiomas, cursos e intereses.
-- Se genera una vez al día por idioma y lleva `X-Robots-Tag: noindex`.
-
-**Agente**
-- Responde con 503 en modo offline.
-- La conversación vive en `sessionStorage` (se borra al cerrar la pestaña). No hay registro en servidor.
-
-**Fecha y caché:** la fecha del cajetín y los estados «actual / próximamente» salen de una función cacheada un día. La página es estática y se regenera cada día.
-
-**SEO**
-- JSON-LD de tipo `Person` (sin teléfono ni dirección; solo Madrid, ES).
-- Imagen OG generada con la reductora y el cajetín.
-- `/sitemap.xml` da 404 hasta el lanzamiento.
-
-**Rendimiento:** Motion, cmdk, Lenis, three.js, GSAP, la consola del agente y Cal.com se cargan solo cuando hacen falta. El panel de proyectos ya no usa Motion (era 137 KB del primer JS).
+### Diseño
+- **La reductora se ensambla sola** al cargar (2,8 s) en lugar de con el scroll; sin scroll no hay sección alta fija.
+- **Escritorio:** se ve primero la reductora 2D y la 3D aparece encima cuando la página está ociosa.
+- **Móvil:** solo la 2D, girando con capas compuestas (sin repintar cada frame).
+- **`focus_part` del agente** solo enciende un momento una pieza y acelera el núcleo; no hace scroll.
+- **El halo de la barra del agente es estático en móvil;** el borde sí se anima. El halo animado obligaría a recalcular el desenfoque en cada frame.
+- **Constelación en columnas:**
+  - Escritorio: dominios a ambos lados, proyectos y trabajos en una elipse central e idiomas debajo.
+  - Móvil: lista por dominio y los nodos debajo.
+  - Así ninguna etiqueta se solapa ni se sale de la pantalla.
+  - Se dibuja una sola versión en cliente, cuando la página está ociosa (menos HTML e hidratación).
+- **Clic en un nodo de la constelación:** lleva a la tarjeta de esa empresa o centro en Experiencia o Formación. Grado GITI → ETSII-UPM.
+- **Fotos:** las tarjetas de experiencia no llevan foto (no estaba en la especificación), así que `events-1` queda reservada sin usarse.
+- **Menú y ⌘K:** se cierran antes de ejecutar la acción. Con el scroll bloqueado, la navegación no funcionaba; ya corregido.
 
 ## 3. Resultados (build de producción, `next start` local)
 
 | Lighthouse (home) | Rendimiento | Accesibilidad | Buenas prácticas | SEO |
 | --- | --- | --- | --- | --- |
-| Móvil (4 pasadas) | 94–95 | 100 | 100 | 66* |
+| Móvil (4 pasadas) | 94–97 | 100 | 100 | 66* |
 | Escritorio | 100 | 100 | 100 | 66* |
 
-\* El único fallo de SEO es «la página no es rastreable»: es el noindex intencionado. Al lanzar debería subir a 100.
-
-En un navegador real con la CPU 4× más lenta, el LCP coincide con el FCP (unos 320 ms).
+\* El único fallo de SEO es «la página no es rastreable»: es el noindex intencionado y debería pasar a 100 al lanzar. En un navegador real con la CPU 4× más lenta, el LCP coincide con el FCP (unos 270 ms).
 
 ## 4. Pendiente
 
 **Datos:** lista completa en la respuesta del chat y con `npm run todos`.
 
-**Archivos que faltan** (hasta entonces se muestra un monograma o nada)
-- `public/logos/`: `prophero`, `grupo-lalala`, `classy-night-society`, `induforum`, `upm`, `retamar`.
-- `public/photos/`: `carlos`, `events-1`, `dana`, `mentor`, `volunteering-1`, `volunteering-2`, `n8n-flow`.
-- `content/demos/job-hunt-copilot.txt`: una ejecución real de la CLI. Sin ella, el proyecto no muestra demo.
+**Archivos**
+- `public/logos/`: `prophero`, `grupo-lalala`, `induforum`, `classy-night-society`, `upm`, `retamar`, `cs50`. También fijan el color de cada tarjeta.
+- `public/photos/`: `carlos`, `dana`, `mentor`, `volunteering-1`, `volunteering-2`, `n8n-flow`.
+- `content/demos/job-hunt-copilot.txt`: hasta que exista, la tarjeta dice «Ver detalles» y no muestra demo.
 
 **Variables de entorno en Vercel**
 - `ANTHROPIC_API_KEY`.
-- `UPSTASH_REDIS_REST_URL` y `UPSTASH_REDIS_REST_TOKEN` (o las `KV_*` de Vercel).
+- `UPSTASH_REDIS_REST_URL` y `UPSTASH_REDIS_REST_TOKEN` (o las `KV_*`).
 - `NEXT_PUBLIC_CALCOM_LINK`.
 - `NEXT_PUBLIC_SITE_URL`.
 
-**Ajustes que quedan en tu mano**
-- `weight` de cada skill (tamaño de la estrella) y `w` de cada `usedIn` (grosor de la línea). Ahora todo vale 1.
-- Repo de job-hunt-copilot: `public: false` muestra «Repo próximamente».
-
-**Lanzamiento:** cuando digas «lanzamiento», poner `LAUNCHED = true` en `lib/site.ts`. Eso quita el noindex (robots, meta y cabecera) y publica el sitemap.
+**Lanzamiento:** cuando digas «lanzamiento», poner `LAUNCHED = true` en `lib/site.ts`.

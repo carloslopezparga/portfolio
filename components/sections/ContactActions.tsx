@@ -18,7 +18,7 @@ export function CopyEmail({ email, copied, cursor }: { email: string; copied: st
       }}
       className="group block max-w-full text-left"
     >
-      <span className="block break-all text-[clamp(1.8rem,5.2vw,4.4rem)] font-semibold leading-[1.02] tracking-[-0.035em] text-fg transition-colors duration-300 group-hover:text-[var(--auto)]">
+      <span className="block break-all text-[clamp(1.8rem,5.2vw,4.4rem)] font-semibold leading-[1.02] tracking-[-0.035em] text-fg transition-colors duration-300 group-hover:text-[var(--blue-text)]">
         {email}
       </span>
     </button>
@@ -28,7 +28,7 @@ export function CopyEmail({ email, copied, cursor }: { email: string; copied: st
 export function BookButton({ label }: { label: string }) {
   return (
     <button type="button" onClick={() => dispatchUI({ type: "open_booking" })} className="btn btn-primary">
-      <span className="size-1.5 rounded-full bg-[var(--ai)] shadow-[0_0_8px_rgb(var(--ai-rgb))]" aria-hidden />
+      <span className="ai-dot size-2 rounded-full" aria-hidden />
       {label}
     </button>
   );
