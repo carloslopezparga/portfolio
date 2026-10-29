@@ -144,8 +144,11 @@ export default async function LabPage() {
   const stackEntries = profile.stack.map((s) => ({
     id: s.id,
     label: s.label[lang],
-    group: s.group === "build" ? "Construir" : "Operar",
-    usedIn: s.usedIn.map((r) => ({ id: r, label: refLabels[r][lang] })),
+    group: profile.domains.find((d) => d.id === s.domain)?.label[lang] ?? s.domain,
+    usedIn: s.usedIn.map((u) => {
+      const id = typeof u === "string" ? u : u.id;
+      return { id, label: refLabels[id][lang] };
+    }),
   }));
 
   const jobs = profile.projects[0];
@@ -479,7 +482,7 @@ export default async function LabPage() {
             <Magnetic>
               <button type="button" data-action="chat" className="btn btn-ghost" data-cursor="Abrir">
                 <span className="size-1.5 rounded-full bg-accent shadow-[0_0_8px_rgb(var(--glow))]" />
-                Habla con mi IA
+                Pregúntale a mi agente
               </button>
             </Magnetic>
             <Magnetic strength={0.5}>

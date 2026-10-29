@@ -41,6 +41,21 @@ export async function generateMetadata({ params }: LayoutProps<"/[lang]">): Prom
   };
 }
 
+function personJsonLd(lang: "en" | "es") {
+  return JSON.stringify({
+    "@context": "https://schema.org",
+    "@type": "Person",
+    name: profile.name,
+    url: SITE_URL,
+    email: `mailto:${profile.email}`,
+    jobTitle: profile.tagline[lang],
+    description: profile.subtitle[lang],
+    address: { "@type": "PostalAddress", addressLocality: "Madrid", addressCountry: "ES" },
+    alumniOf: { "@type": "CollegeOrUniversity", name: "Universidad Politécnica de Madrid" },
+    sameAs: [profile.links.linkedin, profile.links.github],
+  }).replace(/</g, "\\u003c");
+}
+
 export default async function RootLayout({ children, params }: LayoutProps<"/[lang]">) {
   const { lang } = await params;
   if (!hasLocale(lang)) notFound();
@@ -50,6 +65,7 @@ export default async function RootLayout({ children, params }: LayoutProps<"/[la
         <script dangerouslySetInnerHTML={{ __html: headScript }} />
       </head>
       <body>
+        <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: personJsonLd(lang) }} />
         <Providers>{children}</Providers>
       </body>
     </html>

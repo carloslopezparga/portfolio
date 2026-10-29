@@ -23,7 +23,7 @@ export interface PaletteGroup {
   items: PaletteItem[];
 }
 
-export const openPalette = () => window.dispatchEvent(new Event("palette:open"));
+export { openPalette } from "@/lib/palette";
 
 /**
  * ⌘K / Ctrl+K palette built on cmdk (keyboard model, filtering, a11y) with our
@@ -34,15 +34,18 @@ export function CommandPalette({
   placeholder = "Type a command or search…",
   empty = "No results",
   footer,
+  initialOpen = false,
 }: {
   groups: PaletteGroup[];
   placeholder?: string;
   empty?: string;
   footer?: ReactNode;
+  /** Open on mount (when the palette is loaded lazily by the first ⌘K). */
+  initialOpen?: boolean;
 }) {
-  const [open, setOpen] = useState(false);
+  const [open, setOpen] = useState(initialOpen);
   const [query, setQuery] = useState("");
-  const restoreRef = useRef<HTMLElement | null>(null);
+  const restoreRef = useRef<HTMLElement | null>(initialOpen && typeof document !== "undefined" ? (document.activeElement as HTMLElement | null) : null);
   const panelRef = useRef<HTMLDivElement>(null);
   const lenis = useLenis();
 

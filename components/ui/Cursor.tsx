@@ -1,112 +1,140 @@
 "use client";
 
 import { useEffect, useRef } from "react";
-import { damp } from "@/lib/motion";
-import { pointer } from "@/lib/pointer";
 import { usePrefs } from "@/lib/prefs";
 
-type Mode = "idle" | "hover" | "label" | "text";
-
-const INTERACTIVE = 'a, button, [role="button"], label, summary, select, [data-cursor-hover]';
-const TEXT = 'input, textarea, [contenteditable="true"]';
+const INTERACTIVE = 'a, button, [role="button"], [role="tab"], summary, select, [data-cursor-morph]';
+const TEXT = 'input:not([type="checkbox"]):not([type="radio"]), textarea, [contenteditable="true"]';
+const DOT = 10;
+/** Elements larger than this keep the dot (a highlight that big reads as a flash). */
+const MAX_MORPH = { w: 520, h: 220 };
 
 /**
- * Dot + ring (mix-blend difference). Over interactive elements the ring grows;
- * over elements with data-cursor="Label" it morphs into a labelled pill.
- * Disabled on touch and with reduced motion (native cursor stays).
+ * iPadOS-style pointer. A dot that tracks the mouse with zero lag (positioned
+ * inside the pointermove handler, no smoothing). Over an interactive element
+ * it becomes that element's highlighted background — same box, same radius —
+ * in 150 ms. Demos and images can show a short label via data-cursor="…".
+ * Touch devices and reduced motion keep the native cursor.
  */
 export function Cursor() {
   const { reduced, touch } = usePrefs();
   const enabled = !reduced && !touch;
-  const dotRef = useRef<HTMLDivElement>(null);
-  const ringRef = useRef<HTMLDivElement>(null);
-  const labelRef = useRef<HTMLDivElement>(null);
-  const labelTextRef = useRef<HTMLSpanElement>(null);
+  const ref = useRef<HTMLDivElement>(null);
+  const labelRef = useRef<HTMLSpanElement>(null);
 
   useEffect(() => {
     if (!enabled) return;
-    const dot = dotRef.current!;
-    const ring = ringRef.current!;
+    const el = ref.current!;
     const label = labelRef.current!;
-    const labelText = labelTextRef.current!;
     const html = document.documentElement;
     html.dataset.customCursor = "";
 
-    let mode: Mode = "idle";
-    let rx = pointer.x;
-    let ry = pointer.y;
-    const s = { ring: 1, dot: 1, label: 0, alpha: 0 };
-    let last = performance.now();
-    let raf = 0;
+    let x = -100;
+    let y = -100;
+    let mode: "free" | "morph" | "text" | "label" = "free";
+    let target: HTMLElement | null = null;
+    let labelW = 0;
 
-    const onOver = (e: PointerEvent) => {
-      const t = e.target as Element | null;
+    const setBox = (w: number, h: number, r: number, tx: number, ty: number) => {
+      el.style.width = `${w}px`;
+      el.style.height = `${h}px`;
+      el.style.borderRadius = `${r}px`;
+      el.style.transform = `translate3d(${tx}px, ${ty}px, 0)`;
+    };
+
+    const place = () => {
+      if (mode === "morph" && target) {
+        const r = target.getBoundingClientRect();
+        const pad = Number(target.dataset.cursorPad ?? 6);
+        const w = r.width + pad * 2;
+        const h = r.height + pad * 2;
+        const cs = getComputedStyle(target);
+        const base = parseFloat(cs.borderTopLeftRadius) || 10;
+        const radius = Math.min(h / 2, base + pad);
+        // A hint of parallax toward the pointer, like iPadOS.
+        const dx = ((x - (r.left + r.width / 2)) / Math.max(r.width, 1)) * 5;
+        const dy = ((y - (r.top + r.height / 2)) / Math.max(r.height, 1)) * 4;
+        setBox(w, h, radius, r.left - pad + dx, r.top - pad + dy);
+      } else if (mode === "text") {
+        setBox(2, 22, 2, x - 1, y - 11);
+      } else if (mode === "label") {
+        setBox(labelW, 28, 14, x - labelW / 2, y - 14);
+      } else {
+        setBox(DOT, DOT, DOT, x - DOT / 2, y - DOT / 2);
+      }
+    };
+
+    const resolve = (t: Element | null) => {
       if (!t || !t.closest) return;
-      if (t.closest(TEXT)) {
-        mode = "text";
-        return;
-      }
+      const textEl = t.closest(TEXT);
       const labelled = t.closest<HTMLElement>("[data-cursor]");
-      if (labelled?.dataset.cursor) {
-        if (labelText.textContent !== labelled.dataset.cursor) labelText.textContent = labelled.dataset.cursor;
-        mode = "label";
-        return;
+      const inter = t.closest<HTMLElement>(INTERACTIVE);
+      let next: typeof mode = "free";
+      let nextTarget: HTMLElement | null = null;
+      if (textEl) next = "text";
+      else if (labelled?.dataset.cursor) {
+        next = "label";
+        if (label.textContent !== labelled.dataset.cursor) {
+          label.textContent = labelled.dataset.cursor;
+          labelW = Math.max(56, labelled.dataset.cursor.length * 7.4 + 26);
+        }
+      } else if (inter && inter.dataset.cursorMorph !== "false") {
+        const r = inter.getBoundingClientRect();
+        if (r.width <= MAX_MORPH.w && r.height <= MAX_MORPH.h) {
+          next = "morph";
+          nextTarget = inter;
+        }
       }
-      mode = t.closest(INTERACTIVE) ? "hover" : "idle";
+      if (next !== mode || nextTarget !== target) {
+        mode = next;
+        target = nextTarget;
+        el.dataset.mode = mode;
+        place();
+      }
     };
+
+    const onMove = (e: PointerEvent) => {
+      if (e.pointerType !== "mouse") return;
+      x = e.clientX;
+      y = e.clientY;
+      el.style.opacity = "1";
+      place();
+    };
+    const onOver = (e: PointerEvent) => resolve(e.target as Element);
+    const onLeave = () => (el.style.opacity = "0");
+    const onScroll = () => {
+      if (mode === "morph") {
+        // The element moved under a still pointer: re-evaluate what is below it.
+        resolve(document.elementFromPoint(x, y));
+        place();
+      }
+    };
+    const onDown = () => {
+      if (mode === "free") el.style.transform += " scale(0.8)";
+    };
+    const onUp = () => place();
+
+    window.addEventListener("pointermove", onMove, { passive: true });
     document.addEventListener("pointerover", onOver, { passive: true });
-
-    const loop = (now: number) => {
-      const dt = Math.min((now - last) / 1000, 0.05);
-      last = now;
-      if (rx < -1000) {
-        rx = pointer.x;
-        ry = pointer.y;
-      }
-      const follow = damp(mode === "label" ? 16 : 20, dt);
-      rx += (pointer.x - rx) * follow;
-      ry += (pointer.y - ry) * follow;
-
-      const press = pointer.down ? 0.82 : 1;
-      const target =
-        mode === "hover"
-          ? { ring: 1.75 * press, dot: 0.35, label: 0 }
-          : mode === "label"
-            ? { ring: 2.4, dot: 0, label: press }
-            : mode === "text"
-              ? { ring: 0.4, dot: 0, label: 0 }
-              : { ring: press, dot: 1, label: 0 };
-      const k = damp(16, dt);
-      s.ring += (target.ring - s.ring) * k;
-      s.dot += (target.dot - s.dot) * k;
-      s.label += (target.label - s.label) * damp(mode === "label" ? 18 : 24, dt);
-      s.alpha += ((pointer.inside && pointer.moved ? 1 : 0) - s.alpha) * damp(12, dt);
-
-      dot.style.transform = `translate3d(${pointer.x}px,${pointer.y}px,0) scale(${s.dot})`;
-      dot.style.opacity = String(s.alpha);
-      ring.style.transform = `translate3d(${rx}px,${ry}px,0) scale(${s.ring})`;
-      ring.style.opacity = String(s.alpha * (mode === "label" ? Math.max(0, 1 - s.label * 1.6) : mode === "text" ? 0 : 1));
-      label.style.transform = `translate3d(${rx}px,${ry}px,0) scale(${s.label})`;
-      label.style.opacity = String(s.alpha * Math.min(1, s.label * 1.4));
-      raf = requestAnimationFrame(loop);
-    };
-    raf = requestAnimationFrame(loop);
-
+    document.addEventListener("pointerleave", onLeave);
+    window.addEventListener("scroll", onScroll, { passive: true });
+    window.addEventListener("pointerdown", onDown, { passive: true });
+    window.addEventListener("pointerup", onUp, { passive: true });
     return () => {
-      cancelAnimationFrame(raf);
+      window.removeEventListener("pointermove", onMove);
       document.removeEventListener("pointerover", onOver);
+      document.removeEventListener("pointerleave", onLeave);
+      window.removeEventListener("scroll", onScroll);
+      window.removeEventListener("pointerdown", onDown);
+      window.removeEventListener("pointerup", onUp);
       delete html.dataset.customCursor;
     };
   }, [enabled]);
 
   if (!enabled) return null;
   return (
-    <>
-      <div ref={ringRef} className="cursor-el cursor-ring" style={{ opacity: 0 }} aria-hidden />
-      <div ref={dotRef} className="cursor-el cursor-dot" style={{ opacity: 0 }} aria-hidden />
-      <div ref={labelRef} className="cursor-el" style={{ width: 0, height: 0, opacity: 0 }} aria-hidden>
-        <span ref={labelTextRef} className="cursor-label absolute left-0 top-0" />
-      </div>
-    </>
+    <div ref={ref} className="ipad-cursor" data-mode="free" aria-hidden>
+      <span ref={labelRef} />
+    </div>
   );
 }

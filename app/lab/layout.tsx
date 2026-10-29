@@ -2,6 +2,8 @@ import type { Metadata, Viewport } from "next";
 import type { ReactNode } from "react";
 import "../globals.css";
 import { Providers } from "@/components/providers/Providers";
+import { LabMotion } from "@/components/lab/LabMotion";
+import { ScrollProgress } from "@/components/ui/ScrollProgress";
 import { geist, geistMono } from "@/lib/fonts";
 import { headScript } from "@/lib/head-script";
 import { SITE_URL } from "@/lib/site";
@@ -31,7 +33,10 @@ export default function LabLayout({ children }: { children: ReactNode }) {
         <script dangerouslySetInnerHTML={{ __html: headScript }} />
       </head>
       <body>
-        <Providers>{children}</Providers>
+        <Providers>
+          <ScrollProgress />
+          <LabMotion>{children}</LabMotion>
+        </Providers>
       </body>
     </html>
   );

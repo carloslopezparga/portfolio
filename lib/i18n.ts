@@ -40,7 +40,7 @@ export function timeStatus(start: DateISO, end: DateISO | null, now: Date): "upc
 /** UI strings that are not profile content. */
 export const ui = {
   viewProjects: { en: "View projects", es: "Ver proyectos" },
-  talkToAI: { en: "Talk to my AI", es: "Habla con mi IA" },
+  askAgent: { en: "Ask my agent", es: "Pregúntale a mi agente" },
   downloadCV: { en: "Download CV", es: "Descargar CV" },
   cursor: {
     view: { en: "View", es: "Ver" },

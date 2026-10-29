@@ -53,7 +53,7 @@ export function HeroCopy({ lang, play = true, projectsHref = "#projects" }: { la
           <Magnetic>
             <button type="button" data-action="chat" className="btn btn-ghost" data-cursor={ui.cursor.open[lang]}>
               <span className="size-1.5 rounded-full bg-accent shadow-[0_0_8px_rgb(var(--glow))]" aria-hidden />
-              {ui.talkToAI[lang]}
+              {ui.askAgent[lang]}
             </button>
           </Magnetic>
           <Magnetic>

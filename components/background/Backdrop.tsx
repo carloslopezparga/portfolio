@@ -47,17 +47,15 @@ function makeSprite(color: string) {
 
 /**
  * Fixed backdrop: nebula glows, a three-layer starfield (canvas) with
- * pointer / gyro / scroll parallax, and the blueprint grid that brightens
- * around the cursor. One rAF loop for all of it; paused when the tab is hidden.
+ * pointer / gyro / scroll parallax, and a static blueprint grid.
+ * One rAF loop; paused when the tab is hidden.
  */
 export function Backdrop() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const hotRef = useRef<HTMLDivElement>(null);
   const { reduced, touch } = usePrefs();
 
   useEffect(() => {
     const canvas = canvasRef.current!;
-    const hot = hotRef.current;
     const ctx = canvas.getContext("2d", { alpha: true })!;
     let W = 0;
     let H = 0;
@@ -72,6 +70,8 @@ export function Backdrop() {
     const off = { x: 0, y: 0 };
     let raf = 0;
     let last = performance.now();
+    let lastDraw = 0;
+    let started = false;
 
     const seed = () => {
       stars = [];
@@ -149,6 +149,12 @@ export function Backdrop() {
     };
 
     const loop = (now: number) => {
+      // phones: ~30 fps is plenty for slow stars and halves the main-thread cost
+      if (touch && now - lastDraw < 30) {
+        raf = requestAnimationFrame(loop);
+        return;
+      }
+      lastDraw = now;
       const dt = Math.min((now - last) / 1000, 0.05);
       last = now;
       const tx = touch ? (gyro.active ? -gyro.gx : 0) : pointer.inside ? -pointer.nx : 0;
@@ -157,11 +163,6 @@ export function Backdrop() {
       off.x += (tx - off.x) * k;
       off.y += (ty - off.y) * k;
       draw(now);
-      if (hot && !touch) {
-        hot.style.setProperty("--cx", `${pointer.x}px`);
-        hot.style.setProperty("--cy", `${pointer.y}px`);
-        hot.style.setProperty("--hot", pointer.inside && pointer.moved ? "1" : "0");
-      }
       raf = requestAnimationFrame(loop);
     };
 
@@ -175,7 +176,10 @@ export function Backdrop() {
       raf = requestAnimationFrame(loop);
     };
 
-    const onVisibility = () => (document.hidden ? cancelAnimationFrame(raf) : startLoop());
+    const onVisibility = () => {
+      if (document.hidden) cancelAnimationFrame(raf);
+      else if (started) startLoop();
+    };
     const onTheme = () => {
       light = document.documentElement.dataset.theme === "light";
       starColor = rgb("--star");
@@ -190,15 +194,26 @@ export function Backdrop() {
     const mo = new MutationObserver(onTheme);
     mo.observe(document.documentElement, { attributes: true, attributeFilter: ["data-theme"] });
 
-    resize();
-    startLoop();
-    window.addEventListener("resize", resize);
+    // Stars start once the page is idle, so they never compete with hydration;
+    // on a first visit the intro fade-in runs from that moment.
+    const begin = () => {
+      started = true;
+      if (introStart >= 0) introStart = performance.now();
+      resize();
+      startLoop();
+    };
+    const w = window as Window & { requestIdleCallback?: (cb: () => void, o?: { timeout: number }) => number; cancelIdleCallback?: (id: number) => void };
+    const idleId = w.requestIdleCallback ? w.requestIdleCallback(begin, { timeout: 1200 }) : window.setTimeout(begin, 300);
+    const onResize = () => started && resize();
+    window.addEventListener("resize", onResize);
     document.addEventListener("visibilitychange", onVisibility);
     window.addEventListener("intro:replay", onReplay);
     return () => {
+      if (w.cancelIdleCallback) w.cancelIdleCallback(idleId);
+      else window.clearTimeout(idleId);
       cancelAnimationFrame(raf);
       mo.disconnect();
-      window.removeEventListener("resize", resize);
+      window.removeEventListener("resize", onResize);
       document.removeEventListener("visibilitychange", onVisibility);
       window.removeEventListener("intro:replay", onReplay);
     };
@@ -210,7 +225,6 @@ export function Backdrop() {
       <canvas ref={canvasRef} className="starfield pointer-events-none fixed left-0 top-0 -z-[2]" />
       <div className="bp-grid bp-grid--h" />
       <div className="bp-grid bp-grid--v" />
-      <div ref={hotRef} className="bp-grid bp-grid--hot" />
     </div>
   );
 }

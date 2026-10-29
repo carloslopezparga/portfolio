@@ -14,9 +14,9 @@ const idle = (cb: () => void) => {
 };
 
 /**
- * Lenis driven by GSAP's ticker so ScrollTrigger and smooth scroll share one
- * clock. Both libraries are loaded after the page is idle, so they never
- * compete with the first paint or hydration.
+ * Lenis smooth scroll, loaded after the page is idle so it never competes
+ * with the first paint or hydration. It scrolls the window natively, so any
+ * ScrollTrigger (lab) keeps working without a shared ticker.
  */
 export function SmoothScroll({ children }: { children: ReactNode }) {
   const reduced = useReducedMotion();
@@ -25,29 +25,21 @@ export function SmoothScroll({ children }: { children: ReactNode }) {
   useEffect(() => {
     if (reduced) return;
     let cancelled = false;
-    let cleanup = () => {};
+    let instance: Lenis | null = null;
     idle(async () => {
-      const [{ default: LenisCtor }, { gsap, ScrollTrigger }] = await Promise.all([import("lenis"), import("@/lib/gsap")]);
+      const { default: LenisCtor } = await import("lenis");
       if (cancelled) return;
-      const instance = new LenisCtor({
-        autoRaf: false,
-        lerp: 0.1,
-        anchors: { offset: -72, duration: 1.2 },
+      instance = new LenisCtor({
+        autoRaf: true,
+        lerp: 0.12,
+        anchors: { offset: -64, duration: 1.1 },
         prevent: (node) => node.closest("[data-lenis-prevent]") !== null,
       });
-      instance.on("scroll", ScrollTrigger.update);
-      const tick = (time: number) => instance.raf(time * 1000);
-      gsap.ticker.add(tick);
-      gsap.ticker.lagSmoothing(0);
       setLenis(instance);
-      cleanup = () => {
-        gsap.ticker.remove(tick);
-        instance.destroy();
-      };
     });
     return () => {
       cancelled = true;
-      cleanup();
+      instance?.destroy();
       setLenis(null);
     };
   }, [reduced]);
