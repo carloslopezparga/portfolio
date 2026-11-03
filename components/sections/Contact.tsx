@@ -1,48 +1,54 @@
-import { CV_URL } from "@/lib/site";
 import Image from "next/image";
 import { profile } from "@/content/profile";
 import type { Locale } from "@/content/types";
 import { photoSrc } from "@/lib/assets";
 import { bookingEnabled } from "@/lib/booking";
 import { copy } from "@/lib/copy";
-import { FancyLink } from "@/components/ui/FancyLink";
+import { CV_URL } from "@/lib/site";
 import { BookButton, CopyEmail } from "./ContactActions";
-import { SectionHeader, sheetOf } from "./SectionHeader";
 
+const ext = (
+  <svg viewBox="0 0 16 16" className="size-4" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+    <path d="M5 11 11 5M6 5h5v5" />
+  </svg>
+);
+
+/** A dark band across the full width: the question, the email (click to copy) and the ways to follow up. */
 export function Contact({ lang }: { lang: Locale }) {
   const t = copy.contact;
   const portrait = photoSrc("carlos");
   const booking = bookingEnabled();
   return (
-    <section id="contact" data-sheet={sheetOf("contact")} className="relative scroll-mt-20 py-14 md:py-24">
-      <SectionHeader id="contact" title={t.title[lang]} intro={t.intro[lang]} />
-      <div className="mx-auto mt-10 grid max-w-[1200px] gap-10 px-5 sm:px-8 md:grid-cols-[minmax(0,1fr)_auto] md:items-end">
-        <div>
-          <CopyEmail email={profile.email} copied={t.copied[lang]} />
-          <div className="mt-8 flex flex-wrap items-center gap-3">
+    <section id="contact" className="band-dark section scroll-mt-0">
+      <div className="wrap grid gap-12 md:grid-cols-[minmax(0,1fr)_auto] md:items-end">
+        <div className="reveal">
+          <p className="eyebrow">{t.eyebrow[lang]}</p>
+          <h2 className="mt-3 text-[clamp(2.75rem,7vw,5rem)] leading-[1] text-fg">{t.title[lang]}</h2>
+          <p className="mt-5 max-w-[56ch] text-[17px] leading-relaxed text-muted md:text-[19px]">{t.intro[lang]}</p>
+          <div className="mt-10">
+            <CopyEmail email={profile.email} copied={t.copied[lang]} hint={t.copyHint[lang]} />
+          </div>
+          <div className="mt-10 flex flex-wrap items-center gap-2.5">
             {booking ? <BookButton label={t.book[lang]} /> : null}
-            <a href={CV_URL} download className="btn btn-ghost">
+            <a href={CV_URL} download className={`btn ${booking ? "btn-secondary" : "btn-primary"}`}>
               {t.cv[lang]}
-              <svg viewBox="0 0 16 16" className="size-4" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round">
-                <path d="M8 3v9M4.5 8.5 8 12l3.5-3.5" />
+              <svg viewBox="0 0 16 16" className="size-4" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" aria-hidden>
+                <path d="M8 3v9M4.5 8.5 8 12l3.5-3.5M3.5 13.5h9" />
               </svg>
             </a>
-          </div>
-          <div className="mt-8 flex flex-wrap gap-x-8 gap-y-3 text-[15px]">
-            <FancyLink href={profile.links.linkedin} external>
-              LinkedIn
-            </FancyLink>
-            <FancyLink href={profile.links.github} external>
-              GitHub
-            </FancyLink>
+            <a href={profile.links.linkedin} target="_blank" rel="noreferrer noopener" className="btn btn-secondary">
+              LinkedIn {ext}
+            </a>
+            <a href={profile.links.github} target="_blank" rel="noreferrer noopener" className="btn btn-secondary">
+              GitHub {ext}
+            </a>
           </div>
         </div>
         {portrait ? (
-          <figure className="relative w-[200px] shrink-0 overflow-hidden rounded-[18px] shadow-[0_0_0_1px_var(--line-strong)] md:w-[240px]">
+          <figure className="reveal relative w-[200px] shrink-0 overflow-hidden rounded-[24px] md:w-[260px]">
             <div className="relative aspect-[4/5]">
-              <Image src={portrait} alt={profile.name} fill sizes="240px" className="object-cover" />
+              <Image src={portrait} alt={profile.name} fill sizes="260px" className="object-cover" />
             </div>
-            <figcaption className="mono-label border-t border-line px-3 py-2 !text-[9.5px]">{profile.name}</figcaption>
           </figure>
         ) : null}
       </div>

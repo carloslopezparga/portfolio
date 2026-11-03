@@ -57,11 +57,11 @@ function Node({ n, i, dashed }: { n: NodeDef; i: number; dashed?: boolean }) {
           </>
         )}
       </g>
-      <text x={n.x} y={n.y + h + 20} textAnchor="middle" className="fill-dim font-mono text-[9.5px] uppercase tracking-[0.12em]">
+      <text x={n.x} y={n.y + h + 20} textAnchor="middle" className="fill-dim text-[11px] font-semibold">
         {n.label}
       </text>
       {n.step ? (
-        <text data-step x={n.x} y={n.y - h - 14} textAnchor="middle" opacity="0" className="fill-ice font-mono text-[9.5px] uppercase tracking-[0.12em]">
+        <text data-step x={n.x} y={n.y - h - 14} textAnchor="middle" opacity="0" className="fill-[var(--cyan-text)] text-[11px] font-semibold">
           {n.step}
         </text>
       ) : null}
@@ -171,7 +171,7 @@ export function MailFlow({
       />
       <g transform={`translate(${XS[0] + 14} ${BY - 40})`}>
         <rect width="78" height="20" rx="10" className="fill-none stroke-subtle" strokeDasharray="3 3" />
-        <text x="39" y="13.5" textAnchor="middle" className="fill-dim font-mono text-[8.5px] uppercase tracking-[0.14em]">
+        <text x="39" y="13.5" textAnchor="middle" className="fill-dim text-[10px] font-semibold">
           {labels.building}
         </text>
       </g>
@@ -191,12 +191,12 @@ export function MailFlow({
       {/* inbox badge */}
       <g data-badge>
         <circle cx={XS[3] + 27} cy={Y - 27} r="10" className="fill-accent" style={{ filter: "drop-shadow(0 0 8px rgb(var(--glow)))" }} />
-        <text x={XS[3] + 27} y={Y - 23.5} textAnchor="middle" className="fill-on-accent font-mono text-[9px] font-semibold">
+        <text x={XS[3] + 27} y={Y - 23.5} textAnchor="middle" className="fill-on-accent text-[10px] font-semibold">
           +1
         </text>
       </g>
 
-      <circle data-packet r="4" className="fill-ice" opacity="0" style={{ filter: "drop-shadow(0 0 6px rgb(var(--glow)))" }} />
+      <circle data-packet r="4" className="fill-[var(--cyan-text)]" opacity="0" style={{ filter: "drop-shadow(0 0 6px rgb(var(--glow)))" }} />
     </svg>
   );
 }

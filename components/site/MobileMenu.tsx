@@ -45,9 +45,9 @@ export default function MobileMenu({ onClose, ...props }: SiteActionProps & { on
     .filter((g) => g.items.length);
 
   return (
-    <div role="dialog" aria-modal="true" aria-label={t.navigate} className="mobile-menu material-blur fixed inset-0 z-[300] flex flex-col" data-lenis-prevent>
+    <div role="dialog" aria-modal="true" aria-label={t.navigate} className="mobile-menu fixed inset-0 z-[300] flex flex-col" data-lenis-prevent>
       <div className="flex items-center gap-2 px-4 pb-3 pt-3">
-        <label className="flex h-12 flex-1 items-center gap-3 rounded-full bg-[rgb(var(--surface-rgb)/0.7)] px-4 shadow-[inset_0_0_0_1px_var(--material-line)]">
+        <label className="flex h-12 flex-1 items-center gap-3 rounded-full bg-[var(--card)] px-4">
           <Glyph name="search" className="size-4 shrink-0 text-dim" />
           <span className="sr-only">{t.search}</span>
           <input
@@ -81,7 +81,7 @@ export default function MobileMenu({ onClose, ...props }: SiteActionProps & { on
                     <button
                       type="button"
                       onClick={() => pick(it.run)}
-                      className={`flex w-full items-center gap-3 rounded-[14px] px-2 text-left text-fg active:bg-[rgb(var(--glow)/0.1)] ${gi === 0 ? "h-12 text-[20px] font-medium tracking-[-0.02em]" : "h-12 text-[16px]"}`}
+                      className={`flex w-full items-center gap-3 rounded-[14px] px-2 text-left text-fg active:bg-[var(--card)] ${gi === 0 ? "h-12 text-[20px] font-medium tracking-[-0.02em]" : "h-12 text-[16px]"}`}
                     >
                       {gi > 0 && it.icon ? <Glyph name={it.icon} className="size-5 shrink-0 text-dim" /> : null}
                       <span className="flex-1 truncate">{it.label}</span>

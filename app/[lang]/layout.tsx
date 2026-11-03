@@ -4,7 +4,7 @@ import "../globals.css";
 import { Providers } from "@/components/providers/Providers";
 import { profile } from "@/content/profile";
 import { LOCALES } from "@/content/types";
-import { geist, geistMono } from "@/lib/fonts";
+import { geistMono, inter, jakarta } from "@/lib/fonts";
 import { headScript } from "@/lib/head-script";
 import { hasLocale } from "@/lib/i18n";
 import { robotsMeta, SITE_URL } from "@/lib/site";
@@ -15,10 +15,10 @@ export async function generateStaticParams() {
 
 export const viewport: Viewport = {
   themeColor: [
-    { media: "(prefers-color-scheme: dark)", color: "#05060a" },
-    { media: "(prefers-color-scheme: light)", color: "#fbfbfd" },
+    { media: "(prefers-color-scheme: dark)", color: "#000000" },
+    { media: "(prefers-color-scheme: light)", color: "#ffffff" },
   ],
-  colorScheme: "dark light",
+  colorScheme: "light dark",
 };
 
 export async function generateMetadata({ params }: LayoutProps<"/[lang]">): Promise<Metadata> {
@@ -64,7 +64,7 @@ export default async function RootLayout({ children, params }: LayoutProps<"/[la
   const { lang } = await params;
   if (!hasLocale(lang)) notFound();
   return (
-    <html lang={lang} data-theme="dark" suppressHydrationWarning className={`${geist.variable} ${geistMono.variable}`}>
+    <html lang={lang} data-theme="light" suppressHydrationWarning className={`${jakarta.variable} ${inter.variable} ${geistMono.variable}`}>
       <head>
         <script dangerouslySetInnerHTML={{ __html: headScript }} />
       </head>

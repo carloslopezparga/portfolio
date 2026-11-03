@@ -9,6 +9,7 @@ import { Leadership } from "@/components/sections/Leadership";
 import { Now } from "@/components/sections/Now";
 import { Projects } from "@/components/sections/Projects";
 import { Skills } from "@/components/sections/Skills";
+import { Stats } from "@/components/sections/Stats";
 import { BookingHost } from "@/components/site/BookingHost";
 import { Footer } from "@/components/site/Footer";
 import { Header } from "@/components/site/Header";
@@ -18,6 +19,7 @@ import { Toaster } from "@/components/ui/Toaster";
 import { parseCalLink } from "@/lib/booking";
 import { copy } from "@/lib/copy";
 import { hasLocale } from "@/lib/i18n";
+import { CV_URL } from "@/lib/site";
 import { today } from "@/lib/today";
 
 export default async function Home({ params }: PageProps<"/[lang]">) {
@@ -25,21 +27,21 @@ export default async function Home({ params }: PageProps<"/[lang]">) {
   if (!hasLocale(lang)) notFound();
   const now = new Date(await today());
   const cal = parseCalLink();
-  const sections = SECTIONS.map((id, i) => ({ id, sheet: i + 1, label: sectionLabels[id][lang] }));
+  const sections = SECTIONS.map((id) => ({ id, label: sectionLabels[id][lang] }));
   const p = copy.palette;
 
   return (
     <>
-      <a href="#now" className="skip-link">
+      <a href="#numbers" className="skip-link">
         {copy.nav.skip[lang]}
       </a>
       <Header
         lang={lang}
         initials={profile.initials}
-        name={profile.name}
-        total={SECTIONS.length}
+        cv={CV_URL}
         nav={sections.filter((s) => s.id !== "top" && s.id !== "now")}
         labels={{
+          cv: copy.hero.cvShort[lang],
           command: copy.nav.command[lang],
           menu: copy.nav.menu[lang],
           lang: p.lang[lang],
@@ -50,6 +52,7 @@ export default async function Home({ params }: PageProps<"/[lang]">) {
       />
       <main>
         <Hero lang={lang} />
+        <Stats lang={lang} />
         <Now lang={lang} now={now} />
         <Experience lang={lang} now={now} />
         <Education lang={lang} now={now} />

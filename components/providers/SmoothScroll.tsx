@@ -32,7 +32,6 @@ export function SmoothScroll({ children }: { children: ReactNode }) {
       instance = new LenisCtor({
         autoRaf: true,
         lerp: 0.12,
-        anchors: { offset: -64, duration: 1.1 },
         prevent: (node) => node.closest("[data-lenis-prevent]") !== null,
       });
       setLenis(instance);

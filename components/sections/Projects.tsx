@@ -4,9 +4,9 @@ import { photoSrc, readDemo } from "@/lib/assets";
 import { copy, mediaLabels } from "@/lib/copy";
 import { formatMonth } from "@/lib/i18n";
 import { mediaFor } from "@/lib/media";
-import { formatMetric, isSkill } from "@/lib/metrics";
+import { isSkill, metricSuffix } from "@/lib/metrics";
 import { ProjectsGrid, type ProjectItem } from "./ProjectsGrid";
-import { SectionHeader, sheetOf } from "./SectionHeader";
+import { SectionHeader } from "./SectionHeader";
 
 export async function Projects({ lang }: { lang: Locale }) {
   const t = copy.projects;
@@ -32,7 +32,7 @@ export async function Projects({ lang }: { lang: Locale }) {
         const s = profile.stack.find((x) => x.id === ref)!;
         return { id: ref, label: s.label[lang], domain: s.domain };
       }),
-      metrics: (p.metrics ?? []).map((m) => ({ value: formatMetric(m, lang), label: m.label[lang] })),
+      metrics: (p.metrics ?? []).map((m) => ({ value: m.value, prefix: m.prefix ?? "", suffix: metricSuffix(m, lang), label: m.label[lang] })),
       repo: p.repo ?? null,
       demo,
       screenshot: p.screenshot ? photoSrc(p.screenshot) : null,
@@ -41,10 +41,11 @@ export async function Projects({ lang }: { lang: Locale }) {
   });
 
   return (
-    <section id="projects" data-sheet={sheetOf("projects")} className="relative scroll-mt-20 py-14 md:py-20">
-      <SectionHeader id="projects" title={t.title[lang]} intro={t.intro[lang]} />
-      <div className="mt-8">
+    <section id="projects" className="section">
+      <SectionHeader eyebrow={t.eyebrow[lang]} title={t.title[lang]} intro={t.intro[lang]} />
+      <div className="mt-12 md:mt-14">
         <ProjectsGrid
+          lang={lang}
           items={items}
           labels={{
             open: t.open[lang],

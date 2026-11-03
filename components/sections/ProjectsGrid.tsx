@@ -2,8 +2,9 @@
 
 import Image from "next/image";
 import { useEffect, useRef, useState, type CSSProperties } from "react";
-import type { DomainId, ProjectId, StackId } from "@/content/types";
+import type { DomainId, Locale, ProjectId, StackId } from "@/content/types";
 import { StackIcon } from "@/components/ui/icons";
+import { CountUp } from "@/components/ui/CountUp";
 import { LazyCooling, LazyMailFlow, LazyTerminal } from "@/components/demos/lazy";
 import { MediaStrip, type MediaLabels } from "@/components/media/MediaStrip";
 import type { MediaItem } from "@/lib/media";
@@ -19,7 +20,7 @@ export interface ProjectItem {
   built: string;
   next: string | null;
   stack: { id: StackId | null; label: string; domain: DomainId | null }[];
-  metrics: { value: string; label: string }[];
+  metrics: { value: number; prefix: string; suffix: string; label: string }[];
   repo: { url: string; public: boolean } | null;
   demo: { kind: "terminal"; script: string } | { kind: "mail" } | { kind: "cooling" } | null;
   screenshot: string | null;
@@ -55,9 +56,9 @@ function Demo({ item, labels }: { item: ProjectItem; labels: ProjectLabels }) {
   return (
     <div className="relative grid h-full place-items-center p-2">
       {item.screenshot ? (
-        <div className="absolute right-2 top-2 z-10 flex gap-1 rounded-full p-0.5 shadow-[inset_0_0_0_1px_var(--line-strong)]" role="group">
+        <div className="absolute right-2 top-2 z-10 flex gap-1 rounded-full bg-[var(--bg)] p-1 shadow-[inset_0_0_0_1px_var(--line)]" role="group">
           {([false, true] as const).map((v) => (
-            <button key={String(v)} type="button" aria-pressed={real === v} onClick={() => setReal(v)} className={`rounded-full px-2.5 py-1 text-[11px] ${real === v ? "bg-fg text-bg" : "text-muted"}`}>
+            <button key={String(v)} type="button" aria-pressed={real === v} onClick={() => setReal(v)} className={`rounded-full px-3 py-1 text-[12px] font-medium ${real === v ? "bg-[var(--btn)] text-[var(--btn-fg)]" : "text-muted"}`}>
               {v ? labels.realFlow : labels.animated}
             </button>
           ))}
@@ -74,27 +75,37 @@ function Demo({ item, labels }: { item: ProjectItem; labels: ProjectLabels }) {
   );
 }
 
+/** The illustration at the top of each card (the floating interface fragments go here). */
+function Art({ item }: { item: ProjectItem }) {
+  const icons = item.stack.filter((s) => s.id).slice(0, 4);
+  return (
+    <div className="relative grid aspect-[16/10] place-items-center overflow-hidden rounded-[18px] bg-[radial-gradient(90%_80%_at_50%_0%,rgb(var(--d-rgb)/0.16),transparent_70%),var(--bg)] dark:bg-[radial-gradient(90%_80%_at_50%_0%,rgb(var(--d-rgb)/0.2),transparent_70%),rgb(255_255_255/0.03)]" aria-hidden>
+      <div className="flex gap-3">
+        {icons.map((s) => (
+          <span key={s.label} data-domain={s.domain ?? undefined} className="grid size-14 place-items-center rounded-[16px] bg-[var(--card)] text-[var(--d)] shadow-[var(--shadow)]">
+            <StackIcon id={s.id!} className="size-7" />
+          </span>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 /**
- * Three compact cards (problem, stack, status). Opening one unfolds its demo
- * and case study in a panel — under the row on desktop, right under the card
- * on phones (CSS `order`, one panel in the DOM).
+ * Four large cards (illustration, status, name, problem, figures, stack).
+ * Opening one unfolds its demo and case study in a panel under its row on
+ * desktop, right under the card on phones (CSS `order`, one panel in the DOM).
  */
-export function ProjectsGrid({ items, labels }: { items: ProjectItem[]; labels: ProjectLabels }) {
+export function ProjectsGrid({ items, labels, lang }: { items: ProjectItem[]; labels: ProjectLabels; lang: Locale }) {
   const [open, setOpen] = useState<ProjectId | null>(null);
   const panelRef = useRef<HTMLDivElement>(null);
   const index = items.findIndex((i) => i.id === open);
   const item = index >= 0 ? items[index] : null;
 
-  useEffect(
-    () =>
-      onUI("open_project", (a) => {
-        setOpen(a.projectId);
-      }),
-    [],
-  );
+  useEffect(() => onUI("open_project", (a) => setOpen(a.projectId)), []);
 
   return (
-    <div className="mx-auto grid max-w-[1200px] gap-4 px-5 sm:px-8 md:grid-cols-2">
+    <div className="wrap grid gap-4 md:grid-cols-2 md:gap-5">
       {items.map((it, i) => {
         const on = it.id === open;
         return (
@@ -102,51 +113,52 @@ export function ProjectsGrid({ items, labels }: { items: ProjectItem[]; labels: 
             key={it.id}
             data-target-id={it.id}
             data-domain={it.domain}
-            className={`project-card ${on ? "is-open" : ""}`}
-            style={{ order: i * 2 + 1 } as CSSProperties}
+            className={`card card-hover reveal flex flex-col p-2 ${on ? "shadow-[var(--shadow)]" : ""}`}
+            style={{ order: i * 2 + 1, ["--rd" as string]: `${(i % 2) * 90}ms` } as CSSProperties}
           >
-            <div className="flex items-center justify-between gap-3">
-              <span className="badge badge-domain">{it.status}</span>
-              <span className="size-2 rounded-full bg-[rgb(var(--d-rgb))] shadow-[0_0_10px_rgb(var(--d-rgb)/0.8)]" aria-hidden />
-            </div>
-            <h3 className="mt-4 text-[19px] leading-tight text-fg">{it.name}</h3>
-            <p className="mt-1 text-[13.5px] font-medium text-[var(--d)]">{it.oneLiner}</p>
-            <p className="mt-3 text-[14.5px] leading-relaxed text-muted">{it.problem}</p>
-            {it.metrics.length ? (
-              <dl className="mt-4 flex flex-wrap gap-x-5 gap-y-2">
-                {it.metrics.map((m) => (
-                  <div key={m.label}>
-                    <dt className="sr-only">{m.label}</dt>
-                    <dd className="text-[18px] font-semibold leading-none text-[var(--d)]">{m.value}</dd>
-                    <dd className="mt-1 text-[12.5px] text-dim">{m.label}</dd>
-                  </div>
+            <Art item={it} />
+            <div className="flex flex-1 flex-col px-4 pb-4 pt-6 md:px-6 md:pb-6">
+              <span className="badge self-start">{it.status}</span>
+              <h3 className="mt-4 text-[clamp(1.5rem,2.4vw,1.9rem)] leading-tight text-fg">{it.name}</h3>
+              <p className="mt-1.5 text-[15px] font-semibold text-[var(--d)]">{it.oneLiner}</p>
+              <p className="mt-3 text-[16px] leading-relaxed text-muted">{it.problem}</p>
+              {it.metrics.length ? (
+                <dl className="mt-5 flex flex-wrap gap-x-8 gap-y-3">
+                  {it.metrics.map((m) => (
+                    <div key={m.label} className="flex flex-col-reverse">
+                      <dt className="mt-1 text-[13.5px] text-muted">{m.label}</dt>
+                      <dd className="font-display text-[clamp(1.6rem,2.6vw,2rem)] font-bold leading-none tracking-[-0.035em] text-fg">
+                        <CountUp value={m.value} prefix={m.prefix} suffix={m.suffix} lang={lang} />
+                      </dd>
+                    </div>
+                  ))}
+                </dl>
+              ) : null}
+              <ul className="mt-5 flex flex-wrap gap-1.5">
+                {it.stack.map((s) => (
+                  <li key={s.label} data-domain={s.domain ?? undefined} className="chip">
+                    {s.id ? <StackIcon id={s.id} className="size-3.5 text-[var(--d)]" /> : null}
+                    {s.label}
+                  </li>
                 ))}
-              </dl>
-            ) : null}
-            <ul className="mt-4 flex flex-wrap gap-1.5">
-              {it.stack.map((s) => (
-                <li key={s.label} data-domain={s.domain ?? undefined} className="chip">
-                  {s.id ? <StackIcon id={s.id} className="size-3.5 text-[var(--d)]" /> : null}
-                  {s.label}
-                </li>
-              ))}
-            </ul>
-            {it.media.length ? <MediaStrip items={it.media} alt={it.name} labels={labels.media} className="mt-4" /> : null}
-            <button
-              type="button"
-              aria-expanded={on}
-              aria-controls="project-panel"
-              onClick={() => {
-                setOpen(on ? null : it.id);
-                if (!on) window.setTimeout(() => panelRef.current?.scrollIntoView({ block: "nearest", behavior: "smooth" }), 60);
-              }}
-              className="btn btn-ghost btn-sm mt-5 w-full justify-center"
-            >
-              {on ? labels.close : it.demo ? labels.open : labels.openNoDemo}
-              <svg viewBox="0 0 16 16" className={`size-3.5 transition-transform duration-300 ${on ? "rotate-180" : ""}`} fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" aria-hidden>
-                <path d="M4 6l4 4 4-4" />
-              </svg>
-            </button>
+              </ul>
+              {it.media.length ? <MediaStrip items={it.media} alt={it.name} labels={labels.media} className="mt-5" /> : null}
+              <button
+                type="button"
+                aria-expanded={on}
+                aria-controls="project-panel"
+                onClick={() => {
+                  setOpen(on ? null : it.id);
+                  if (!on) window.setTimeout(() => panelRef.current?.scrollIntoView({ block: "nearest", behavior: "smooth" }), 60);
+                }}
+                className="btn btn-secondary btn-sm mt-6 self-start"
+              >
+                {on ? labels.close : it.demo ? labels.open : labels.openNoDemo}
+                <svg viewBox="0 0 16 16" className={`size-3.5 transition-transform duration-300 ${on ? "rotate-180" : ""}`} fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" aria-hidden>
+                  <path d="M4 6l4 4 4-4" />
+                </svg>
+              </button>
+            </div>
           </article>
         );
       })}
@@ -159,41 +171,43 @@ export function ProjectsGrid({ items, labels }: { items: ProjectItem[]; labels: 
         data-domain={item?.domain}
       >
         {item ? (
-          <div key={item.id} className="clip-up domain-scope">
+          <div key={item.id} className="clip-up grid gap-6 p-5 md:grid-cols-[minmax(0,1.25fr)_minmax(0,1fr)] md:gap-10 md:p-8">
             {item.demo ? (
-              <div className="mx-auto h-[260px] max-w-[820px] overflow-hidden md:h-[330px]">
+              <div className="h-[300px] md:h-[400px]">
                 <Demo item={item} labels={labels} />
               </div>
             ) : null}
-            <div className={`grid gap-5 px-1 md:grid-cols-2 md:gap-8 ${item.demo ? "pt-5" : ""}`}>
-              <dl className="space-y-4">
+            <dl className={`space-y-6 ${item.demo ? "" : "md:col-span-2 md:grid md:grid-cols-2 md:gap-10 md:space-y-0"}`}>
+              <div>
+                <dt className="eyebrow">{labels.problem}</dt>
+                <dd className="mt-2 text-[16px] leading-relaxed text-fg">{item.problem}</dd>
+              </div>
+              <div>
+                <dt className="eyebrow">{labels.built}</dt>
+                <dd className="mt-2 text-[16px] leading-relaxed text-fg">{item.built}</dd>
+              </div>
+              {item.next ? (
                 <div>
-                  <dt className="mono-label">{labels.built}</dt>
-                  <dd className="mt-1 text-[14.5px] leading-relaxed text-fg">{item.built}</dd>
+                  <dt className="eyebrow">{labels.next}</dt>
+                  <dd className="mt-2 text-[16px] leading-relaxed text-muted">{item.next}</dd>
                 </div>
-                {!item.demo ? <p className="text-[13.5px] text-dim">{labels.demoSoon}</p> : null}
-              </dl>
-              <div className="space-y-4">
-                {item.next ? (
-                  <div>
-                    <p className="mono-label">{labels.next}</p>
-                    <p className="mt-1 text-[14.5px] leading-relaxed text-muted">{item.next}</p>
-                  </div>
-                ) : null}
-                {item.repo ? (
-                  item.repo.public ? (
-                    <a href={item.repo.url} target="_blank" rel="noreferrer noopener" className="group inline-flex items-center gap-1.5 text-[14px] text-fg">
-                      <span className="link-draw">GitHub</span> ↗
+              ) : null}
+              {item.repo ? (
+                <div>
+                  {item.repo.public ? (
+                    <a href={item.repo.url} target="_blank" rel="noreferrer noopener" className="btn btn-secondary btn-sm">
+                      GitHub ↗
                     </a>
                   ) : (
-                    <span className="mono-label inline-flex items-center gap-2 rounded-full px-3 py-1.5 shadow-[inset_0_0_0_1px_var(--line)]">
+                    <span className="inline-flex items-center gap-2 rounded-full bg-[var(--bg)] px-3.5 py-2 text-[13px] font-medium text-muted">
                       <span className="size-1.5 rounded-full bg-subtle" />
                       {labels.repoSoon}
                     </span>
-                  )
-                ) : null}
-              </div>
-            </div>
+                  )}
+                </div>
+              ) : null}
+              {!item.demo && item.id === "job-hunt-copilot" ? <p className="text-[14px] text-muted">{labels.demoSoon}</p> : null}
+            </dl>
           </div>
         ) : null}
       </div>

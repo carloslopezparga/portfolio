@@ -29,13 +29,12 @@ export interface SiteActionLabels {
 
 export interface SiteActionProps {
   lang: Locale;
-  sections: { id: SectionId; label: string; sheet: number }[];
+  sections: { id: SectionId; label: string }[];
   email: string;
   booking: boolean;
   labels: SiteActionLabels;
 }
 
-const pad = (n: number) => String(n).padStart(2, "0");
 
 /** Everything the ⌘K palette (desktop) and the full-screen menu (mobile) offer. */
 export function useSiteGroups({ lang, sections, email, booking, labels: t }: SiteActionProps): PaletteGroup[] {
@@ -47,7 +46,6 @@ export function useSiteGroups({ lang, sections, email, booking, labels: t }: Sit
       items: sections.map((s) => ({
         id: `go-${s.id}`,
         label: s.label,
-        hint: `${pad(s.sheet)} / ${pad(sections.length)}`,
         icon: "spark",
         run: () => dispatchUI({ type: "scroll_to", sectionId: s.id }),
       })),

@@ -25,7 +25,7 @@ export function FutureCone({ from, to }: { from: string; to: string }) {
       ))}
       <circle cx={PAD} cy={H / 2} r="3.5" className="fill-muted" />
       <circle cx={W - PAD} cy={H / 2} r="5" style={{ fill: "var(--pink)", filter: "drop-shadow(0 0 6px var(--pink))" }} />
-      <text x={PAD} y={H + 16} className="fill-dim font-mono text-[11px] uppercase tracking-[0.1em]">
+      <text x={PAD} y={H + 16} className="fill-muted text-[12.5px] font-semibold">
         {from}
       </text>
       <text x={W - PAD} y={H + 16} textAnchor="end" className="fill-fg text-[12.5px] font-medium">

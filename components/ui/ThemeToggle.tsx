@@ -16,7 +16,7 @@ export function ThemeToggle({ className, labels = { dark: "Dark", light: "Light"
     <button
       type="button"
       aria-label={dark ? labels.light : labels.dark}
-      className={`grid size-9 place-items-center rounded-full text-fg shadow-[inset_0_0_0_1px_var(--line-strong)] transition-hover hover:shadow-[inset_0_0_0_1px_rgb(var(--glow)),0_0_18px_-4px_rgb(var(--glow))] ${className ?? ""}`}
+      className={`grid size-9 place-items-center rounded-full text-fg transition-colors duration-200 hover:bg-[var(--btn-2)] ${className ?? ""}`}
       onClick={(e) => {
         const r = e.currentTarget.getBoundingClientRect();
         const x = e.clientX || r.left + r.width / 2;

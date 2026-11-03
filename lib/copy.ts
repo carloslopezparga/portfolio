@@ -19,8 +19,15 @@ export const copy = {
     next: { en: "Next", es: "Siguiente" },
   },
   hero: {
-    experience: { en: "Experience", es: "Experiencia" },
-    cv: { en: "CV", es: "CV" },
+    experience: { en: "See experience", es: "Ver experiencia" },
+    cv: { en: "Download CV", es: "Descargar CV" },
+    cvShort: { en: "CV", es: "CV" },
+    chip: { en: "An AI chip, exploded: heat sink, die with cores, interposer and solder balls", es: "Un chip de IA en vista explosionada: disipador, die con núcleos, interposer y bolas de soldadura" },
+  },
+  stats: {
+    eyebrow: { en: "By the numbers", es: "En cifras" },
+    title: { en: "Real figures, from real work.", es: "Cifras reales, de trabajo real." },
+    see: { en: "See where it comes from", es: "Ver de dónde sale" },
   },
   agent: {
     name: { en: "Ask my agent", es: "Pregúntale a mi agente" },
@@ -72,11 +79,11 @@ export const copy = {
       open_project: { en: "Opening {x}", es: "Te abro {x}" },
       download_cv: { en: "Downloading the CV (PDF, in English)", es: "Descargando el CV (PDF, en inglés)" },
       open_booking: { en: "Opening the calendar", es: "Te abro la agenda" },
-      focus_part: { en: "Lighting up {x} on the gearbox", es: "Enciendo {x} en la reductora" },
     },
   },
   now: {
-    title: { en: "Right now", es: "Ahora mismo" },
+    eyebrow: { en: "Right now", es: "Ahora mismo" },
+    title: { en: "Working and studying.", es: "Trabajando y estudiando." },
     work: { en: "Work", es: "Trabajo" },
     study: { en: "Studies", es: "Estudios" },
     current: { en: "Current", es: "Actual" },
@@ -87,6 +94,7 @@ export const copy = {
     moreStudy: { en: "See in Education", es: "Ver en Formación" },
   },
   experience: {
+    eyebrow: { en: "Career", es: "Trayectoria" },
     title: { en: "Experience", es: "Experiencia" },
     intro: {
       en: "Where I work and have worked. Operations first, then the technology to make it run by itself.",
@@ -97,6 +105,7 @@ export const copy = {
     incoming: { en: "Incoming", es: "Próximamente" },
   },
   education: {
+    eyebrow: { en: "Academic background", es: "Formación académica" },
     title: { en: "Education", es: "Formación" },
     intro: {
       en: "Industrial engineering at ETSII-UPM, specialising in intelligent systems. Engineering method for everything else.",
@@ -112,6 +121,7 @@ export const copy = {
     coneNote: { en: "Full-time from Jan 2028; many possible paths, one destination.", es: "Tiempo completo desde ene 2028; muchos caminos posibles, un destino." },
   },
   projects: {
+    eyebrow: { en: "Built by me", es: "Construido por mí" },
     title: { en: "Projects", es: "Proyectos" },
     intro: {
       en: "Systems I build in my own time. Each one takes a manual process and makes it run on its own.",
@@ -147,6 +157,7 @@ export const copy = {
     },
   },
   skills: {
+    eyebrow: { en: "Toolkit", es: "Herramientas" },
     title: { en: "Skills", es: "Skills" },
     intro: {
       en: "Each skill is a star, grouped by domain. Hover one to see where I used it — the thicker the line, the more it mattered.",
@@ -167,19 +178,22 @@ export const copy = {
     go: { en: "Show on the page", es: "Ver en la página" },
   },
   leadership: {
+    eyebrow: { en: "Beyond work", es: "Más allá del trabajo" },
     title: { en: "Leadership & impact", es: "Liderazgo e impacto" },
     intro: { en: "What I do outside the job description.", es: "Lo que hago fuera de la descripción del puesto." },
     offTheClock: { en: "Off the clock", es: "Fuera del horario" },
   },
   contact: {
-    title: { en: "Contact", es: "Contacto" },
+    eyebrow: { en: "Contact", es: "Contacto" },
+    title: { en: "Shall we talk?", es: "¿Hablamos?" },
+    copyHint: { en: "Click to copy", es: "Clic para copiar" },
     intro: {
       en: "Internships in 2027, full-time from January 2028. The fastest way is email — or book 15 minutes.",
       es: "Prácticas en 2027, tiempo completo desde enero de 2028. Lo más rápido es el email, o reservar 15 minutos.",
     },
     copy: { en: "Copy", es: "Copiar" },
     copied: { en: "Email copied", es: "Email copiado" },
-    book: { en: "Book 15 min", es: "Reserva 15 min" },
+    book: { en: "Book 15 min", es: "Reservar 15 min" },
     cv: { en: "CV (PDF)", es: "CV (PDF)" },
   },
   booking: {

@@ -13,7 +13,6 @@ export type UIAction =
   | { type: "open_project"; projectId: ProjectId }
   | { type: "download_cv" }
   | { type: "open_booking" }
-  | { type: "focus_part"; part: DomainId }
   | { type: "filter_domain"; domain: DomainId | null };
 
 const EVENT = "ui:action";

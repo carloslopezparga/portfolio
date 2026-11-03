@@ -25,22 +25,22 @@ function parse(script: string): Line[] {
 }
 
 const ANSI_FG: Record<number, string> = {
-  30: "text-dim",
+  30: "text-[#98989d]",
   31: "text-[#ff6b6b]",
   32: "text-[#3ddc97]",
   33: "text-[#ffd166]",
-  34: "text-accent",
+  34: "text-[#2997ff]",
   35: "text-[#c792ea]",
-  36: "text-ice",
-  37: "text-fg",
-  90: "text-dim",
+  36: "text-[#64d2ff]",
+  37: "text-[#f5f5f7]",
+  90: "text-[#98989d]",
   91: "text-[#ff8787]",
   92: "text-[#69f0ae]",
   93: "text-[#ffe08a]",
-  94: "text-ice",
+  94: "text-[#64d2ff]",
   95: "text-[#d7a6ff]",
-  96: "text-ice",
-  97: "text-fg",
+  96: "text-[#64d2ff]",
+  97: "text-[#f5f5f7]",
 };
 
 function ansi(text: string): ReactNode {
@@ -143,14 +143,14 @@ export function TerminalReplay({ script, title, badge }: { script: string; title
   }, [history, typing]);
 
   return (
-    <div ref={rootRef} className="overflow-hidden rounded-[16px] bg-[#07090e] shadow-[0_0_0_1px_var(--line-strong),0_30px_80px_-30px_rgb(0_0_0/0.9)] [color-scheme:dark]">
-      <div className="flex h-10 items-center gap-2 border-b border-white/[0.06] px-4">
-        <span className="size-2.5 rounded-full bg-white/15" />
-        <span className="size-2.5 rounded-full bg-white/15" />
-        <span className="size-2.5 rounded-full bg-white/15" />
-        <span className="mono-label mx-auto min-w-0 truncate !text-[10.5px] !text-[#8b93a3]">{title}</span>
+    <div ref={rootRef} className="mac-window">
+      <div className="mac-bar">
+        <span className="mac-dot bg-[#ff5f57]" />
+        <span className="mac-dot bg-[#febc2e]" />
+        <span className="mac-dot bg-[#28c840]" />
+        <span className="mx-auto min-w-0 truncate font-mono text-[11.5px] text-[#a1a1a6]">{title}</span>
         {badge ? (
-          <span className="mono-label flex shrink-0 items-center gap-1.5 whitespace-nowrap !text-[10px] !text-[#9cc3ff]">
+          <span className="flex shrink-0 items-center gap-1.5 whitespace-nowrap font-mono text-[11px] text-[#9cc3ff]">
             <span className="size-1.5 animate-pulse rounded-full bg-[#4c8dff]" />
             {badge}
           </span>
@@ -180,15 +180,15 @@ export function TerminalReplay({ script, title, badge }: { script: string; title
           <span className="ml-px inline-block h-[1.1em] w-[0.55em] translate-y-[0.2em] animate-pulse bg-[#9cc3ff]" />
         </div>
       </div>
-      <div className="flex items-center justify-between border-t border-white/[0.06] px-4 py-2.5">
-        <span className="mono-label !text-[10px] !text-[#8b93a3]">
+      <div className="flex items-center justify-between border-t border-white/[0.08] px-4 py-2.5">
+        <span className="font-mono text-[11px] text-[#a1a1a6]">
           {history.length} / {printable.length}
         </span>
         <div className="flex gap-4">
           {!done ? (
             <button
               type="button"
-              className="mono-label !text-[10px] !text-[#c9d1de] transition-hover hover:!text-[#9cc3ff]"
+              className="font-mono text-[11px] text-[#d1d1d6] transition-hover hover:text-[#9cc3ff]"
               onClick={() => {
                 started.current = true;
                 setRun(0);
@@ -202,7 +202,7 @@ export function TerminalReplay({ script, title, badge }: { script: string; title
           ) : null}
           <button
             type="button"
-            className="mono-label !text-[10px] !text-[#c9d1de] transition-hover hover:!text-[#9cc3ff]"
+            className="font-mono text-[11px] text-[#d1d1d6] transition-hover hover:text-[#9cc3ff]"
             onClick={() => {
               started.current = true;
               setRun((r) => r + 1);

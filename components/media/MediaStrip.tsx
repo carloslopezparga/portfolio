@@ -34,7 +34,20 @@ function PlayGlyph() {
  * screen on touch devices. Everything opens in the lightbox, which is only
  * downloaded on the first click.
  */
-export function MediaStrip({ items, alt, labels, className = "" }: { items: MediaItem[]; alt: string; labels: MediaLabels; className?: string }) {
+export function MediaStrip({
+  items,
+  alt,
+  labels,
+  className = "",
+  variant = "strip",
+}: {
+  items: MediaItem[];
+  alt: string;
+  labels: MediaLabels;
+  className?: string;
+  /** "pill": a single "Photos and videos · n" button (for photo cards, which already show the first photo). */
+  variant?: "strip" | "pill";
+}) {
   const [open, setOpen] = useState<number | null>(null);
   const listRef = useRef<HTMLUListElement>(null);
   const thumbs = useRef<(HTMLButtonElement | null)[]>([]);
@@ -58,6 +71,45 @@ export function MediaStrip({ items, alt, labels, className = "" }: { items: Medi
   }, [touch]);
 
   const video = (btn: HTMLElement) => btn.querySelector("video");
+
+  const lightbox =
+    open !== null ? (
+      <Suspense fallback={null}>
+        <MediaLightbox
+          items={items}
+          start={open}
+          alt={alt}
+          labels={labels}
+          onClose={(last) => {
+            setOpen(null);
+            // After the modal is gone: until then the page behind it is inert.
+            requestAnimationFrame(() => thumbs.current[variant === "pill" ? 0 : Math.min(last, shown.length - 1)]?.focus());
+          }}
+        />
+      </Suspense>
+    ) : null;
+
+  if (variant === "pill")
+    return (
+      <>
+        <button
+          ref={(el) => {
+            thumbs.current[0] = el;
+          }}
+          type="button"
+          aria-haspopup="dialog"
+          onClick={() => setOpen(0)}
+          className={`inline-flex h-9 items-center gap-2 rounded-full bg-[rgb(255_255_255/0.16)] px-3.5 text-[13px] font-medium text-white backdrop-blur-md transition-colors duration-200 hover:bg-[rgb(255_255_255/0.26)] ${className}`}
+        >
+          <svg viewBox="0 0 16 16" className="size-4" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinejoin="round" aria-hidden>
+            <rect x="2" y="3.5" width="12" height="9" rx="2" />
+            <path d="M2.5 11l3.5-3.5 3 3 1.5-1.5 3 3" />
+          </svg>
+          {labels.title} · {items.length}
+        </button>
+        {lightbox}
+      </>
+    );
 
   return (
     <>
@@ -97,21 +149,7 @@ export function MediaStrip({ items, alt, labels, className = "" }: { items: Medi
           );
         })}
       </ul>
-      {open !== null ? (
-        <Suspense fallback={null}>
-          <MediaLightbox
-            items={items}
-            start={open}
-            alt={alt}
-            labels={labels}
-            onClose={(last) => {
-              setOpen(null);
-              // After the modal is gone: until then the page behind it is inert.
-              requestAnimationFrame(() => thumbs.current[Math.min(last, shown.length - 1)]?.focus());
-            }}
-          />
-        </Suspense>
-      ) : null}
+      {lightbox}
     </>
   );
 }

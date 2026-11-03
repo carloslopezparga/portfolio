@@ -8,144 +8,129 @@ import { CardMedia } from "@/components/media/CardMedia";
 import { Glyph } from "@/components/ui/icons";
 import { LogoMark } from "@/components/ui/LogoMark";
 import { FutureCone } from "./FutureCone";
-import { SectionHeader, sheetOf } from "./SectionHeader";
+import { SectionHeader } from "./SectionHeader";
 import { SkillChips } from "./SkillChips";
 import { TargetLink } from "./TargetLink";
 import { TimelineRail } from "./TimelineRail";
 
-/** ETSII-UPM first and larger; school and CS50 as complementary; a small cone to close. */
+/** Same language as Experience: ETSII-UPM first and larger, then Retamar and CS50; the paths ahead to close. */
 export async function Education({ lang, now }: { lang: Locale; now: Date }) {
   const t = copy.education;
   const [upm, retamar] = profile.education;
   const cs50 = profile.courses[0];
   const { erasmus } = profile.future;
-  const [upmTone, retamarTone, csTone] = await Promise.all([
-    brandOf(upm.brand),
-    brandOf(retamar.brand),
-    brandOf(cs50.brand),
-  ]);
+  const [upmTone, retamarTone, csTone] = await Promise.all([brandOf(upm.brand), brandOf(retamar.brand), brandOf(cs50.brand)]);
   const year = studyYear(upm.start!, upm.end, now);
-  const upmChips = upm.chips.filter(has);
+
+  const when = (top: string, sub?: string) => (
+    <div className="tl-when">
+      <p className="text-[15px] font-semibold text-fg">{top}</p>
+      {sub ? <p className="mt-1 text-[14px] text-muted">{sub}</p> : null}
+    </div>
+  );
 
   return (
-    <section id="education" data-sheet={sheetOf("education")} className="relative scroll-mt-20 py-14 md:py-20">
-      <SectionHeader id="education" title={t.title[lang]} intro={t.intro[lang]} />
-      <TimelineRail className="mx-auto mt-10 max-w-[1200px] space-y-5 px-5 sm:px-8">
+    <section id="education" className="section section-alt">
+      <SectionHeader eyebrow={t.eyebrow[lang]} title={t.title[lang]} intro={t.intro[lang]} />
+      <TimelineRail className="wrap mt-14 space-y-6 md:mt-16">
         {/* ETSII-UPM */}
         <div className="tl-row brand" style={brandStyle(upmTone)}>
-          <span className="tl-marker" data-tl-marker aria-hidden />
-          <div className="tl-when">
-            <p className="text-[14px] font-medium text-fg">{formatRange(upm.start, upm.end, lang)}</p>
-            <p className="mt-0.5 text-[13px] text-dim">{profile.location[lang]}</p>
-          </div>
-          <article id={`edu-${upm.id}`} data-target-id={upm.id} className="xp-card xp-card--featured scroll-mt-24">
-            <div className="flex items-start gap-4">
-              <LogoMark brand={upm.brand} size={52} />
-              <div className="min-w-0 flex-1">
-                <div className="flex flex-wrap items-center gap-x-3 gap-y-1.5">
-                  <h3 className="text-[clamp(1.25rem,2vw,1.5rem)] leading-tight text-fg">{upm.degree[lang]}</h3>
-                  {year ? <span className="badge">{fill(t.year[lang], String(year))}</span> : null}
-                </div>
-                <p className="mt-1 text-[15px]">
-                  <span className="font-medium text-[var(--d)]">{upm.short}</span>
-                  <span className="text-muted"> · Universidad Politécnica de Madrid</span>
-                </p>
-                <p className="mt-0.5 text-[13px] text-dim lg:hidden">{formatRange(upm.start, upm.end, lang)}</p>
-              </div>
+          <span className="tl-marker" data-tl-marker>
+            <LogoMark brand={upm.brand} size={44} />
+          </span>
+          {when(formatRange(upm.start, upm.end, lang), profile.location[lang])}
+          <article id={`edu-${upm.id}`} data-target-id={upm.id} className="card card-tint reveal scroll-mt-28 p-6 md:p-9">
+            <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
+              <h3 className="text-[clamp(1.5rem,2.6vw,2rem)] leading-tight text-fg">{upm.degree[lang]}</h3>
+              {year ? <span className="badge">{fill(t.year[lang], String(year))}</span> : null}
             </div>
+            <p className="mt-1.5 text-[16px]">
+              <span className="font-semibold text-[var(--d)]">{upm.short}</span>
+              <span className="text-muted"> · Universidad Politécnica de Madrid</span>
+            </p>
+            <p className="mt-1 text-[14px] text-muted lg:hidden">{formatRange(upm.start, upm.end, lang)}</p>
             {upm.specialisation ? (
-              <p className="mt-4 text-[14.5px] text-muted">
-                {t.specialisation[lang]}: <span className="font-medium text-fg">{upm.specialisation[lang]}</span>
+              <p className="mt-5 text-[16px] text-muted">
+                {t.specialisation[lang]}: <span className="font-semibold text-fg">{upm.specialisation[lang]}</span>
               </p>
             ) : null}
-            {upmChips.length ? (
-              <ul className="mt-4 flex flex-wrap gap-1.5">
-                {upmChips.map((c) => (
-                  <li key={c.label.en}>
-                    {c.target ? (
-                      <TargetLink targetId={c.target} href={`#lead-${c.target}`} className="chip chip-link">
-                        {c.label[lang]}
-                        <span aria-hidden>↗</span>
-                      </TargetLink>
-                    ) : (
-                      <span className="chip chip-brand">{c.label[lang]}</span>
-                    )}
-                  </li>
-                ))}
-              </ul>
-            ) : null}
-            <div data-target-id="erasmus" className="mt-4 flex items-center gap-3 rounded-[14px] bg-[rgb(var(--d-rgb)/0.07)] px-3.5 py-2.5 text-[14px]">
-              <Glyph name="globe" className="size-4 shrink-0 text-[var(--d)]" />
-              <span className="text-fg">
+            <ul className="mt-5 flex flex-wrap gap-2">
+              {upm.chips.filter(has).map((c) => (
+                <li key={c.label.en}>
+                  {c.target ? (
+                    <TargetLink targetId={c.target} href={`#lead-${c.target}`} className="chip chip-link">
+                      {c.label[lang]}
+                      <span aria-hidden>↗</span>
+                    </TargetLink>
+                  ) : (
+                    <span className="chip">{c.label[lang]}</span>
+                  )}
+                </li>
+              ))}
+            </ul>
+            <div data-target-id="erasmus" className="mt-5 flex items-center gap-3 rounded-[16px] bg-[var(--bg)] px-4 py-3 text-[15px] dark:bg-[rgb(255_255_255/0.05)]">
+              <Glyph name="globe" className="size-[18px] shrink-0 text-[var(--d)]" />
+              <span className="font-medium text-fg">
                 {t.erasmus[lang]}
                 {has(erasmus.destination) ? ` · ${erasmus.destination[lang]}` : ""}
               </span>
-              <span className="ml-auto text-[13px] text-dim">
+              <span className="ml-auto text-[14px] text-muted">
                 {formatMonth(erasmus.start, lang)} – {formatMonth(erasmus.end, lang)}
               </span>
             </div>
-            <CardMedia section="education" folder="etsii" lang={lang} alt={upm.short} className="mt-4" />
+            <CardMedia section="education" folder="etsii" lang={lang} alt={upm.short} className="mt-6" />
           </article>
         </div>
 
         {/* school */}
         <div className="tl-row brand" style={brandStyle(retamarTone)}>
-          <span className="tl-marker" data-tl-marker aria-hidden />
-          <div className="tl-when">
-            <p className="text-[14px] font-medium text-fg">{formatRange(retamar.start, retamar.end, lang)}</p>
-            <p className="mt-0.5 text-[13px] text-dim">{t.school[lang]}</p>
-          </div>
-          <article id={`edu-${retamar.id}`} data-target-id={retamar.id} className="xp-card scroll-mt-24">
-            <div className="flex items-start gap-4">
-              <LogoMark brand={retamar.brand} size={44} />
-              <div className="min-w-0 flex-1">
-                <h3 className="text-[17px] leading-tight text-fg">{retamar.degree[lang]}</h3>
-                <p className="mt-1 text-[14.5px] font-medium text-[var(--d)]">{retamar.institution[lang]}</p>
-                <ul className="mt-3 flex flex-wrap gap-1.5">
-                  {retamar.chips.filter(has).map((c) => (
-                    <li key={c.label.en} className="chip chip-brand">
-                      {c.label[lang]}
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            </div>
-            <CardMedia section="education" folder="retamar" lang={lang} alt={retamar.institution[lang]} className="mt-4" />
+          <span className="tl-marker" data-tl-marker>
+            <LogoMark brand={retamar.brand} size={44} />
+          </span>
+          {when(formatRange(retamar.start, retamar.end, lang), t.school[lang])}
+          <article id={`edu-${retamar.id}`} data-target-id={retamar.id} className="card reveal scroll-mt-28 p-6 md:p-9">
+            <h3 className="text-[clamp(1.25rem,2vw,1.5rem)] leading-tight text-fg">{retamar.degree[lang]}</h3>
+            <p className="mt-1.5 text-[16px] font-semibold text-[var(--d)]">{retamar.institution[lang]}</p>
+            <p className="mt-1 text-[14px] text-muted lg:hidden">{formatRange(retamar.start, retamar.end, lang)}</p>
+            <ul className="mt-5 flex flex-wrap gap-2">
+              {retamar.chips.filter(has).map((c) => (
+                <li key={c.label.en} className="chip">
+                  {c.label[lang]}
+                </li>
+              ))}
+            </ul>
+            <CardMedia section="education" folder="retamar" lang={lang} alt={retamar.institution[lang]} className="mt-6" />
           </article>
         </div>
 
         {/* CS50 */}
         <div className="tl-row brand" style={brandStyle(csTone)}>
-          <span className="tl-marker" data-tl-marker aria-hidden />
-          <div className="tl-when">
-            <p className="text-[14px] font-medium text-fg">{t.course[lang]}</p>
-            <p className="mt-0.5 text-[13px] text-dim">{formatMonth(cs50.date, lang)}</p>
-          </div>
-          <article id="edu-cs50" data-target-id="cs50" className="xp-card scroll-mt-24">
-            <div className="flex items-start gap-4">
-              <LogoMark brand={cs50.brand} size={44} />
-              <div className="min-w-0 flex-1">
-                <h3 className="text-[17px] leading-tight text-fg">{cs50.detail[lang]}</h3>
-                <p className="mt-1 text-[14.5px]">
-                  <span className="font-medium text-[var(--d)]">{cs50.provider}</span>
-                  <span className="text-muted"> · {formatMonth(cs50.date, lang)}</span>
-                </p>
-                <SkillChips lang={lang} refId="cs50" className="mt-3" />
-              </div>
-            </div>
-            <CardMedia section="education" folder="cs50" lang={lang} alt={cs50.name} className="mt-4" />
+          <span className="tl-marker" data-tl-marker>
+            <LogoMark brand={cs50.brand} size={44} />
+          </span>
+          {when(formatMonth(cs50.date, lang), cs50.provider)}
+          <article id="edu-cs50" data-target-id="cs50" className="card reveal scroll-mt-28 p-6 md:p-9">
+            <h3 className="text-[clamp(1.2rem,1.9vw,1.4rem)] leading-snug text-fg">{cs50.detail[lang]}</h3>
+            <p className="mt-1.5 text-[16px]">
+              <span className="font-semibold text-[var(--d)]">{cs50.provider}</span>
+              <span className="text-muted"> · {formatMonth(cs50.date, lang)}</span>
+            </p>
+            <SkillChips lang={lang} refId="cs50" className="mt-5" />
+            <CardMedia section="education" folder="cs50" lang={lang} alt={cs50.name} className="mt-6" />
           </article>
         </div>
 
         {/* what comes next */}
         <div className="tl-row" data-accent="pink">
-          <span className="tl-marker" data-tl-marker aria-hidden />
-          <div className="tl-when">
-            <p className="text-[14px] font-medium text-fg">2027 → 2028</p>
-          </div>
-          <div data-target-id="full-time" className="xp-card xp-card--quiet">
+          <span className="tl-marker" data-tl-marker>
+            <span className="tl-dot">
+              <Glyph name="cap" className="size-5" />
+            </span>
+          </span>
+          {when("2027 → 2028")}
+          <div data-target-id="full-time" className="card reveal p-6 md:p-9">
             <FutureCone from={lang === "en" ? "Now" : "Ahora"} to={t.cone[lang]} />
-            <p className="mt-2 text-[13.5px] text-dim">{t.coneNote[lang]}</p>
+            <p className="mt-3 text-[15px] text-muted">{t.coneNote[lang]}</p>
           </div>
         </div>
       </TimelineRail>

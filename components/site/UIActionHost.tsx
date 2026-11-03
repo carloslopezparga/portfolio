@@ -7,6 +7,8 @@ import { CV_URL } from "@/lib/site";
 import { onUI } from "@/lib/ui-bus";
 
 const HL_MS = 1900;
+/** Where a scrolled-to element lands: just under the floating nav. */
+const TOP = 88;
 
 const inView = (el: Element) => {
   const r = el.getBoundingClientRect();
@@ -26,18 +28,44 @@ export function UIActionHost() {
     let clear = 0;
     let delayed = 0;
 
-    const scrollTo = (target: HTMLElement | 0, center = false) => {
+    /**
+     * Scroll an element to the reading position (under the nav pill, or
+     * centred). Sections off screen skip layout (content-visibility), so their
+     * height is only estimated until they render on the way: when the scroll
+     * ends, measure again and finish the last stretch if needed.
+     */
+    const scrollTo = (target: HTMLElement | 0, center = false, pass = 0): void => {
       const reduced = getPrefs().reduced;
       if (target === 0) {
         if (lenis) lenis.scrollTo(0, { duration: 1.1 });
         else window.scrollTo({ top: 0, behavior: reduced ? "auto" : "smooth" });
         return;
       }
-      const r = target.getBoundingClientRect();
-      const offset = center ? -(window.innerHeight - r.height) / 2 : 0;
-      if (lenis) lenis.scrollTo(target, { offset, duration: 1.1 });
-      else window.scrollTo({ top: window.scrollY + r.top + offset, behavior: reduced ? "auto" : "smooth" });
+      const want = () => (center ? Math.max(TOP, (window.innerHeight - target.getBoundingClientRect().height) / 2) : TOP);
+      const check = () => {
+        if (pass < 2 && Math.abs(target.getBoundingClientRect().top - want()) > 6) scrollTo(target, center, pass + 1);
+      };
+      const delta = target.getBoundingClientRect().top - want();
+      if (lenis) lenis.scrollTo(window.scrollY + delta, { duration: pass ? 0.5 : 1.1, onComplete: check });
+      else {
+        window.scrollTo({ top: window.scrollY + delta, behavior: reduced || pass ? "auto" : "smooth" });
+        window.setTimeout(check, reduced || pass ? 50 : 900);
+      }
     };
+
+    // In-page links (nav, buttons): same scroll, with the correction pass.
+    const onClick = (e: MouseEvent) => {
+      if (e.defaultPrevented || e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey) return;
+      const a = (e.target as Element).closest?.<HTMLAnchorElement>('a[href^="#"]');
+      const id = a?.getAttribute("href")?.slice(1);
+      if (!a || !id) return;
+      const el = id === "top" ? 0 : document.getElementById(id);
+      if (el === null) return;
+      e.preventDefault();
+      scrollTo(el);
+      history.replaceState(null, "", `#${id}`);
+    };
+    document.addEventListener("click", onClick);
 
     const highlight = (id: string) => {
       const main = document.querySelector("main");
@@ -83,6 +111,7 @@ export function UIActionHost() {
       }),
     ];
     return () => {
+      document.removeEventListener("click", onClick);
       offs.forEach((off) => off());
       window.clearTimeout(clear);
       window.clearTimeout(delayed);

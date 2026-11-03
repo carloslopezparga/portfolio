@@ -29,8 +29,6 @@ function actionLine(a: UIAction, lang: Locale): Part {
       return { kind: "action", label: t.download_cv[lang] };
     case "open_booking":
       return { kind: "action", label: t.open_booking[lang] };
-    case "focus_part":
-      return { kind: "action", label: fill(t.focus_part[lang], targetLabel(a.part, lang)), domain: a.part };
     default:
       return { kind: "action", label: "" };
   }
@@ -311,7 +309,7 @@ export default function AgentConsole({ lang }: { lang: Locale }) {
                       {p.v}
                     </span>
                   ) : (
-                    <span key={j} data-domain={p.domain} className="my-1.5 flex items-center gap-2 font-mono text-[11px] tracking-[0.04em] text-dim">
+                    <span key={j} data-domain={p.domain} className="my-1.5 flex items-center gap-2 text-[12.5px] font-medium text-dim">
                       <span className="size-1.5 shrink-0 rounded-full bg-[var(--d,var(--ai))]" />→ {p.label}
                     </span>
                   ),

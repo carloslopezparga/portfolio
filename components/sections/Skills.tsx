@@ -4,7 +4,7 @@ import { brandOf } from "@/lib/assets";
 import { copy } from "@/lib/copy";
 import { constellationLayout, links } from "@/lib/constellation";
 import { Constellation, type CNode, type CStar } from "./Constellation";
-import { SectionHeader, sheetOf } from "./SectionHeader";
+import { SectionHeader } from "./SectionHeader";
 
 /** Where a node's click leads: its card elsewhere on the page. */
 const CARD: Partial<Record<RefId, string>> = { giti: "upm", cs50: "cs50" };
@@ -35,9 +35,9 @@ export async function Skills({ lang }: { lang: Locale }) {
   );
 
   return (
-    <section id="skills" data-sheet={sheetOf("skills")} className="relative scroll-mt-20 py-14 md:py-20">
+    <section id="skills" className="section section-alt">
       <SectionHeader
-        id="skills"
+        eyebrow={t.eyebrow[lang]}
         title={t.title[lang]}
         intro={
           <>
@@ -46,7 +46,7 @@ export async function Skills({ lang }: { lang: Locale }) {
           </>
         }
       />
-      <div className="mt-6">
+      <div className="mt-10">
         <Constellation
           landscape={constellationLayout("landscape")}
           portrait={constellationLayout("portrait")}

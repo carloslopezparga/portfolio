@@ -4,8 +4,8 @@ import { copy } from "@/lib/copy";
 
 export function Footer({ lang, year }: { lang: Locale; year: number }) {
   return (
-    <footer className="mx-auto max-w-[1200px] px-5 pb-10 pt-6 sm:px-8">
-      <div className="flex flex-wrap items-center gap-x-6 gap-y-2 border-t border-line pt-5 text-[13px] text-dim">
+    <footer className="band-dark">
+      <div className="wrap flex flex-wrap items-center gap-x-6 gap-y-2 border-t border-[var(--line)] py-6 text-[13px] text-muted">
         <span>
           © {year} {profile.name}
         </span>

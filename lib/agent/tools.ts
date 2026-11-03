@@ -50,17 +50,6 @@ export function agentTools(): Anthropic.Tool[] {
       eager_input_streaming: true,
       input_schema: { type: "object", properties: {}, additionalProperties: false },
     },
-    {
-      name: "focus_part",
-      description: "A purely decorative effect: briefly light up one part of the gearbox drawing in the hero (ai = the AI core, automation / data / ops = the planet gears). It does not scroll. Use at most once, and only when it adds a playful touch to an answer about that area.",
-      eager_input_streaming: true,
-      input_schema: {
-        type: "object",
-        properties: { part: { type: "string", enum: registry.parts } },
-        required: ["part"],
-        additionalProperties: false,
-      },
-    },
   ];
   if (bookingEnabled()) {
     tools.push({
@@ -74,7 +63,7 @@ export function agentTools(): Anthropic.Tool[] {
 }
 
 type Validated =
-  | { ok: true; action: { type: "scroll_to"; sectionId: string } | { type: "highlight"; targetId: string } | { type: "open_project"; projectId: string } | { type: "download_cv" } | { type: "focus_part"; part: string } | { type: "open_booking" } }
+  | { ok: true; action: { type: "scroll_to"; sectionId: string } | { type: "highlight"; targetId: string } | { type: "open_project"; projectId: string } | { type: "download_cv" } | { type: "open_booking" } }
   | { ok: false; error: string };
 
 const isStr = (v: unknown): v is string => typeof v === "string";
@@ -97,10 +86,6 @@ export function validateAction(name: string, input: unknown): Validated {
         : { ok: false, error: "unknown projectId" };
     case "download_cv":
       return { ok: true, action: { type: "download_cv" } };
-    case "focus_part":
-      return isStr(o.part) && (registry.parts as string[]).includes(o.part)
-        ? { ok: true, action: { type: "focus_part", part: o.part } }
-        : { ok: false, error: "unknown part" };
     case "open_booking":
       return bookingEnabled() ? { ok: true, action: { type: "open_booking" } } : { ok: false, error: "booking unavailable" };
     default:

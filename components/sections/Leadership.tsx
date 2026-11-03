@@ -1,54 +1,95 @@
+import Image from "next/image";
 import { profile } from "@/content/profile";
 import type { Locale } from "@/content/types";
-import { copy } from "@/lib/copy";
+import { copy, mediaLabels } from "@/lib/copy";
+import { formatMonth, formatRange } from "@/lib/i18n";
 import { mediaFor } from "@/lib/media";
-import { formatMetric } from "@/lib/metrics";
-import { CardMedia } from "@/components/media/CardMedia";
+import { metricSuffix } from "@/lib/metrics";
+import { MediaStrip } from "@/components/media/MediaStrip";
+import { CountUp } from "@/components/ui/CountUp";
 import { Glyph, type GlyphName } from "@/components/ui/icons";
-import { SectionHeader, sheetOf } from "./SectionHeader";
+import { has, isTodo } from "@/content/types";
+import { SectionHeader } from "./SectionHeader";
 
 const HOBBY_ICON: Record<string, GlyphName> = { drums: "drums", dj: "vinyl", golf: "golf", sailing: "sail" };
 
-/** Compact bento of leadership and impact, plus the one-line "off the clock". */
+/**
+ * Leadership and impact. Entries with a photo in public/media/leadership/<id>/
+ * become photo cards (full-bleed photo, bottom gradient, title on top); the
+ * rest are typographic cards. "Off the clock" underneath.
+ */
 export async function Leadership({ lang }: { lang: Locale }) {
   const t = copy.leadership;
-  // A card with photos or videos takes the wider slot.
-  const cards = await Promise.all(profile.leadership.map(async (l) => ({ ...l, wide: (await mediaFor("leadership", l.id, lang)).length > 0 })));
+  const cards = await Promise.all(
+    profile.leadership.map(async (l) => {
+      const media = await mediaFor("leadership", l.id, lang);
+      const photo = media.find((m) => m.kind === "image");
+      const when = has(l.start) ? (l.end === undefined || isTodo(l.end) ? formatMonth(l.start, lang) : formatRange(l.start, l.end, lang)) : null;
+      return { ...l, media, photo: photo && photo.kind === "image" ? photo : null, when };
+    }),
+  );
+  // Photo cards first; the first two cards take the wide slots.
+  const ordered = [...cards.filter((c) => c.photo), ...cards.filter((c) => !c.photo)];
+
   return (
-    <section id="leadership" data-sheet={sheetOf("leadership")} className="relative scroll-mt-20 py-14 md:py-20">
-      <SectionHeader id="leadership" title={t.title[lang]} intro={t.intro[lang]} />
-      <div className="mx-auto mt-8 grid max-w-[1200px] gap-3 px-5 sm:grid-cols-2 sm:px-8 md:grid-cols-6">
-        {cards.map((c, i) => (
-          <article
-            key={c.id}
-            id={`lead-${c.id}`}
-            data-target-id={c.id}
-            data-accent={c.accent}
-            className={`lead-card scroll-mt-24 ${c.wide || i < 2 ? "md:col-span-3" : "md:col-span-2"}`}
-          >
-            <div className="flex flex-1 flex-col p-5">
-              <span className="grid size-8 place-items-center rounded-[10px] bg-[rgb(var(--d-rgb)/0.16)]" aria-hidden>
-                <span className="size-2 rounded-full bg-[rgb(var(--d-rgb))] shadow-[0_0_10px_rgb(var(--d-rgb)/0.8)]" />
+    <section id="leadership" className="section">
+      <SectionHeader eyebrow={t.eyebrow[lang]} title={t.title[lang]} intro={t.intro[lang]} />
+      <div className="wrap mt-12 grid gap-4 sm:grid-cols-2 md:mt-14 md:grid-cols-6 md:gap-5">
+        {ordered.map((c, i) => {
+          const span = i < 2 ? "md:col-span-3" : "md:col-span-2";
+          const metric = c.metric ? (
+            <p className="mt-5 flex items-baseline gap-2">
+              <span className="font-display text-[clamp(2rem,3.4vw,2.6rem)] font-bold leading-none tracking-[-0.035em] text-[var(--d)]">
+                <CountUp value={c.metric.value} prefix={c.metric.prefix} suffix={metricSuffix(c.metric, lang)} lang={lang} />
               </span>
-              <h3 className="mt-4 text-[17px] font-medium leading-snug text-fg">{c.title[lang]}</h3>
-              <p className="mt-1.5 text-[14px] leading-relaxed text-muted">{c.description[lang]}</p>
-              {c.metric ? (
-                <p className="mt-auto pt-4 text-[14px] text-muted">
-                  <span className="text-[22px] font-semibold text-[var(--d)]">{formatMetric(c.metric, lang)}</span> {c.metric.label[lang]}
-                </p>
-              ) : null}
-              <CardMedia section="leadership" folder={c.id} lang={lang} alt={c.title[lang]} className="mt-4" />
-            </div>
-          </article>
-        ))}
+              <span className="text-[15px]">{c.metric.label[lang]}</span>
+            </p>
+          ) : null;
+          return c.photo ? (
+            <article
+              key={c.id}
+              id={`lead-${c.id}`}
+              data-target-id={c.id}
+              data-accent={c.accent}
+              className={`photo-card reveal scroll-mt-28 flex min-h-[420px] flex-col justify-end ${span}`}
+              style={{ ["--rd" as string]: `${(i % 3) * 80}ms` }}
+            >
+              <Image src={c.photo.src} alt={c.photo.caption ?? c.title[lang]} fill sizes="(min-width: 768px) 50vw, 100vw" className="object-cover" />
+              <div className="relative z-10 p-6 md:p-8 [--d:#fff]">
+                {c.when ? <p className="text-[13px] font-semibold text-white/80">{c.when}</p> : null}
+                <h3 className="mt-2 text-[clamp(1.4rem,2.4vw,1.9rem)] leading-tight">{c.title[lang]}</h3>
+                <p className="mt-2 max-w-[48ch] text-[15.5px] leading-relaxed text-white/85">{c.description[lang]}</p>
+                {metric}
+                {c.media.length > 1 ? <MediaStrip items={c.media} alt={c.title[lang]} labels={mediaLabels(lang)} variant="pill" className="mt-5" /> : null}
+              </div>
+            </article>
+          ) : (
+            <article
+              key={c.id}
+              id={`lead-${c.id}`}
+              data-target-id={c.id}
+              data-accent={c.accent}
+              className={`card reveal scroll-mt-28 flex flex-col p-6 md:p-8 ${span}`}
+              style={{ ["--rd" as string]: `${(i % 3) * 80}ms` }}
+            >
+              <span className="grid size-10 place-items-center rounded-full bg-[var(--bg)] dark:bg-[rgb(255_255_255/0.06)]" aria-hidden>
+                <span className="size-2.5 rounded-full bg-[rgb(var(--d-rgb))]" />
+              </span>
+              {c.when ? <p className="mt-6 text-[13px] font-semibold text-muted">{c.when}</p> : <span className="mt-6" />}
+              <h3 className="mt-1.5 text-[clamp(1.2rem,1.9vw,1.45rem)] leading-snug text-fg">{c.title[lang]}</h3>
+              <p className="mt-2 text-[15.5px] leading-relaxed text-muted">{c.description[lang]}</p>
+              {metric ? <div className="mt-auto text-muted">{metric}</div> : null}
+            </article>
+          );
+        })}
       </div>
 
-      <div className="mx-auto mt-5 max-w-[1200px] px-5 sm:px-8">
-        <p className="material flex flex-wrap items-center gap-x-5 gap-y-2 rounded-[18px] px-5 py-3.5 text-[14px] text-muted">
-          <span className="mono-label">{t.offTheClock[lang]}</span>
+      <div className="wrap mt-6">
+        <p className="card flex flex-wrap items-center gap-x-6 gap-y-2 px-6 py-4 text-[15px] text-muted">
+          <span className="font-semibold text-fg">{t.offTheClock[lang]}</span>
           {profile.offTheClock.map((h) => (
             <span key={h.id} className="inline-flex items-center gap-2">
-              <Glyph name={HOBBY_ICON[h.id]} className="size-4 text-dim" />
+              <Glyph name={HOBBY_ICON[h.id]} className="size-[18px]" />
               {h.label[lang]}
             </span>
           ))}

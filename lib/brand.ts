@@ -12,8 +12,8 @@ import type { Hex } from "@/content/types";
 type RGB = [number, number, number];
 
 // Measured against the card surfaces (a touch lighter / darker than the page), with a small margin.
-const BG_DARK: RGB = [23, 26, 35];
-const BG_LIGHT: RGB = [240, 240, 244];
+const BG_DARK: RGB = [28, 28, 30];
+const BG_LIGHT: RGB = [245, 245, 247];
 const TARGET = 4.7;
 
 export function hexToRgb(hex: string): RGB {

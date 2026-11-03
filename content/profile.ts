@@ -80,6 +80,7 @@ export const profile: Profile = {
           es: "Construyo automatizaciones con IA y herramientas internas con Claude Code y Cursor para quitar trabajo manual del proceso de captación de inmuebles.",
         },
       ],
+      skills: ["nextjs", "supabase", "claude-code", "cursor", "automation"],
       featured: true,
     },
     {
@@ -458,8 +459,6 @@ export const sectionLabels: Record<SectionId, { en: string; es: string }> = {
 /** Sections in page order (their number is shown in each header). */
 export const SECTIONS: SectionId[] = ["top", "now", "experience", "education", "projects", "skills", "leadership", "contact"];
 
-/** Gearbox parts the agent may light up (a visual effect only). */
-export const GEARBOX_PARTS = ["ai", "automation", "data", "ops"] as const satisfies readonly DomainId[];
 
 /**
  * Whitelist for the agent's UI tools. Anything not listed here is rejected
@@ -468,7 +467,6 @@ export const GEARBOX_PARTS = ["ai", "automation", "data", "ops"] as const satisf
 export const registry = {
   sections: SECTIONS,
   projects: profile.projects.map((p) => p.id) as ProjectId[],
-  parts: [...GEARBOX_PARTS],
   /** Elements that carry data-target-id on the page. */
   targets: [
     ...profile.experience.map((e) => e.id),

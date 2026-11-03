@@ -170,7 +170,7 @@ export function Constellation({
                   <polyline points={[...members].sort((a, b) => a.y - b.y).map((m) => `${m.x},${m.y}`).join(" ")} fill="none" className="stroke-[var(--d)]" strokeOpacity="0.22" strokeDasharray="2 4" />
                 ) : null}
                 {c.id === "languages" && members.length > 1 && L.w > 900 ? <polyline points={pts} fill="none" className="stroke-[var(--d)]" strokeOpacity="0.16" strokeDasharray="2 4" /> : null}
-                <text x={c.x} y={c.y + 4} textAnchor={c.anchor ?? "middle"} className="fill-[var(--d)] font-mono uppercase tracking-[0.16em]" style={{ fontSize: 10.5 * fs }} opacity="0.85">
+                <text x={c.x} y={c.y + 4} textAnchor={c.anchor ?? "middle"} className="fill-[var(--d)] font-semibold" style={{ fontSize: 10.5 * fs }} opacity="0.85">
                   {labels.clusters[c.id]}
                 </text>
               </g>
@@ -283,7 +283,7 @@ export function Constellation({
                   style={{ fontSize: 12.5 * fs }}
                 >
                   {s.label}
-                  {s.sub ? <tspan className="fill-dim font-mono" style={{ fontSize: 10 * fs }}>{` ${s.sub}`}</tspan> : null}
+                  {s.sub ? <tspan className="fill-dim" style={{ fontSize: 10 * fs }}>{` ${s.sub}`}</tspan> : null}
                 </text>
               </g>
             );

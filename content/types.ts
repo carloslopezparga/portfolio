@@ -143,6 +143,8 @@ export interface Experience {
   bullets: Maybe<L>[];
   /** Real figures, shown in the card in the brand colour. */
   metrics?: Metric[];
+  /** Skill chips in this order (default: every skill whose usedIn includes this job). */
+  skills?: StackId[];
   /** Bigger card with the "Current" badge. */
   featured?: boolean;
 }

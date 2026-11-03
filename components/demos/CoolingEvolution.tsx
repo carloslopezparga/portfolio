@@ -128,23 +128,23 @@ export function CoolingEvolution({ labels }: { labels: { illustrative: string; x
         <line key={t} y1={PAD.t} y2={H - PAD.b} x1={PAD.l + t * iw} x2={PAD.l + t * iw} className="stroke-line" strokeDasharray="2 4" />
       ))}
       <path d={`M${PAD.l} ${PAD.t - 8} V${H - PAD.b} H${W - PAD.r + 8}`} className="stroke-line-strong" fill="none" />
-      <text x={W - PAD.r} y={H - PAD.b + 26} textAnchor="end" className="fill-dim font-mono text-[9.5px] uppercase tracking-[0.12em]">
+      <text x={W - PAD.r} y={H - PAD.b + 26} textAnchor="end" className="fill-dim text-[11px] font-semibold">
         {labels.x} →
       </text>
-      <text transform={`translate(${PAD.l - 18} ${PAD.t + ih}) rotate(-90)`} className="fill-dim font-mono text-[9.5px] uppercase tracking-[0.12em]">
+      <text transform={`translate(${PAD.l - 18} ${PAD.t + ih}) rotate(-90)`} className="fill-dim text-[11px] font-semibold">
         {labels.y} →
       </text>
 
       {/* generation counter */}
-      <text x={PAD.l + 12} y={PAD.t + 6} className="fill-fg font-mono text-[11px] tracking-[0.12em]">
+      <text x={PAD.l + 12} y={PAD.t + 6} className="fill-fg text-[12.5px] font-semibold">
         {labels.gen} <tspan ref={genRef}>00</tspan>
         <tspan className="fill-dim"> / {String(GENS).padStart(2, "0")}</tspan>
       </text>
 
       {/* illustrative badge — always visible */}
       <g transform={`translate(${W - PAD.r - 112} ${PAD.t - 30})`}>
-        <rect width="112" height="22" rx="11" className="fill-bg stroke-ice" strokeDasharray="3 3" />
-        <text x="56" y="14.5" textAnchor="middle" className="fill-ice font-mono text-[9px] uppercase tracking-[0.16em]">
+        <rect width="112" height="22" rx="11" className="fill-bg stroke-[var(--cyan)]" strokeDasharray="3 3" />
+        <text x="56" y="14.5" textAnchor="middle" className="fill-[var(--cyan-text)] text-[10.5px] font-semibold">
           {labels.illustrative}
         </text>
       </g>
@@ -168,7 +168,7 @@ export function CoolingEvolution({ labels }: { labels: { illustrative: string; x
       ))}
 
       {/* legend */}
-      <g transform={`translate(${PAD.l + 12} ${H - PAD.b - 14})`} className="font-mono text-[9px] uppercase tracking-[0.12em]">
+      <g transform={`translate(${PAD.l + 12} ${H - PAD.b - 14})`} className="text-[10.5px] font-semibold">
         <line x1="0" x2="18" y1="0" y2="0" className="stroke-subtle" strokeDasharray="4 4" />
         <text x="24" y="3" className="fill-dim">
           {labels.baseline}

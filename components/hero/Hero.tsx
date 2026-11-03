@@ -1,50 +1,53 @@
-import { CV_URL } from "@/lib/site";
 import { profile } from "@/content/profile";
 import type { Locale } from "@/content/types";
 import { copy } from "@/lib/copy";
+import { CV_URL } from "@/lib/site";
 import { PromptBar } from "@/components/agent/PromptBar";
-import { Gearbox2D } from "./Gearbox2D";
-import { HeroVisual } from "./HeroVisual";
+import { ChipArt } from "./ChipArt";
 
-const arrow = (d: string) => (
-  <svg viewBox="0 0 16 16" className="size-4" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+const icon = (d: string) => (
+  <svg viewBox="0 0 16 16" className="size-4" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
     <path d={d} />
   </svg>
 );
 
-/** Straight to the point: who, what, and three ways to go further. The gearbox is decoration. */
+/**
+ * Centred hero, Apple style: availability, the name, the tagline in the Apple
+ * Intelligence gradient, two lines of summary, the agent and three actions.
+ * Underneath, like a product shot, the AI chip.
+ */
 export function Hero({ lang }: { lang: Locale }) {
   return (
-    <section id="top" className="relative scroll-mt-16 pb-14 pt-24 md:pb-20 md:pt-32 lg:min-h-[min(100svh,880px)] lg:pt-28">
-      <div className="mx-auto grid max-w-[1200px] items-center gap-10 px-5 sm:px-8 lg:min-h-[calc(min(100svh,880px)-12rem)] lg:grid-cols-[minmax(0,1.3fr)_minmax(0,0.9fr)] lg:gap-6">
-        <div>
-          <p className="material inline-flex items-center gap-2.5 rounded-full py-1.5 pl-3 pr-4 text-[13px] text-muted">
-            <span className="pulse-dot" data-accent="green" aria-hidden />
-            {profile.availability[lang]}
-          </p>
-          <h1 className="mt-6 text-[clamp(2.7rem,7vw,5.4rem)] font-semibold leading-[0.98] tracking-[-0.045em] text-fg">{profile.name}</h1>
-          <p className="text-gradient mt-4 text-[clamp(1.2rem,2.2vw,1.6rem)] font-medium leading-snug tracking-[-0.02em]">{profile.tagline[lang]}</p>
-          <p className="mt-4 max-w-[62ch] text-[16px] leading-relaxed text-muted md:text-[17px]">{profile.summary[lang]}</p>
+    <section id="top" className="relative overflow-hidden pt-28 sm:pt-36">
+      <div className="wrap flex flex-col items-center text-center">
+        <p className="inline-flex items-center gap-2.5 rounded-full bg-[var(--card)] py-2 pl-3.5 pr-4 text-[13.5px] font-medium text-fg">
+          <span className="pulse-dot" data-accent="green" aria-hidden />
+          {profile.availability[lang]}
+        </p>
+        <h1 className="mt-7 text-[clamp(3rem,10.5vw,6rem)] leading-[0.98] tracking-[-0.045em] text-fg">{profile.name}</h1>
+        <p className="text-ai mt-5 max-w-[22ch] pb-1 font-display text-[clamp(1.55rem,3.6vw,2.6rem)] font-semibold leading-[1.12] tracking-[-0.03em]">{profile.tagline[lang]}</p>
+        <p className="mt-5 max-w-[640px] text-[17px] leading-relaxed text-muted md:text-[19px]">{profile.summary[lang]}</p>
 
-          <div className="mt-8 max-w-[620px]">
-            <PromptBar label={copy.agent.name[lang]} examples={copy.agent.examples[lang]} sendLabel={copy.agent.send[lang]} />
-          </div>
-          <div className="mt-4 flex flex-wrap gap-2">
-            <a href="#experience" className="btn btn-ghost btn-sm">
-              {copy.hero.experience[lang]} {arrow("M8 3v9M4.5 8.5 8 12l3.5-3.5")}
-            </a>
-            <a href={CV_URL} download className="btn btn-ghost btn-sm">
-              {copy.hero.cv[lang]} {arrow("M8 3v9M4.5 8.5 8 12l3.5-3.5")}
-            </a>
-            <a href={profile.links.linkedin} target="_blank" rel="noreferrer noopener" className="btn btn-ghost btn-sm">
-              LinkedIn {arrow("M5 11 11 5M6 5h5v5")}
-            </a>
-          </div>
+        <div className="mt-9 w-full max-w-[600px] text-left">
+          <PromptBar label={copy.agent.name[lang]} examples={copy.agent.examples[lang]} sendLabel={copy.agent.send[lang]} />
         </div>
 
-        <HeroVisual>
-          <Gearbox2D className="size-full" />
-        </HeroVisual>
+        <div className="mt-6 flex flex-wrap justify-center gap-2.5">
+          <a href="#experience" className="btn btn-primary">
+            {copy.hero.experience[lang]} {icon("M8 3v9M4.5 8.5 8 12l3.5-3.5")}
+          </a>
+          <a href={CV_URL} download className="btn btn-secondary">
+            {copy.hero.cv[lang]} {icon("M8 3v9M4.5 8.5 8 12l3.5-3.5M3.5 13.5h9")}
+          </a>
+          <a href={profile.links.linkedin} target="_blank" rel="noreferrer noopener" className="btn btn-secondary">
+            LinkedIn {icon("M5 11 11 5M6 5h5v5")}
+          </a>
+        </div>
+      </div>
+
+      <div className="relative mx-auto mt-14 w-full max-w-[560px] px-6 pb-10 md:mt-20">
+        <div className="ai-haze" aria-hidden />
+        <ChipArt title={copy.hero.chip[lang]} className="relative w-full" />
       </div>
     </section>
   );
