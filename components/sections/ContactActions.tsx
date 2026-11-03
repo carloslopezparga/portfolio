@@ -3,11 +3,10 @@
 import { toast } from "@/components/ui/Toaster";
 import { dispatchUI } from "@/lib/ui-bus";
 
-export function CopyEmail({ email, copied, cursor }: { email: string; copied: string; cursor: string }) {
+export function CopyEmail({ email, copied }: { email: string; copied: string }) {
   return (
     <button
       type="button"
-      data-cursor={cursor}
       onClick={async () => {
         try {
           await navigator.clipboard.writeText(email);

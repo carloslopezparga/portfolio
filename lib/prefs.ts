@@ -4,7 +4,7 @@ import { useSyncExternalStore } from "react";
 
 /**
  * Global interaction preferences, mirrored on <html> as data-motion / data-input
- * so CSS and JS read the same truth. /lab can override both for testing.
+ * so CSS and JS read the same truth. Overrides live in sessionStorage.
  */
 export type MotionPref = "auto" | "reduce" | "full";
 export type InputPref = "auto" | "touch" | "fine";

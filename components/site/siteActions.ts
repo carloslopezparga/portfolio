@@ -19,8 +19,7 @@ export interface SiteActionLabels {
   prefs: string;
   ask: string;
   book: string;
-  cvEn: string;
-  cvEs: string;
+  cv: string;
   copyEmail: string;
   copied: string;
   lang: string;
@@ -58,8 +57,7 @@ export function useSiteGroups({ lang, sections, email, booking, labels: t }: Sit
       items: [
         { id: "ask", label: t.ask, icon: "chat", keywords: ["agent", "agente", "ai", "ia", "chat"], run: () => askAgent() },
         ...(booking ? [{ id: "book", label: t.book, icon: "clock" as const, keywords: ["call", "llamada", "cal", "meeting"], run: () => dispatchUI({ type: "open_booking" }) }] : []),
-        { id: "cv-en", label: t.cvEn, icon: "download", keywords: ["cv", "resume", "pdf"], run: () => dispatchUI({ type: "download_cv", lang: "en" }) },
-        { id: "cv-es", label: t.cvEs, icon: "download", keywords: ["cv", "currículum", "pdf"], run: () => dispatchUI({ type: "download_cv", lang: "es" }) },
+        { id: "cv", label: t.cv, icon: "download", keywords: ["cv", "resume", "currículum", "pdf"], run: () => dispatchUI({ type: "download_cv" }) },
         {
           id: "email",
           label: t.copyEmail,

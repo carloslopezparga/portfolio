@@ -18,7 +18,8 @@ export interface ProjectItem {
   problem: string;
   built: string;
   next: string | null;
-  stack: { id: StackId; label: string; domain: DomainId }[];
+  stack: { id: StackId | null; label: string; domain: DomainId | null }[];
+  metrics: { value: string; label: string }[];
   repo: { url: string; public: boolean } | null;
   demo: { kind: "terminal"; script: string } | { kind: "mail" } | { kind: "cooling" } | null;
   screenshot: string | null;
@@ -36,7 +37,6 @@ export interface ProjectLabels {
   demoSoon: string;
   realFlow: string;
   animated: string;
-  view: string;
   media: MediaLabels;
   mail: { gmail: string; claude: string; digest: string; inbox: string; search: string; telegram: string; tailored: string; building: string; steps: [string, string, string, string] };
   cooling: { illustrative: string; x: string; y: string; baseline: string; best: string; gen: string };
@@ -64,7 +64,7 @@ function Demo({ item, labels }: { item: ProjectItem; labels: ProjectLabels }) {
         </div>
       ) : null}
       {real && item.screenshot ? (
-        <div className="relative size-full overflow-hidden rounded-[12px]" data-cursor={labels.view}>
+        <div className="relative size-full overflow-hidden rounded-[12px]">
           <Image src={item.screenshot} alt={labels.realFlow} fill sizes="(min-width: 1024px) 60vw, 100vw" className="object-contain" />
         </div>
       ) : (
@@ -94,7 +94,7 @@ export function ProjectsGrid({ items, labels }: { items: ProjectItem[]; labels: 
   );
 
   return (
-    <div className="mx-auto grid max-w-[1200px] gap-4 px-5 sm:px-8 md:grid-cols-3">
+    <div className="mx-auto grid max-w-[1200px] gap-4 px-5 sm:px-8 md:grid-cols-2">
       {items.map((it, i) => {
         const on = it.id === open;
         return (
@@ -112,10 +112,21 @@ export function ProjectsGrid({ items, labels }: { items: ProjectItem[]; labels: 
             <h3 className="mt-4 text-[19px] leading-tight text-fg">{it.name}</h3>
             <p className="mt-1 text-[13.5px] font-medium text-[var(--d)]">{it.oneLiner}</p>
             <p className="mt-3 text-[14.5px] leading-relaxed text-muted">{it.problem}</p>
+            {it.metrics.length ? (
+              <dl className="mt-4 flex flex-wrap gap-x-5 gap-y-2">
+                {it.metrics.map((m) => (
+                  <div key={m.label}>
+                    <dt className="sr-only">{m.label}</dt>
+                    <dd className="text-[18px] font-semibold leading-none text-[var(--d)]">{m.value}</dd>
+                    <dd className="mt-1 text-[12.5px] text-dim">{m.label}</dd>
+                  </div>
+                ))}
+              </dl>
+            ) : null}
             <ul className="mt-4 flex flex-wrap gap-1.5">
               {it.stack.map((s) => (
-                <li key={s.id} data-domain={s.domain} className="chip">
-                  <StackIcon id={s.id} className="size-3.5 text-[var(--d)]" />
+                <li key={s.label} data-domain={s.domain ?? undefined} className="chip">
+                  {s.id ? <StackIcon id={s.id} className="size-3.5 text-[var(--d)]" /> : null}
                   {s.label}
                 </li>
               ))}
@@ -143,8 +154,8 @@ export function ProjectsGrid({ items, labels }: { items: ProjectItem[]; labels: 
       <div
         id="project-panel"
         ref={panelRef}
-        className="project-panel md:col-span-3 md:!order-[99]"
-        style={{ order: index * 2 + 2, display: item ? undefined : "none" } as CSSProperties}
+        className="project-panel md:col-span-2 md:[order:var(--row-end)]"
+        style={{ order: index * 2 + 2, "--row-end": (Math.floor(index / 2) * 2 + 1) * 2 + 2, display: item ? undefined : "none" } as CSSProperties}
         data-domain={item?.domain}
       >
         {item ? (

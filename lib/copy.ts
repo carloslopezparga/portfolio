@@ -11,13 +11,6 @@ export const copy = {
     dark: { en: "Switch to dark theme", es: "Cambiar a tema oscuro" },
     light: { en: "Switch to light theme", es: "Cambiar a tema claro" },
   },
-  cursor: {
-    view: { en: "View", es: "Ver" },
-    open: { en: "Open", es: "Abrir" },
-    play: { en: "Play", es: "Reproducir" },
-    copy: { en: "Copy", es: "Copiar" },
-    drag: { en: "Drag", es: "Arrastrar" },
-  },
   media: {
     title: { en: "Photos and videos", es: "Fotos y vídeos" },
     video: { en: "Video", es: "Vídeo" },
@@ -32,9 +25,28 @@ export const copy = {
   agent: {
     name: { en: "Ask my agent", es: "Pregúntale a mi agente" },
     prompt: { en: "Ask my agent anything about Carlos", es: "Pregúntale a mi agente lo que quieras sobre Carlos" },
+    // The bar types one at a time and only uses those that fit, so keep some short ones.
     examples: {
-      en: ["What will he do at PropHero?", "What is he studying at ETSII-UPM?", "Is he available for an internship in 2027?", "Which projects use Python?"],
-      es: ["¿Qué hará en PropHero?", "¿Qué estudia en la ETSII-UPM?", "¿Está disponible para prácticas en 2027?", "¿Qué proyectos usan Python?"],
+      en: [
+        "What does he do at PropHero?",
+        "Is he available for an internship in 2027?",
+        "What did job-hunt-copilot achieve?",
+        "What is he studying at ETSII-UPM?",
+        "Which projects use Python?",
+        "What did he automate at Classy?",
+        "Where does he work?",
+        "His AI projects?",
+      ],
+      es: [
+        "¿Qué hace en PropHero?",
+        "¿Está disponible para prácticas en 2027?",
+        "¿Qué consiguió job-hunt-copilot?",
+        "¿Qué estudia en la ETSII-UPM?",
+        "¿Qué proyectos usan Python?",
+        "¿Qué automatizó en Classy?",
+        "¿Dónde trabaja?",
+        "¿Proyectos de IA?",
+      ],
     } satisfies L<string[]>,
     grounded: { en: "Answers only from Carlos's profile", es: "Responde solo con el perfil de Carlos" },
     inputPlaceholder: { en: "Ask a follow-up…", es: "Pregunta algo más…" },
@@ -58,7 +70,7 @@ export const copy = {
       scroll_to: { en: "Taking you to {x}", es: "Te llevo a {x}" },
       highlight: { en: "Highlighting {x}", es: "Resalto {x}" },
       open_project: { en: "Opening {x}", es: "Te abro {x}" },
-      download_cv: { en: "Downloading the CV ({x})", es: "Descargando el CV ({x})" },
+      download_cv: { en: "Downloading the CV (PDF, in English)", es: "Descargando el CV (PDF, en inglés)" },
       open_booking: { en: "Opening the calendar", es: "Te abro la agenda" },
       focus_part: { en: "Lighting up {x} on the gearbox", es: "Enciendo {x} en la reductora" },
     },
@@ -184,8 +196,7 @@ export const copy = {
     prefs: { en: "Preferences", es: "Preferencias" },
     ask: { en: "Ask my agent", es: "Pregúntale a mi agente" },
     book: { en: "Book a call", es: "Reservar llamada" },
-    cvEn: { en: "Download CV (English)", es: "Descargar CV (inglés)" },
-    cvEs: { en: "Download CV (Spanish)", es: "Descargar CV (español)" },
+    cv: { en: "Download CV (PDF)", es: "Descargar CV (PDF, en inglés)" },
     copyEmail: { en: "Copy email", es: "Copiar email" },
     lang: { en: "Ver en español", es: "View in English" },
     theme: { en: "Toggle light / dark", es: "Cambiar claro / oscuro" },
@@ -195,6 +206,7 @@ export const copy = {
     live: { en: "Live", es: "En marcha" },
     building: { en: "Building", es: "En construcción" },
     rnd: { en: "In development", es: "En desarrollo" },
+    done: { en: "Completed", es: "Completado" },
   },
   footer: {
     built: { en: "Made in Madrid", es: "Hecho en Madrid" },
@@ -207,8 +219,6 @@ export const fill = (s: string, x: string) => s.replace("{x}", x);
 /** Labels for a media strip and its lightbox, in one language. */
 export const mediaLabels = (lang: Locale) => ({
   title: copy.media.title[lang],
-  view: copy.cursor.view[lang],
-  play: copy.cursor.play[lang],
   video: copy.media.video[lang],
   close: copy.media.close[lang],
   prev: copy.media.prev[lang],

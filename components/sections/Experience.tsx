@@ -1,9 +1,10 @@
 import { profile } from "@/content/profile";
 import { has, type Locale } from "@/content/types";
-import { brandOf, logoSrc } from "@/lib/assets";
+import { brandOf } from "@/lib/assets";
 import { brandStyle } from "@/lib/brand";
 import { copy, fill } from "@/lib/copy";
 import { formatDay, formatRange, timeStatus } from "@/lib/i18n";
+import { formatMetric } from "@/lib/metrics";
 import { CardMedia } from "@/components/media/CardMedia";
 import { LogoMark } from "@/components/ui/LogoMark";
 import { SectionHeader, sheetOf } from "./SectionHeader";
@@ -13,7 +14,7 @@ import { TimelineRail } from "./TimelineRail";
 /** Every role as a compact card on a vertical timeline; PropHero first and larger. */
 export async function Experience({ lang, now }: { lang: Locale; now: Date }) {
   const t = copy.experience;
-  const tones = await Promise.all(profile.experience.map((e) => brandOf(e.brand.logo, e.brand.color)));
+  const tones = await Promise.all(profile.experience.map((e) => brandOf(e.brand)));
 
   return (
     <section id="experience" data-sheet={sheetOf("experience")} className="relative scroll-mt-20 py-14 md:py-20">
@@ -33,7 +34,7 @@ export async function Experience({ lang, now }: { lang: Locale; now: Date }) {
               </div>
               <article id={`exp-${e.id}`} data-target-id={e.id} className={`xp-card scroll-mt-24 ${e.featured ? "xp-card--featured" : ""}`}>
                 <div className="flex items-start gap-4">
-                  <LogoMark src={logoSrc(e.brand.logo)} monogram={e.brand.monogram} size={e.featured ? 52 : 44} />
+                  <LogoMark brand={e.brand} size={e.featured ? 52 : 44} />
                   <div className="min-w-0 flex-1">
                     <div className="flex flex-wrap items-center gap-x-3 gap-y-1.5">
                       <h3 className={`${e.featured ? "text-[clamp(1.25rem,2vw,1.5rem)]" : "text-[18px]"} leading-tight text-fg`}>{e.role[lang]}</h3>
@@ -66,7 +67,17 @@ export async function Experience({ lang, now }: { lang: Locale; now: Date }) {
                     ))}
                   </ul>
                 ) : null}
-                {has(e.results) ? <p className="mt-3 text-[14px] font-medium text-fg">{e.results[lang]}</p> : null}
+                {e.metrics?.length ? (
+                  <dl className="mt-4 flex flex-wrap gap-x-6 gap-y-2">
+                    {e.metrics.map((m) => (
+                      <div key={m.label.en}>
+                        <dt className="sr-only">{m.label[lang]}</dt>
+                        <dd className="text-[22px] font-semibold leading-none text-[var(--d)]">{formatMetric(m, lang)}</dd>
+                        <dd className="mt-1 text-[13px] text-dim">{m.label[lang]}</dd>
+                      </div>
+                    ))}
+                  </dl>
+                ) : null}
                 <SkillChips lang={lang} refId={e.id} className="mt-4" />
                 <CardMedia section="experience" folder={e.id} lang={lang} alt={e.company} className="mt-4" />
               </article>

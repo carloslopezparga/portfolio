@@ -33,35 +33,61 @@ export type StackId =
   | "python"
   | "sql"
   | "stats"
+  | "pandas"
+  | "sklearn"
+  | "matlab"
   | "nextjs"
   | "typescript"
+  | "supabase"
+  | "git"
+  | "pytest"
+  | "c"
   | "n8n"
+  | "excel-vba"
   | "llm-apis"
   | "claude-code"
+  | "cursor"
+  | "tensorflow"
   | "automation"
   | "operations"
   | "sales"
   | "negotiation";
 
+/** A project's stack entry: a skill from the graph, or a plain label for tools that aren't skills there. */
+export type StackRef = StackId | { label: string };
+
 export type ExperienceId = "prophero" | "grupo-lalala" | "induforum" | "classy-night-society";
-export type ProjectId = "job-hunt-copilot" | "mail-autopilot" | "cooling-agent";
+export type ProjectId = "job-hunt-copilot" | "mail-autopilot" | "cooling-agent" | "cs50-ai";
 
 /** Everything a skill can point to: the big nodes of the constellation. */
 export type RefId = ProjectId | ExperienceId | "giti" | "cs50" | "this-site";
 
-export type ProjectStatus = "live" | "building" | "rnd";
+export type ProjectStatus = "live" | "building" | "rnd" | "done";
 
 export interface Domain {
   id: DomainId;
   label: L;
 }
 
-export interface ImpactMetric {
-  id: string;
-  value: Maybe<number>;
-  suffix?: string;
-  decimals?: number;
+/**
+ * A real figure, rendered as prefix + number (counted up, formatted per
+ * language) + suffix: "~400", "6,400+" / "6.400+", "−80%" / "−80 %".
+ */
+export interface Metric {
+  value: number;
+  prefix?: string;
+  suffix?: string | L;
   label: L;
+}
+
+export type StatIcon = "calendar" | "search" | "people" | "clock";
+
+/** The headline figures under the hero; each one links to the entry it comes from. */
+export interface Stat extends Metric {
+  id: string;
+  /** A registry target (data-target-id on the page). */
+  target: string;
+  icon: StatIcon;
 }
 
 export interface Project {
@@ -74,9 +100,12 @@ export interface Project {
   problem: L;
   built: L;
   next?: Maybe<L>;
-  stack: StackId[];
+  /** Month it was finished, for completed projects. */
+  date?: DateISO;
+  metrics?: Metric[];
+  stack: StackRef[];
   repo?: { url: string; public: boolean };
-  demo: { kind: "terminal"; file: string } | { kind: "mail-flow" } | { kind: "cooling"; illustrative: boolean };
+  demo?: { kind: "terminal"; file: string } | { kind: "mail-flow" } | { kind: "cooling"; illustrative: boolean };
   /** Optional screenshot in public/photos (filename without extension). */
   screenshot?: string;
 }
@@ -89,6 +118,10 @@ export interface Brand {
   logo: string;
   monogram: string;
   color: Hex;
+  /** Keep `color` as the accent instead of reading it from the logo (e.g. a black-and-white logo). */
+  fixed?: boolean;
+  /** "fill": the logo has its own background and fills its tile; "white": it sits on a white tile. */
+  tile: "fill" | "white";
 }
 
 export interface Experience {
@@ -108,7 +141,8 @@ export interface Experience {
   summary: Maybe<L>;
   /** 3–4 short, concrete bullets for the experience card and the CV. */
   bullets: Maybe<L>[];
-  results?: Maybe<L>;
+  /** Real figures, shown in the card in the brand colour. */
+  metrics?: Metric[];
   /** Bigger card with the "Current" badge. */
   featured?: boolean;
 }
@@ -131,6 +165,8 @@ export interface Education {
   end: DateISO;
   /** Chips: honours, programmes. */
   chips: Maybe<Chip>[];
+  /** Main subjects (for the agent). */
+  coursework?: L<string[]>;
   featured?: boolean;
 }
 
@@ -140,6 +176,7 @@ export interface Course {
   provider: string;
   brand: Brand;
   detail: L;
+  date: DateISO;
 }
 
 export interface Leadership {
@@ -147,9 +184,10 @@ export interface Leadership {
   accent: Accent;
   title: L;
   description: L;
-  metric?: Maybe<L>;
+  metric?: Metric;
   start?: Maybe<DateISO>;
-  end?: Maybe<DateISO>;
+  /** null = ongoing. */
+  end?: Maybe<DateISO> | null;
 }
 
 /** A link from a skill to where it was used; w = attention weight (line thickness, default 1). */
@@ -216,8 +254,8 @@ export interface Profile {
   email: string;
   links: { linkedin: string; github: string };
   domains: Domain[];
-  /** Not rendered at the moment; kept for when real numbers exist. */
-  impact: ImpactMetric[];
+  /** The headline figures under the hero. */
+  impact: Stat[];
   experience: Experience[];
   education: Education[];
   courses: Course[];

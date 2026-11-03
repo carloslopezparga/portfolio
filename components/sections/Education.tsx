@@ -1,6 +1,6 @@
 import { profile } from "@/content/profile";
 import { has, type Locale } from "@/content/types";
-import { brandOf, logoSrc } from "@/lib/assets";
+import { brandOf } from "@/lib/assets";
 import { brandStyle } from "@/lib/brand";
 import { copy, fill } from "@/lib/copy";
 import { formatMonth, formatRange, studyYear } from "@/lib/i18n";
@@ -20,9 +20,9 @@ export async function Education({ lang, now }: { lang: Locale; now: Date }) {
   const cs50 = profile.courses[0];
   const { erasmus } = profile.future;
   const [upmTone, retamarTone, csTone] = await Promise.all([
-    brandOf(upm.brand.logo, upm.brand.color),
-    brandOf(retamar.brand.logo, retamar.brand.color),
-    brandOf(cs50.brand.logo, cs50.brand.color),
+    brandOf(upm.brand),
+    brandOf(retamar.brand),
+    brandOf(cs50.brand),
   ]);
   const year = studyYear(upm.start!, upm.end, now);
   const upmChips = upm.chips.filter(has);
@@ -40,7 +40,7 @@ export async function Education({ lang, now }: { lang: Locale; now: Date }) {
           </div>
           <article id={`edu-${upm.id}`} data-target-id={upm.id} className="xp-card xp-card--featured scroll-mt-24">
             <div className="flex items-start gap-4">
-              <LogoMark src={logoSrc(upm.brand.logo)} monogram={upm.brand.monogram} size={52} />
+              <LogoMark brand={upm.brand} size={52} />
               <div className="min-w-0 flex-1">
                 <div className="flex flex-wrap items-center gap-x-3 gap-y-1.5">
                   <h3 className="text-[clamp(1.25rem,2vw,1.5rem)] leading-tight text-fg">{upm.degree[lang]}</h3>
@@ -97,7 +97,7 @@ export async function Education({ lang, now }: { lang: Locale; now: Date }) {
           </div>
           <article id={`edu-${retamar.id}`} data-target-id={retamar.id} className="xp-card scroll-mt-24">
             <div className="flex items-start gap-4">
-              <LogoMark src={logoSrc(retamar.brand.logo)} monogram={retamar.brand.monogram} size={44} />
+              <LogoMark brand={retamar.brand} size={44} />
               <div className="min-w-0 flex-1">
                 <h3 className="text-[17px] leading-tight text-fg">{retamar.degree[lang]}</h3>
                 <p className="mt-1 text-[14.5px] font-medium text-[var(--d)]">{retamar.institution[lang]}</p>
@@ -119,16 +119,16 @@ export async function Education({ lang, now }: { lang: Locale; now: Date }) {
           <span className="tl-marker" data-tl-marker aria-hidden />
           <div className="tl-when">
             <p className="text-[14px] font-medium text-fg">{t.course[lang]}</p>
-            <p className="mt-0.5 text-[13px] text-dim">{cs50.provider}</p>
+            <p className="mt-0.5 text-[13px] text-dim">{formatMonth(cs50.date, lang)}</p>
           </div>
           <article id="edu-cs50" data-target-id="cs50" className="xp-card scroll-mt-24">
             <div className="flex items-start gap-4">
-              <LogoMark src={logoSrc(cs50.brand.logo)} monogram={cs50.brand.monogram} size={44} />
+              <LogoMark brand={cs50.brand} size={44} />
               <div className="min-w-0 flex-1">
-                <h3 className="text-[17px] leading-tight text-fg">{cs50.name}</h3>
+                <h3 className="text-[17px] leading-tight text-fg">{cs50.detail[lang]}</h3>
                 <p className="mt-1 text-[14.5px]">
                   <span className="font-medium text-[var(--d)]">{cs50.provider}</span>
-                  <span className="text-muted"> · {cs50.detail[lang]}</span>
+                  <span className="text-muted"> · {formatMonth(cs50.date, lang)}</span>
                 </p>
                 <SkillChips lang={lang} refId="cs50" className="mt-3" />
               </div>

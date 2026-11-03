@@ -3,6 +3,7 @@
 import { useEffect } from "react";
 import { useLenis } from "@/components/providers/SmoothScroll";
 import { getPrefs } from "@/lib/prefs";
+import { CV_URL } from "@/lib/site";
 import { onUI } from "@/lib/ui-bus";
 
 const HL_MS = 1900;
@@ -69,12 +70,12 @@ export function UIActionHost() {
       }),
       onUI("highlight", ({ targetId }) => highlight(targetId)),
       onUI("open_project", () => {
-        const el = document.getElementById("systems");
+        const el = document.getElementById("projects");
         if (el && !inView(el)) scrollTo(el);
       }),
-      onUI("download_cv", ({ lang }) => {
+      onUI("download_cv", () => {
         const a = document.createElement("a");
-        a.href = `/api/cv?lang=${lang}`;
+        a.href = CV_URL;
         a.download = "";
         document.body.append(a);
         a.click();

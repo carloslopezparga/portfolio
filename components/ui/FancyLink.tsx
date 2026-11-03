@@ -29,13 +29,11 @@ export function FancyLink({
   href,
   children,
   external,
-  cursor,
   className,
 }: {
   href: string;
   children: ReactNode;
   external?: boolean;
-  cursor?: string;
   className?: string;
 }) {
   const Arrow = external ? ArrowUpRight : ArrowRight;
@@ -44,7 +42,6 @@ export function FancyLink({
       href={href}
       className={`group inline-flex items-center gap-1.5 ${className ?? ""}`}
       {...(external ? { target: "_blank", rel: "noreferrer noopener" } : {})}
-      {...(cursor ? { "data-cursor": cursor } : {})}
     >
       <span className="link-draw">{children}</span>
       <span className={`link-arrow ${external ? "" : "link-arrow--right"}`} aria-hidden>

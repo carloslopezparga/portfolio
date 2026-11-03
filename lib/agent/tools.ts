@@ -1,6 +1,5 @@
 import type Anthropic from "@anthropic-ai/sdk";
 import { registry } from "@/content/profile";
-import { LOCALES } from "@/content/types";
 import { bookingEnabled } from "@/lib/booking";
 
 export { bookingEnabled };
@@ -47,14 +46,9 @@ export function agentTools(): Anthropic.Tool[] {
     },
     {
       name: "download_cv",
-      description: "Download Carlos's one-page CV as a PDF. Only when the visitor asks for the CV.",
+      description: "Download Carlos's CV as a PDF (it is in English). Only when the visitor asks for the CV.",
       eager_input_streaming: true,
-      input_schema: {
-        type: "object",
-        properties: { lang: { type: "string", enum: [...LOCALES] } },
-        required: ["lang"],
-        additionalProperties: false,
-      },
+      input_schema: { type: "object", properties: {}, additionalProperties: false },
     },
     {
       name: "focus_part",
@@ -80,7 +74,7 @@ export function agentTools(): Anthropic.Tool[] {
 }
 
 type Validated =
-  | { ok: true; action: { type: "scroll_to"; sectionId: string } | { type: "highlight"; targetId: string } | { type: "open_project"; projectId: string } | { type: "download_cv"; lang: string } | { type: "focus_part"; part: string } | { type: "open_booking" } }
+  | { ok: true; action: { type: "scroll_to"; sectionId: string } | { type: "highlight"; targetId: string } | { type: "open_project"; projectId: string } | { type: "download_cv" } | { type: "focus_part"; part: string } | { type: "open_booking" } }
   | { ok: false; error: string };
 
 const isStr = (v: unknown): v is string => typeof v === "string";
@@ -102,9 +96,7 @@ export function validateAction(name: string, input: unknown): Validated {
         ? { ok: true, action: { type: "open_project", projectId: o.projectId } }
         : { ok: false, error: "unknown projectId" };
     case "download_cv":
-      return isStr(o.lang) && (LOCALES as readonly string[]).includes(o.lang)
-        ? { ok: true, action: { type: "download_cv", lang: o.lang } }
-        : { ok: false, error: "unknown lang" };
+      return { ok: true, action: { type: "download_cv" } };
     case "focus_part":
       return isStr(o.part) && (registry.parts as string[]).includes(o.part)
         ? { ok: true, action: { type: "focus_part", part: o.part } }

@@ -2,7 +2,7 @@
 
 import { useEffect, useRef } from "react";
 import { CONTROLS, shapeOf } from "@/lib/hover";
-import { usePrefs } from "@/lib/prefs";
+import { getPrefs, usePrefs } from "@/lib/prefs";
 
 /** Small things that light up: controls, plus chips, logos and constellation nodes. */
 const CONTROL = `${CONTROLS}, .chip, .logo-mark, .media-thumb, .c-node, .c-star, [data-glow]`;
@@ -10,6 +10,9 @@ const CONTROL = `${CONTROLS}, .chip, .logo-mark, .media-thumb, .c-node, .c-star,
 const SURFACE = ".now-card, .xp-card:not(.xp-card--quiet), .project-card, .lead-card, .project-panel, [data-glow-surface]";
 /** Buttons and featured cards also get a faint outer halo. */
 const HALO = ".btn, .now-card, .xp-card--featured, .project-card";
+/** How far a hovered control leans toward the pointer, in px. */
+const LIFT = 2;
+const EASE = "cubic-bezier(0.22, 1, 0.36, 1)";
 /** Bigger than this, a control lights up like a card. */
 const MAX_CONTROL = { w: 720, h: 220 };
 
@@ -41,12 +44,41 @@ export function HoverGlow() {
     let raf = 0;
     let fadeTimer = 0;
 
+    // The control under the pointer leans up to LIFT px toward it.
+    let lifted: HTMLElement | null = null;
+    let lx = 0;
+    let ly = 0;
+    let liftIntro = false;
+    const canLift = (el: Element): el is HTMLElement =>
+      !touch &&
+      !getPrefs().reduced &&
+      el instanceof HTMLElement &&
+      !el.closest(".magnetic, [data-no-lift]") &&
+      getComputedStyle(el).translate === "none" &&
+      getComputedStyle(el).position !== "fixed";
+    const drop = () => {
+      if (!lifted) return;
+      const el = lifted;
+      const from = el.style.translate;
+      el.style.translate = "";
+      if (from) el.animate([{ translate: from }, { translate: "0px 0px" }], { duration: 180, easing: EASE });
+      lifted = null;
+      lx = ly = 0;
+    };
+
     const neutral = () => getComputedStyle(html).getPropertyValue("--d-rgb").trim();
     const header = () => document.querySelector(".site-header")?.getBoundingClientRect().bottom ?? 0;
 
     const set = (layer: Layer, el: Element | null) => {
       if (el === layer.el) return;
       layer.el = el;
+      if (layer === control) {
+        drop();
+        if (el && canLift(el)) {
+          lifted = el;
+          liftIntro = true;
+        }
+      }
       const n = layer.node;
       if (!el) {
         n.style.opacity = "0";
@@ -73,6 +105,21 @@ export function HoverGlow() {
           const r = el.getBoundingClientRect();
           return { left: r.left, top: r.top, width: r.width, height: r.height, radius: parseFloat(getComputedStyle(el).borderTopLeftRadius) || 0 };
         })();
+        if (layer === control && lifted === el) {
+          // Measure without the lean, so it doesn't feed back into itself.
+          s.left -= lx;
+          s.top -= ly;
+          const tx = clamp((x - (s.left + s.width / 2)) / (s.width / 2), -1, 1) * LIFT;
+          const ty = clamp((y - (s.top + s.height / 2)) / (s.height / 2), -1, 1) * LIFT;
+          const v = `${tx.toFixed(2)}px ${ty.toFixed(2)}px`;
+          if (liftIntro) lifted.animate([{ translate: "0px 0px" }, { translate: v }], { duration: 160, easing: EASE });
+          liftIntro = false;
+          lifted.style.translate = v;
+          lx = tx;
+          ly = ty;
+          s.left += tx;
+          s.top += ty;
+        }
         const n = layer.node.style;
         n.transform = `translate3d(${s.left}px, ${s.top}px, 0)`;
         n.width = `${s.width}px`;
@@ -111,6 +158,7 @@ export function HoverGlow() {
     };
 
     const clear = () => {
+      drop();
       set(control, null);
       set(surface, null);
     };
@@ -140,6 +188,7 @@ export function HoverGlow() {
       window.addEventListener("scroll", onScroll, { passive: true });
       return () => {
         cancelAnimationFrame(raf);
+        drop();
         window.removeEventListener("pointermove", onMove);
         document.removeEventListener("pointerover", onOver);
         document.removeEventListener("mouseout", onOut);

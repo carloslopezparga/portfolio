@@ -9,8 +9,6 @@ const MediaLightbox = lazy(() => import("./MediaLightbox"));
 
 export interface MediaLabels {
   title: string;
-  view: string;
-  play: string;
   video: string;
   close: string;
   prev: string;
@@ -74,7 +72,6 @@ export function MediaStrip({ items, alt, labels, className = "" }: { items: Medi
                 }}
                 type="button"
                 className="media-thumb"
-                data-cursor={isVideo(m) ? labels.play : labels.view}
                 aria-label={`${name} (${i + 1}/${items.length})`}
                 aria-haspopup="dialog"
                 onClick={() => setOpen(i)}

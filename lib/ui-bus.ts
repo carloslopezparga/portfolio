@@ -1,6 +1,6 @@
 "use client";
 
-import type { DomainId, Locale, ProjectId, SectionId } from "@/content/types";
+import type { DomainId, ProjectId, SectionId } from "@/content/types";
 
 /**
  * Every interface action the agent (and the rest of the page) can trigger.
@@ -11,7 +11,7 @@ export type UIAction =
   | { type: "scroll_to"; sectionId: SectionId }
   | { type: "highlight"; targetId: string }
   | { type: "open_project"; projectId: ProjectId }
-  | { type: "download_cv"; lang: Locale }
+  | { type: "download_cv" }
   | { type: "open_booking" }
   | { type: "focus_part"; part: DomainId }
   | { type: "filter_domain"; domain: DomainId | null };

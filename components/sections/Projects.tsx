@@ -2,7 +2,9 @@ import { profile } from "@/content/profile";
 import { has, type Locale } from "@/content/types";
 import { photoSrc, readDemo } from "@/lib/assets";
 import { copy, mediaLabels } from "@/lib/copy";
+import { formatMonth } from "@/lib/i18n";
 import { mediaFor } from "@/lib/media";
+import { formatMetric, isSkill } from "@/lib/metrics";
 import { ProjectsGrid, type ProjectItem } from "./ProjectsGrid";
 import { SectionHeader, sheetOf } from "./SectionHeader";
 
@@ -11,24 +13,26 @@ export async function Projects({ lang }: { lang: Locale }) {
   const media = await Promise.all(profile.projects.map((p) => mediaFor("projects", p.id, lang)));
   const items: ProjectItem[] = profile.projects.map((p, i) => {
     let demo: ProjectItem["demo"] = null;
-    if (p.demo.kind === "terminal") {
+    if (p.demo?.kind === "terminal") {
       const script = readDemo(p.demo.file);
       demo = script ? { kind: "terminal", script } : null; // no recorded run → no demo
-    } else if (p.demo.kind === "mail-flow") demo = { kind: "mail" };
-    else demo = { kind: "cooling" };
+    } else if (p.demo?.kind === "mail-flow") demo = { kind: "mail" };
+    else if (p.demo?.kind === "cooling") demo = { kind: "cooling" };
     return {
       id: p.id,
       domain: p.domain,
       name: p.name[lang],
       oneLiner: p.oneLiner[lang],
-      status: copy.status[p.status][lang],
+      status: p.status === "done" && p.date ? `${copy.status.done[lang]} · ${formatMonth(p.date, lang)}` : copy.status[p.status][lang],
       problem: p.problem[lang],
       built: p.built[lang],
       next: has(p.next) ? p.next[lang] : null,
-      stack: p.stack.map((id) => {
-        const s = profile.stack.find((x) => x.id === id)!;
-        return { id, label: s.label[lang], domain: s.domain };
+      stack: p.stack.map((ref) => {
+        if (!isSkill(ref)) return { id: null, label: ref.label, domain: null };
+        const s = profile.stack.find((x) => x.id === ref)!;
+        return { id: ref, label: s.label[lang], domain: s.domain };
       }),
+      metrics: (p.metrics ?? []).map((m) => ({ value: formatMetric(m, lang), label: m.label[lang] })),
       repo: p.repo ?? null,
       demo,
       screenshot: p.screenshot ? photoSrc(p.screenshot) : null,
@@ -53,7 +57,6 @@ export async function Projects({ lang }: { lang: Locale }) {
             demoSoon: t.demoSoon[lang],
             realFlow: t.realFlow[lang],
             animated: t.animated[lang],
-            view: copy.cursor.view[lang],
             media: mediaLabels(lang),
             mail: {
               gmail: t.mail.gmail[lang],

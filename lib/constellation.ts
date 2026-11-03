@@ -57,7 +57,7 @@ export function constellationLayout(orientation: "landscape" | "portrait"): Layo
 }
 
 /** Big nodes in reading order: jobs, studies, projects, this site. */
-const NODE_ORDER: RefId[] = ["prophero", "grupo-lalala", "induforum", "classy-night-society", "giti", "cs50", "job-hunt-copilot", "mail-autopilot", "cooling-agent", "this-site"];
+const NODE_ORDER: RefId[] = ["prophero", "grupo-lalala", "induforum", "classy-night-society", "giti", "cs50", "job-hunt-copilot", "mail-autopilot", "cooling-agent", "cs50-ai", "this-site"];
 
 type Groups = Map<Cluster, { id: string; kind: StarPos["kind"]; weight: number }[]>;
 

@@ -26,7 +26,7 @@ function actionLine(a: UIAction, lang: Locale): Part {
     case "open_project":
       return { kind: "action", label: fill(t.open_project[lang], targetLabel(a.projectId, lang)), domain: targetDomain(a.projectId) ?? undefined };
     case "download_cv":
-      return { kind: "action", label: fill(t.download_cv[lang], a.lang.toUpperCase()) };
+      return { kind: "action", label: t.download_cv[lang] };
     case "open_booking":
       return { kind: "action", label: t.open_booking[lang] };
     case "focus_part":

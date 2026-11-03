@@ -1,5 +1,6 @@
 /**
- * Single source of truth for the website, the PDF CV and the agent.
+ * Single source of truth for the website and the agent. It mirrors Carlos's
+ * own CV (public/cv/), which is what the CV buttons download.
  *
  * - Every user-facing string has an `en` and an `es` version.
  * - Unknown data is a string that starts with TODO: and is never rendered:
@@ -7,7 +8,10 @@
  * - `npm run todos` lists what is still missing.
  * - `registry` (bottom) is the whitelist of ids the agent's UI tools may use.
  */
-import type { DomainId, Hex, Locale, ProjectId, Profile, RefId, SectionId } from "./types";
+import type { Brand, DomainId, L, Locale, ProjectId, Profile, RefId, SectionId } from "./types";
+
+/** "80%" in English, "80 %" (non-breaking space) in Spanish. */
+const PCT: L = { en: "%", es: "\u00a0%" };
 
 export const profile: Profile = {
   name: "Carlos López Parga",
@@ -41,98 +45,115 @@ export const profile: Profile = {
     { id: "software", label: { en: "Software", es: "Software" } },
   ],
 
-  // Not shown on the site at the moment; kept for when the numbers exist.
+  // The headline figures under the hero. Each links to the entry it comes from.
   impact: [
-    { id: "events", value: "TODO: nº de eventos operados", label: { en: "events run", es: "eventos operados" } },
-    { id: "attendees", value: "TODO: asistentes totales", suffix: "+", label: { en: "attendees", es: "asistentes" } },
+    { id: "events", prefix: "~", value: 400, label: { en: "events a year", es: "eventos al año" }, target: "grupo-lalala", icon: "calendar" },
+    { id: "postings", value: 6400, suffix: "+", label: { en: "job postings analysed", es: "ofertas analizadas" }, target: "job-hunt-copilot", icon: "search" },
+    { id: "volunteers", value: 200, label: { en: "volunteers mobilised", es: "voluntarios movilizados" }, target: "dana", icon: "people" },
+    { id: "payouts", prefix: "−", value: 80, suffix: PCT, label: { en: "payment cycle", es: "ciclo de pagos" }, target: "classy-night-society", icon: "clock" },
   ],
 
-  // Brand colours: PropHero, ETSII and Retamar come from their websites; the
-  // others are placeholders until the logo is in public/logos (the site then
-  // reads the colour from the logo itself).
+  // Brand colours are read from the logo in public/logos; `color` is the
+  // fallback (or the fixed accent when `fixed` is set).
   experience: [
     {
       id: "prophero",
       company: "PropHero",
-      brand: { logo: "prophero", monogram: "PH", color: "#2050F6" },
-      role: { en: "Tech Operations Intern", es: "Tech Operations Intern" },
+      brand: { logo: "prophero", monogram: "PH", color: "#2050F6", tile: "fill" },
+      role: { en: "Tech Operations Intern, AI & Automation", es: "Tech Operations Intern, AI & Automation" },
       context: { en: "Proptech", es: "Proptech" },
       location: { en: "Madrid", es: "Madrid" },
       mode: { en: "On-site", es: "Presencial" },
       start: "2026-11-03",
-      end: "2027-02",
+      end: null,
       summary: {
-        en: "The bridge between Operations and Technology: I spot manual work across buying, renovating, renting and managing properties, and automate it with low-code, scripting and AI.",
-        es: "Puente entre Operaciones y Tecnología: detecto tareas manuales en compra, reforma, alquiler y gestión de inmuebles y las automatizo con low-code, scripting e IA.",
+        en: "Bridge between Operations and Tech at a proptech scale-up, working on Vistral, its internal AI-powered operations platform (Next.js, Supabase).",
+        es: "Hago de puente entre Operaciones y Tecnología en una proptech en crecimiento, trabajando en Vistral, su plataforma interna de operaciones con IA (Next.js, Supabase).",
       },
       bullets: [
         {
-          en: "Bridge between Operations and Tech: I spot manual work across buying, renovating, renting and managing properties.",
-          es: "Hago de puente entre Operaciones y Tecnología: detecto tareas manuales en compra, reforma, alquiler y gestión de inmuebles.",
-        },
-        { en: "I automate it with low-code, scripting and AI.", es: "Las automatizo con low-code, scripting e IA." },
-        {
-          en: "I translate operational needs into requirements for the internal client-tracking platform.",
-          es: "Traduzco necesidades operativas a requisitos para la plataforma interna de seguimiento de clientes.",
+          en: "Bridge between Operations and Tech at a proptech scale-up, working on Vistral, its internal AI-powered operations platform (Next.js, Supabase).",
+          es: "Hago de puente entre Operaciones y Tecnología en una proptech en crecimiento, trabajando en Vistral, su plataforma interna de operaciones con IA (Next.js, Supabase).",
         },
         {
-          en: "I integrate data across tools, measure impact and document processes for the team.",
-          es: "Integro datos entre herramientas, mido el impacto y documento los procesos para el equipo.",
+          en: "Build AI automations and internal tools with Claude Code and Cursor to remove manual work from the property supply process.",
+          es: "Construyo automatizaciones con IA y herramientas internas con Claude Code y Cursor para quitar trabajo manual del proceso de captación de inmuebles.",
         },
       ],
-      results: "TODO: resultados",
       featured: true,
     },
     {
       id: "grupo-lalala",
       company: "Grupo Lalala",
-      brand: { logo: "grupo-lalala", monogram: "GL", color: "#FF375F" },
+      // Black-and-white logo: the accent is a fixed Apple orange.
+      brand: { logo: "grupo-lalala", monogram: "GL", color: "#FF9F0A", fixed: true, tile: "white" },
       role: { en: "Operations & Sales Lead", es: "Operations & Sales Lead" },
       context: { en: "Events", es: "Eventos" },
       location: { en: "Madrid", es: "Madrid" },
       start: "2024-11",
       end: null,
       summary: {
-        en: "Operations and sales for nightlife, private, daytime and sports events — including the F1 afternoon party, Mutua Madrid Open and Pádel XP — and the relationship with sponsors.",
-        es: "Operaciones y ventas de eventos nocturnos, privados, diurnos y deportivos —tardeo de la F1, Mutua Madrid Open, Pádel XP— y relación con patrocinadores.",
+        en: "Lead sales and operations at a promoter running around 400 events a year (avg. 2,000 attendees) across private, daytime, nightlife and sports formats (F1, Mutua Madrid Open, Pádel XP).",
+        es: "Lidero ventas y operaciones en una promotora con unos 400 eventos al año (2.000 asistentes de media) de formatos privados, diurnos, nocturnos y deportivos (F1, Mutua Madrid Open, Pádel XP).",
       },
       bullets: [
-        { en: "Operations for nightlife, private, daytime and sports events.", es: "Operaciones de eventos nocturnos, privados, diurnos y deportivos." },
-        { en: "Sports events including an F1 day party, the Mutua Madrid Open and Pádel XP.", es: "Eventos deportivos como el tardeo de la F1, el Mutua Madrid Open y Pádel XP." },
-        { en: "Sales and sponsor relationships, including deal negotiation.", es: "Ventas y relación con patrocinadores, incluida la negociación de acuerdos." },
+        {
+          en: "Lead sales and operations at a promoter running around 400 events a year (avg. 2,000 attendees) across private, daytime, nightlife and sports formats (F1, Mutua Madrid Open, Pádel XP).",
+          es: "Lidero ventas y operaciones en una promotora con unos 400 eventos al año (2.000 asistentes de media) de formatos privados, diurnos, nocturnos y deportivos (F1, Mutua Madrid Open, Pádel XP).",
+        },
+        {
+          en: "Negotiate with sponsors and brand partners; standardised processes across event formats to protect margins.",
+          es: "Negocio con patrocinadores y marcas; estandaricé procesos entre formatos de evento para proteger márgenes.",
+        },
       ],
-      results: "TODO: nº de eventos, asistentes y patrocinios",
+      metrics: [
+        { prefix: "~", value: 400, label: { en: "events a year", es: "eventos al año" } },
+        { prefix: "~", value: 2000, label: { en: "attendees on average", es: "asistentes de media" } },
+      ],
     },
     {
       id: "induforum",
       company: "Induforum 2027",
-      brand: { logo: "induforum", monogram: "IF", color: "#5E5CE6" },
-      role: { en: "Organizer, corporate relations", es: "Organizador, área comercial" },
-      context: { en: "ETSII-UPM job fair", es: "Feria de empleo de la ETSII-UPM" },
+      brand: { logo: "induforum", monogram: "IF", color: "#5E5CE6", tile: "white" },
+      role: { en: "Business Development Intern", es: "Becario de Desarrollo de Negocio" },
+      context: { en: "ETSII-UPM careers fair", es: "Feria de empleo de la ETSII-UPM" },
       location: { en: "Madrid", es: "Madrid" },
       start: "2026-10",
       end: null,
       summary: {
-        en: "Bringing companies on board and managing the relationship with them.",
-        es: "Captación y relación con empresas.",
+        en: "Recruit and manage exhibiting companies for the school's annual careers fair.",
+        es: "Capto y gestiono las empresas expositoras de la feria anual de empleo de la escuela.",
       },
       bullets: [
-        { en: "Organising Induforum 2027, the ETSII-UPM job fair.", es: "Organización de Induforum 2027, la feria de empleo de la ETSII-UPM." },
-        { en: "Bringing companies on board for the fair.", es: "Captación de empresas para la feria." },
-        { en: "Managing the relationship with participating companies.", es: "Relación con las empresas participantes." },
+        {
+          en: "Recruit and manage exhibiting companies for the school's annual careers fair.",
+          es: "Capto y gestiono las empresas expositoras de la feria anual de empleo de la escuela.",
+        },
       ],
     },
     {
       id: "classy-night-society",
       company: "Classy Night Society",
-      brand: { logo: "classy-night-society", monogram: "CNS", color: "#BF5AF2" },
+      brand: { logo: "classy-night-society", monogram: "CNS", color: "#7A1616", tile: "fill" },
       role: { en: "Operations Lead", es: "Operations Lead" },
-      location: "TODO: ciudad",
+      location: { en: "Madrid", es: "Madrid" },
       start: "2024-01",
       end: "2024-11",
-      summary: "TODO: descripción del puesto",
-      bullets: ["TODO: 3–4 bullets de qué hacías (sin cifras inventadas)"],
-      results: "TODO: cifras",
+      summary: {
+        en: "Built an Excel/VBA system that automated artist, venue and staff payouts, cutting payment cycles by 80%.",
+        es: "Construí un sistema en Excel/VBA que automatizó los pagos a artistas, salas y staff y redujo un 80\u00a0% el ciclo de pagos.",
+      },
+      bullets: [
+        {
+          en: "Built an Excel/VBA system that automated artist, venue and staff payouts, cutting payment cycles by 80%.",
+          es: "Construí un sistema en Excel/VBA que automatizó los pagos a artistas, salas y staff y redujo un 80\u00a0% el ciclo de pagos.",
+        },
+        {
+          en: "Redesigned the sales-force commission model to reward margin over volume.",
+          es: "Rediseñé el modelo de comisiones del equipo comercial para premiar el margen sobre el volumen.",
+        },
+      ],
+      metrics: [{ prefix: "−", value: 80, suffix: PCT, label: { en: "payment cycle", es: "ciclo de pagos" } }],
     },
   ],
 
@@ -141,34 +162,48 @@ export const profile: Profile = {
       id: "upm",
       institution: { en: "ETSII · Universidad Politécnica de Madrid", es: "ETSII · Universidad Politécnica de Madrid" },
       short: "ETSII-UPM",
-      brand: { logo: "upm", monogram: "UPM", color: "#003262" },
-      degree: { en: "BEng Industrial Technologies Engineering", es: "Grado en Ingeniería en Tecnologías Industriales" },
-      specialisation: { en: "Intelligent Systems and Structures", es: "Sistemas y Estructuras Inteligentes" },
+      brand: { logo: "upm", monogram: "UPM", color: "#003262", tile: "fill" },
+      degree: { en: "B.Sc. in Industrial Engineering", es: "Grado en Ingeniería en Tecnologías Industriales" },
+      specialisation: { en: "Intelligent Systems & Structures", es: "Sistemas y Estructuras Inteligentes" },
       start: "2023-09",
       end: "2028-06",
       chips: [
-        { label: { en: "Top grade (MH) · Statistics", es: "MH · Estadística" } },
-        { label: { en: "Top grade (MH) · Design of Experiments & Regression", es: "MH · Diseño de Experimentos y Regresión" } },
+        { label: { en: "Matrícula de Honor · Statistics", es: "MH · Estadística" } },
+        { label: { en: "Matrícula de Honor · Design of Experiments & Regression", es: "MH · Diseño de Experimentos y Regresión" } },
+        { label: { en: "EvAU 12.97/14", es: "EvAU 12,97/14" } },
         { label: { en: "ETSII Mentor Programme", es: "Programa Mentor ETSII" }, target: "mentor" },
       ],
+      coursework: {
+        en: ["Programming", "Statistics", "Regression & Experimental Design", "Linear Algebra", "Differential Equations", "Control Engineering", "System Dynamics", "Production Systems"],
+        es: ["Programación", "Estadística", "Regresión y Diseño de Experimentos", "Álgebra Lineal", "Ecuaciones Diferenciales", "Ingeniería de Control", "Dinámica de Sistemas", "Sistemas de Producción"],
+      },
       featured: true,
     },
     {
       id: "retamar",
       institution: { en: "Colegio Retamar", es: "Colegio Retamar" },
       short: "Retamar",
-      brand: { logo: "retamar", monogram: "R", color: "#001E60" },
-      degree: { en: "Bachillerato, Science & Technology", es: "Bachillerato de Ciencias y Tecnología" },
+      brand: { logo: "retamar", monogram: "R", color: "#001E60", tile: "white" },
+      degree: { en: "High School Diploma (Science & Technology)", es: "Bachillerato de Ciencias y Tecnología" },
       start: null,
-      end: "2023-06",
-      chips: [
-        { label: { en: "GPA 9.41 / 10", es: "Nota media 9,41" } },
-        { label: { en: "University entrance exam (PAU) 12.972 / 14", es: "PAU 12,972 / 14" } },
-      ],
+      end: "2023-05",
+      chips: [{ label: { en: "GPA 9.41/10 · top 1% of class", es: "Nota media 9,41 · top 1\u00a0% de la promoción" } }],
     },
   ],
 
-  courses: [{ id: "cs50", name: "CS50", provider: "Harvard", brand: { logo: "cs50", monogram: "CS50", color: "#A51C30" }, detail: { en: "Python, SQL, AI", es: "Python, SQL, IA" } }],
+  courses: [
+    {
+      id: "cs50",
+      name: "CS50",
+      provider: "HarvardX",
+      brand: { logo: "cs50", monogram: "CS50", color: "#A51C30", tile: "white" },
+      detail: {
+        en: "CS50's Introduction to AI with Python and CS50's Introduction to Programming with Python",
+        es: "CS50's Introduction to AI with Python y CS50's Introduction to Programming with Python",
+      },
+      date: "2026-10",
+    },
+  ],
 
   // The end of the education timeline: a small Monte Carlo cone.
   future: {
@@ -190,11 +225,16 @@ export const profile: Profile = {
         es: "Encontrar ofertas relevantes en decenas de tableros de empleo y preparar material adaptado para cada una es un trabajo lento y repetitivo.",
       },
       built: {
-        en: "A Python CLI that pulls openings from the public Greenhouse, Lever and Ashby job boards, scores them against my profile and prepares the application material. No LinkedIn scraping — I send every application myself.",
-        es: "Una CLI en Python que descarga ofertas de los tableros públicos de Greenhouse, Lever y Ashby, las puntúa contra mi perfil y prepara el material de candidatura. Sin scraping de LinkedIn: las candidaturas las envío yo.",
+        en: "A CLI that pulls postings from the public Greenhouse, Lever and Ashby APIs, ranks them with a configurable 7-factor scoring model, generates a tailored CV and cover letter from a single profile file and tracks every application. 116 automated tests in CI.",
+        es: "Una CLI que descarga ofertas de las APIs públicas de Greenhouse, Lever y Ashby, las ordena con un modelo de puntuación configurable de 7 factores, genera CV y carta adaptados desde un único archivo de perfil y registra cada candidatura. 116 tests automáticos en CI.",
       },
       next: { en: "Next: a Telegram interface.", es: "Próximo paso: interfaz por Telegram." },
-      stack: ["python", "automation", "claude-code"],
+      metrics: [
+        { value: 6400, suffix: "+", label: { en: "postings", es: "ofertas" } },
+        { value: 29, label: { en: "companies", es: "empresas" } },
+        { value: 116, label: { en: "tests", es: "tests" } },
+      ],
+      stack: ["python", { label: "REST APIs" }, "pytest", { label: "CI" }, "git", "claude-code"],
       repo: { url: "https://github.com/carloslopezparga/job-hunt-copilot", public: false },
       demo: { kind: "terminal", file: "content/demos/job-hunt-copilot.txt" },
     },
@@ -238,28 +278,55 @@ export const profile: Profile = {
       stack: ["python", "llm-apis"],
       demo: { kind: "cooling", illustrative: true },
     },
+    {
+      id: "cs50-ai",
+      domain: "ai",
+      name: { en: "AI projects (CS50)", es: "Proyectos de IA (CS50)" },
+      oneLiner: { en: "HarvardX · CS50's Introduction to AI with Python", es: "HarvardX · CS50's Introduction to AI with Python" },
+      status: "done",
+      date: "2026-10",
+      problem: {
+        en: "Learning AI by building it: the projects of HarvardX's CS50's Introduction to AI with Python.",
+        es: "Aprender IA construyéndola: los proyectos de CS50's Introduction to AI with Python, de HarvardX.",
+      },
+      built: {
+        en: "A CNN that classifies traffic signs (GTSRB), a Q-learning Nim agent, a k-NN classifier, Bayesian networks, minimax and BFS search, and an analysis of BERT's attention patterns.",
+        es: "Una CNN que clasifica señales de tráfico (GTSRB), un agente de Nim con Q-learning, un clasificador k-NN, redes bayesianas, búsqueda minimax y BFS, y un análisis de los patrones de atención de BERT.",
+      },
+      stack: ["python", "tensorflow", { label: "OpenCV" }, "sklearn", { label: "NLTK" }, { label: "Transformers" }],
+    },
   ],
 
-  // Constellation. weight = star size (1–3); usedIn {id, w} = line thickness.
+  // Skills graph. weight = node size (1–3); usedIn {id, w} = line thickness.
   stack: [
     { id: "llm-apis", label: { en: "LLM APIs", es: "APIs de LLMs" }, domain: "ai", weight: 3, usedIn: ["mail-autopilot", "cooling-agent", "this-site"] },
-    { id: "claude-code", label: { en: "Claude Code", es: "Claude Code" }, domain: "ai", weight: 3, usedIn: ["this-site", "job-hunt-copilot"] },
+    { id: "claude-code", label: { en: "Claude Code", es: "Claude Code" }, domain: "ai", weight: 3, usedIn: ["prophero", "job-hunt-copilot", "this-site"] },
+    { id: "cursor", label: { en: "Cursor", es: "Cursor" }, domain: "ai", weight: 2, usedIn: ["prophero"] },
+    { id: "tensorflow", label: { en: "TensorFlow/Keras", es: "TensorFlow/Keras" }, domain: "ai", weight: 2, usedIn: ["cs50-ai"] },
     { id: "automation", label: { en: "Process automation", es: "Automatización de procesos" }, domain: "automation", weight: 3, usedIn: ["prophero", "mail-autopilot", "job-hunt-copilot"] },
     { id: "n8n", label: { en: "n8n", es: "n8n" }, domain: "automation", weight: 2, usedIn: ["mail-autopilot"] },
-    { id: "python", label: { en: "Python", es: "Python" }, domain: "data", weight: 3, usedIn: ["job-hunt-copilot", "cooling-agent", "cs50"] },
+    { id: "excel-vba", label: { en: "Excel/VBA", es: "Excel/VBA" }, domain: "automation", weight: 2, usedIn: ["classy-night-society"] },
+    { id: "python", label: { en: "Python", es: "Python" }, domain: "data", weight: 3, usedIn: ["job-hunt-copilot", "cooling-agent", "cs50-ai", "cs50"] },
     { id: "stats", label: { en: "Statistics & regression", es: "Estadística y regresión" }, domain: "data", weight: 2, usedIn: ["giti"] },
+    { id: "pandas", label: { en: "pandas/NumPy", es: "pandas/NumPy" }, domain: "data", weight: 1, usedIn: ["cs50-ai"] },
+    { id: "sklearn", label: { en: "scikit-learn", es: "scikit-learn" }, domain: "data", weight: 1, usedIn: ["cs50-ai"] },
     { id: "sql", label: { en: "SQL", es: "SQL" }, domain: "data", weight: 1, usedIn: ["cs50"] },
-    { id: "nextjs", label: { en: "Next.js", es: "Next.js" }, domain: "software", weight: 2, usedIn: ["this-site"] },
+    { id: "matlab", label: { en: "MATLAB", es: "MATLAB" }, domain: "data", weight: 1, usedIn: ["giti"] },
+    { id: "nextjs", label: { en: "Next.js", es: "Next.js" }, domain: "software", weight: 2, usedIn: ["prophero", "this-site"] },
+    { id: "supabase", label: { en: "Supabase", es: "Supabase" }, domain: "software", weight: 2, usedIn: ["prophero"] },
     { id: "typescript", label: { en: "TypeScript", es: "TypeScript" }, domain: "software", weight: 1, usedIn: ["this-site"] },
-    { id: "operations", label: { en: "Operations", es: "Operaciones" }, domain: "ops", weight: 3, usedIn: ["grupo-lalala", "classy-night-society", "prophero"] },
+    { id: "git", label: { en: "Git", es: "Git" }, domain: "software", weight: 1, usedIn: ["job-hunt-copilot"] },
+    { id: "pytest", label: { en: "pytest", es: "pytest" }, domain: "software", weight: 1, usedIn: ["job-hunt-copilot"] },
+    { id: "c", label: { en: "C", es: "C" }, domain: "software", weight: 1, usedIn: ["giti"] },
+    { id: "operations", label: { en: "Operations", es: "Operaciones" }, domain: "ops", weight: 3, usedIn: ["grupo-lalala", "classy-night-society"] },
     { id: "sales", label: { en: "Sales", es: "Ventas" }, domain: "ops", weight: 2, usedIn: ["grupo-lalala", "induforum"] },
     { id: "negotiation", label: { en: "Sponsor negotiation", es: "Negociación con patrocinadores" }, domain: "ops", weight: 2, usedIn: ["grupo-lalala"] },
   ],
 
   languages: [
     { id: "es", name: { en: "Spanish", es: "Español" }, level: { en: "Native", es: "Nativo" } },
-    { id: "en", name: { en: "English", es: "Inglés" }, level: { en: "C1", es: "C1" } },
-    { id: "fr", name: { en: "French", es: "Francés" }, level: { en: "B2", es: "B2" } },
+    { id: "en", name: { en: "English", es: "Inglés" }, level: { en: "B2 Cambridge · C1 exam in Dec 2026", es: "B2 Cambridge · C1 en dic 2026" } },
+    { id: "fr", name: { en: "French", es: "Francés" }, level: { en: "B2 (DELF)", es: "B2 (DELF)" } },
     { id: "pt", name: { en: "Portuguese", es: "Portugués" }, level: { en: "Basic", es: "Básico" } },
   ],
 
@@ -267,26 +334,25 @@ export const profile: Profile = {
     {
       id: "dana",
       accent: "orange",
-      title: { en: "Valencia DANA flood response", es: "Respuesta a la DANA de Valencia" },
+      title: { en: "DANA Flood Relief Task Force", es: "DANA Flood Relief Task Force" },
       description: {
-        en: "Coordinated the humanitarian response to the DANA floods in Valencia.",
-        es: "Coordinación de la respuesta humanitaria a la DANA de Valencia.",
+        en: "Founded the DANA Flood Relief Task Force and mobilised 200 volunteers after the 2024 floods.",
+        es: "Fundé el DANA Flood Relief Task Force y moví a 200 voluntarios tras las inundaciones de 2024.",
       },
-      metric: "TODO: voluntarios coordinados, toneladas / envíos",
-      start: "TODO: mes de inicio (AAAA-MM)",
-      end: "TODO: mes de fin (AAAA-MM)",
+      metric: { value: 200, label: { en: "volunteers", es: "voluntarios" } },
+      start: "2024-10",
+      end: "2024-11",
     },
     {
       id: "mentor",
       accent: "indigo",
       title: { en: "ETSII Mentor Programme", es: "Programa Mentor ETSII" },
       description: {
-        en: "Two years mentoring students from other cohorts.",
-        es: "Dos años como mentor de alumnos de otras promociones.",
+        en: "Selected two years running as peer mentor for first-year students.",
+        es: "Seleccionado dos años seguidos como mentor de alumnos de primero.",
       },
-      metric: "TODO: nº de mentorizados",
-      start: "TODO: inicio (AAAA-MM)",
-      end: "TODO: fin (AAAA-MM)",
+      start: "2024-09",
+      end: null,
     },
     {
       id: "food-bank",
@@ -296,7 +362,6 @@ export const profile: Profile = {
         en: "Food collection campaigns with the Food Bank in Madrid.",
         es: "Campañas de recogida con el Banco de Alimentos en Madrid.",
       },
-      metric: "TODO: kg recogidos",
       start: "TODO: fecha (AAAA-MM)",
     },
     {
@@ -307,7 +372,6 @@ export const profile: Profile = {
         en: "Charity events I organised myself.",
         es: "Eventos benéficos organizados por mí.",
       },
-      metric: "TODO: € recaudados y destino",
       start: "TODO: fecha (AAAA-MM)",
     },
     {
@@ -334,7 +398,7 @@ export const profile: Profile = {
   // say by itself: captions by file name, and videos hosted elsewhere.
   // Folders: experience/{prophero, grupo-lalala, induforum, classy-night-society},
   // education/{etsii, retamar, cs50}, projects/{job-hunt-copilot, mail-autopilot,
-  // cooling-agent}, leadership/{dana, mentor, food-bank, charity-events, orphanage}.
+  // cooling-agent, cs50-ai}, leadership/{dana, mentor, food-bank, charity-events, orphanage}.
   // Example:
   //   "experience/prophero": {
   //     captions: { "01-first-day.jpg": { en: "First day", es: "Primer día" } },
@@ -353,7 +417,8 @@ export const refLabels: Record<RefId, { en: string; es: string }> = {
   "classy-night-society": { en: "Classy Night Society", es: "Classy Night Society" },
   induforum: { en: "Induforum 2027", es: "Induforum 2027" },
   giti: { en: "GITI degree", es: "Grado GITI" },
-  cs50: { en: "CS50", es: "CS50" },
+  cs50: { en: "CS50 (HarvardX)", es: "CS50 (HarvardX)" },
+  "cs50-ai": { en: "AI projects (CS50)", es: "Proyectos de IA (CS50)" },
   "this-site": { en: "This website", es: "Esta web" },
 };
 
@@ -361,13 +426,14 @@ export const refLabels: Record<RefId, { en: string; es: string }> = {
  * Colour of each big node: organisations use their brand (by logo name),
  * projects and this site use their skill domain.
  */
-export const refTone: Record<RefId, { domain: DomainId } | { brand: string; fallback: Hex }> = (() => {
-  const org = (b: { logo: string; color: Hex }) => ({ brand: b.logo, fallback: b.color });
+export const refTone: Record<RefId, { domain: DomainId } | { brand: Brand }> = (() => {
+  const org = (brand: Brand) => ({ brand });
   const xp = (id: string) => org(profile.experience.find((e) => e.id === id)!.brand);
   return {
     "job-hunt-copilot": { domain: "automation" },
     "mail-autopilot": { domain: "ai" },
     "cooling-agent": { domain: "data" },
+    "cs50-ai": { domain: "ai" },
     "this-site": { domain: "software" },
     prophero: xp("prophero"),
     "grupo-lalala": xp("grupo-lalala"),

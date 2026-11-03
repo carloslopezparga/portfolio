@@ -510,6 +510,25 @@ html.lenis body {
   }
 }
 
+/* Caret after the self-typing example in the agent bar */
+.type-caret {
+  display: inline-block;
+  width: 1.5px;
+  height: 1.15em;
+  margin-left: 2px;
+  background: currentColor;
+  animation: caret 1s steps(1) infinite;
+}
+@keyframes caret {
+  50% {
+    opacity: 0;
+  }
+}
+[data-motion="reduce"] .type-caret {
+  animation: none;
+  opacity: 0;
+}
+
 @keyframes fade-in {
   from {
     opacity: 0;
@@ -517,137 +536,18 @@ html.lenis body {
 }
 
 /* ------------------------------------------------------------------ */
-/* Pointer (iPadOS-style, see Cursor.tsx) and hover light (HoverGlow)   */
+/* Hover light (HoverGlow): tokens                                     */
 /* ------------------------------------------------------------------ */
 :root,
 [data-theme="dark"] {
-  --cursor-fill: rgb(235 235 245 / 0.3);
-  --cursor-line: rgb(255 255 255 / 0.4);
-  --cursor-hl: rgb(255 255 255 / 0.08);
   --glow-a: 0.3;
   --glow-base: 0.05;
   --glow-blend: plus-lighter;
 }
 [data-theme="light"] {
-  --cursor-fill: rgb(60 60 67 / 0.26);
-  --cursor-line: rgb(0 0 0 / 0.16);
-  --cursor-hl: rgb(0 0 0 / 0.05);
   --glow-a: 0.16;
   --glow-base: 0.03;
   --glow-blend: normal;
-}
-/* The native cursor is hidden only while the custom one is painted. */
-html[data-custom-cursor] body,
-html[data-custom-cursor] body * {
-  cursor: none !important;
-}
-html[data-custom-cursor] :is(iframe, [data-native-cursor], [data-native-cursor] *) {
-  cursor: auto !important;
-}
-.cursor,
-.cursor-dot {
-  position: fixed;
-  left: 0;
-  top: 0;
-  z-index: 2147483647;
-  pointer-events: none;
-  opacity: 0;
-  will-change: transform;
-  transition: opacity 120ms var(--ease-out);
-}
-/* The wrapper sits on the shape's centre and follows the pointer exactly;
-   only morphing in and out (and the highlight itself) glides. */
-.cursor[data-snap] {
-  transition:
-    transform 160ms var(--ease-out),
-    opacity 120ms var(--ease-out);
-}
-.cursor[data-mode="morph"] {
-  z-index: 2147483646;
-  transition:
-    transform 110ms var(--ease-out),
-    opacity 120ms var(--ease-out);
-}
-.cursor-shape {
-  --press: 1;
-  position: absolute;
-  left: 0;
-  top: 0;
-  width: 18px;
-  height: 18px;
-  border-radius: 9px;
-  /* scale from the centre: the shape never moves when it shrinks */
-  transform: translate(-50%, -50%) scale(var(--press));
-  background: var(--cursor-fill);
-  box-shadow:
-    inset 0 0 0 0.5px var(--cursor-line),
-    0 1px 6px rgb(0 0 0 / 0.16);
-  -webkit-backdrop-filter: blur(6px) saturate(180%);
-  backdrop-filter: blur(6px) saturate(180%);
-  transition:
-    transform 100ms var(--ease-out),
-    width 160ms var(--ease-out),
-    height 160ms var(--ease-out),
-    border-radius 160ms var(--ease-out),
-    background-color 160ms var(--ease-out),
-    box-shadow 160ms var(--ease-out);
-}
-.cursor[data-down] .cursor-shape {
-  --press: 0.85;
-}
-.cursor[data-mode="morph"] .cursor-shape {
-  background: var(--cursor-hl);
-  box-shadow: inset 0 0 0 0.5px var(--cursor-line);
-  -webkit-backdrop-filter: none;
-  backdrop-filter: none;
-}
-.cursor[data-mode="morph"][data-down] .cursor-shape {
-  --press: 0.96;
-}
-.cursor[data-mode="ibeam"] .cursor-shape {
-  background: var(--fg);
-  box-shadow: 0 0 0 1px rgb(var(--bg-rgb) / 0.55);
-  -webkit-backdrop-filter: none;
-  backdrop-filter: none;
-}
-.cursor[data-mode="label"] .cursor-shape {
-  background: rgb(var(--bg-rgb) / 0.62);
-  -webkit-backdrop-filter: blur(14px) saturate(180%);
-  backdrop-filter: blur(14px) saturate(180%);
-  box-shadow:
-    inset 0 0 0 0.5px var(--cursor-line),
-    0 8px 24px -8px rgb(0 0 0 / 0.45);
-}
-.cursor-label {
-  position: absolute;
-  left: 0;
-  top: 0;
-  transform: translate(-50%, -50%);
-  font-size: 12.5px;
-  font-weight: 500;
-  letter-spacing: -0.005em;
-  color: var(--fg);
-  white-space: nowrap;
-  opacity: 0;
-  transition: opacity 120ms var(--ease-out);
-}
-.cursor[data-mode="label"] .cursor-label {
-  opacity: 1;
-}
-.cursor-dot > span {
-  position: absolute;
-  left: 0;
-  top: 0;
-  width: 6px;
-  height: 6px;
-  border-radius: 999px;
-  transform: translate(-50%, -50%);
-  background: var(--fg);
-  box-shadow: 0 0 0 1px rgb(var(--bg-rgb) / 0.5);
-  transition: transform 100ms var(--ease-out);
-}
-html:has(.cursor[data-down]) .cursor-dot > span {
-  transform: translate(-50%, -50%) scale(0.8);
 }
 
 /* Hover light: a radial light in the element's accent, following the pointer
@@ -779,14 +679,6 @@ html:has(.cursor[data-down]) .cursor-dot > span {
 }
 [data-motion="reduce"] .media-thumb :is(img, video) {
   transition: none;
-}
-/* legacy lab cursor bits */
-.cursor-el {
-  position: fixed;
-  left: 0;
-  top: 0;
-  z-index: 200;
-  pointer-events: none;
 }
 
 /* ------------------------------------------------------------------ */
@@ -1414,9 +1306,21 @@ html[data-agent-busy] .neural-pulse {
 .group:hover .link-nudge {
   transform: translateX(3px);
 }
+/* Logo tiles: always white (the logos are made for it), hairline border */
 .logo-mark {
-  background: rgb(var(--d-rgb, var(--glow)) / 0.14);
-  box-shadow: inset 0 0 0 1px rgb(var(--d-rgb, var(--glow)) / 0.28);
+  position: relative;
+  background: #fff;
+}
+.logo-mark::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  box-shadow: inset 0 0 0 1px #e8e8ed;
+  pointer-events: none;
+}
+[data-theme="dark"] .logo-mark::after {
+  box-shadow: inset 0 0 0 1px rgb(255 255 255 / 0.16);
 }
 
 /* ------------------------------------------------------------------ */

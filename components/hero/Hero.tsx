@@ -1,3 +1,4 @@
+import { CV_URL } from "@/lib/site";
 import { profile } from "@/content/profile";
 import type { Locale } from "@/content/types";
 import { copy } from "@/lib/copy";
@@ -26,13 +27,13 @@ export function Hero({ lang }: { lang: Locale }) {
           <p className="mt-4 max-w-[62ch] text-[16px] leading-relaxed text-muted md:text-[17px]">{profile.summary[lang]}</p>
 
           <div className="mt-8 max-w-[620px]">
-            <PromptBar label={copy.agent.prompt[lang]} examples={copy.agent.examples[lang]} sendLabel={copy.agent.send[lang]} />
+            <PromptBar label={copy.agent.name[lang]} examples={copy.agent.examples[lang]} sendLabel={copy.agent.send[lang]} />
           </div>
           <div className="mt-4 flex flex-wrap gap-2">
             <a href="#experience" className="btn btn-ghost btn-sm">
               {copy.hero.experience[lang]} {arrow("M8 3v9M4.5 8.5 8 12l3.5-3.5")}
             </a>
-            <a href={`/api/cv?lang=${lang}`} download className="btn btn-ghost btn-sm">
+            <a href={CV_URL} download className="btn btn-ghost btn-sm">
               {copy.hero.cv[lang]} {arrow("M8 3v9M4.5 8.5 8 12l3.5-3.5")}
             </a>
             <a href={profile.links.linkedin} target="_blank" rel="noreferrer noopener" className="btn btn-ghost btn-sm">

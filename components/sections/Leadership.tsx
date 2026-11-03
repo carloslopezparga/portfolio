@@ -1,7 +1,8 @@
 import { profile } from "@/content/profile";
-import { has, type Locale } from "@/content/types";
+import type { Locale } from "@/content/types";
 import { copy } from "@/lib/copy";
 import { mediaFor } from "@/lib/media";
+import { formatMetric } from "@/lib/metrics";
 import { CardMedia } from "@/components/media/CardMedia";
 import { Glyph, type GlyphName } from "@/components/ui/icons";
 import { SectionHeader, sheetOf } from "./SectionHeader";
@@ -31,7 +32,11 @@ export async function Leadership({ lang }: { lang: Locale }) {
               </span>
               <h3 className="mt-4 text-[17px] font-medium leading-snug text-fg">{c.title[lang]}</h3>
               <p className="mt-1.5 text-[14px] leading-relaxed text-muted">{c.description[lang]}</p>
-              {has(c.metric) ? <p className="mt-auto pt-4 text-[14px] font-medium text-[var(--d)]">{c.metric[lang]}</p> : null}
+              {c.metric ? (
+                <p className="mt-auto pt-4 text-[14px] text-muted">
+                  <span className="text-[22px] font-semibold text-[var(--d)]">{formatMetric(c.metric, lang)}</span> {c.metric.label[lang]}
+                </p>
+              ) : null}
               <CardMedia section="leadership" folder={c.id} lang={lang} alt={c.title[lang]} className="mt-4" />
             </div>
           </article>

@@ -1,8 +1,8 @@
 # carloslopezparga — personal site
 
-Next.js 16 (App Router, Cache Components) · TypeScript · Tailwind 4 · three.js / React Three Fiber · GSAP · Lenis · Anthropic SDK · @react-pdf/renderer · Cal.com embed · sharp.
+Next.js 16 (App Router, Cache Components) · TypeScript · Tailwind 4 · three.js / React Three Fiber · GSAP · Lenis · Anthropic SDK · Cal.com embed · sharp.
 
-`/` (English) and `/es` (Spanish). `/lab` is the motion lab: still reachable and noindexed, but not linked from the site. Approved and pending decisions are in [`DECISIONS.md`](DECISIONS.md).
+`/` (English) and `/es` (Spanish). Approved and pending decisions are in [`DECISIONS.md`](DECISIONS.md).
 
 ## Run it
 
@@ -16,7 +16,8 @@ npm run todos      # lists every TODO still missing in content/profile.ts
 
 ## Edit the content
 
-- **Profile:** everything lives in **`content/profile.ts`**, with both languages side by side (`{ en, es }`). Unknown data is a string starting with `TODO:`. It is never shown, and the sentence, metric or card simply disappears until you fill it in.
+- **Profile:** everything lives in **`content/profile.ts`**, with both languages side by side (`{ en, es }`). It mirrors the CV, which is the source of truth: when the CV changes, update both. Unknown data is a string starting with `TODO:`. It is never shown, and the sentence, metric or card simply disappears until you fill it in.
+- **CV:** `public/cv/CV_Carlos_Lopez_Parga.pdf` (English). Every CV button and the agent's `download_cv` tool download this file. To update it, upload a new PDF with the same name.
 - **Interface copy:** buttons, labels and agent messages are in `lib/copy.ts`.
 - **Agent instructions:** built from the profile in `lib/agent/system-prompt.ts`.
 
@@ -39,7 +40,6 @@ npm run todos      # lists every TODO still missing in content/profile.ts
 ## Endpoints
 
 - `POST /api/chat`: the agent. It streams NDJSON and only uses UI tools from the whitelist.
-- `GET /api/cv?lang=en|es`: a one-page, ATS-friendly PDF built from the profile.
 
 ## Launch checklist
 

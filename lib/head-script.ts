@@ -1,7 +1,7 @@
 /**
  * Runs synchronously in <head> before first paint:
  * - theme (dark by default)
- * - motion: "reduce" | "full" (OS setting, or a /lab override kept in sessionStorage)
+ * - motion: "reduce" | "full" (OS setting, or an override kept in sessionStorage)
  * - input: "touch" | "fine"
  * - intro: first visit of the session plays the <1 s intro
  */

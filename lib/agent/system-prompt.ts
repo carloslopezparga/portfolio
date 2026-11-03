@@ -1,6 +1,7 @@
 import { profile, refLabels, registry } from "@/content/profile";
-import { has, type DateISO } from "@/content/types";
-import { formatRange } from "@/lib/i18n";
+import { has, isTodo, type DateISO } from "@/content/types";
+import { formatMonth, formatRange } from "@/lib/i18n";
+import { formatMetric, isSkill } from "@/lib/metrics";
 import { bookingEnabled } from "./tools";
 
 const range = (s: DateISO | null, e: DateISO | null) => formatRange(s, e, "en");
@@ -13,7 +14,8 @@ function facts() {
   lines.push(`Headline: ${p.tagline.en}`);
   lines.push(`Summary: ${p.summary.en}`);
   lines.push(`Availability: ${p.availability.en}.`);
-  lines.push(`Public contact: email ${p.email} · LinkedIn ${p.links.linkedin} · GitHub ${p.links.github}. Phone and address are private — never share or guess them.`);
+  lines.push(`Public contact: email ${p.email} · LinkedIn ${p.links.linkedin} · GitHub ${p.links.github}. Never share a phone number or address in the chat; for direct contact point to email.`);
+  lines.push("CV: a PDF in English (the download_cv tool, or the CV buttons on the page).");
 
   lines.push("\n## Experience (section: experience; the current job is also in section: now)");
   for (const e of p.experience) {
@@ -21,17 +23,18 @@ function facts() {
     const parts = [`- [${e.id}] ${e.role.en} — ${e.company}${e.context ? ` (${e.context.en})` : ""}, ${range(e.start, e.end)}${where ? `, ${where}` : ""}.`];
     if (has(e.summary)) parts.push(e.summary.en);
     e.bullets.filter(has).forEach((b) => parts.push(b.en));
-    if (has(e.results)) parts.push(`Results: ${e.results.en}`);
+    if (e.metrics?.length) parts.push(`Figures: ${e.metrics.map((m) => `${formatMetric(m, "en")} ${m.label.en}`).join(", ")}.`);
     lines.push(parts.join(" "));
   }
-  lines.push("The PropHero internship starts on 3 November 2026; before that date it is upcoming, not current.");
+  lines.push("The PropHero internship started on 3 November 2026.");
 
   lines.push("\n## Education (section: education; the degree is also in section: now)");
   for (const ed of p.education) {
     const extra = [ed.specialisation ? `Specialisation: ${ed.specialisation.en}` : null, ...ed.chips.filter(has).map((c) => c.label.en)].filter(Boolean).join("; ");
-    lines.push(`- [${ed.id}] ${ed.degree.en} — ${ed.institution.en}, ${range(ed.start, ed.end)}.${extra ? ` ${extra}.` : ""}`);
+    const subjects = ed.coursework ? ` Coursework: ${ed.coursework.en.join(", ")}.` : "";
+    lines.push(`- [${ed.id}] ${ed.degree.en} — ${ed.institution.en}, ${range(ed.start, ed.end)}.${extra ? ` ${extra}.` : ""}${subjects}`);
   }
-  for (const c of p.courses) lines.push(`- [${c.id}] ${c.name} (${c.provider}): ${c.detail.en}.`);
+  for (const c of p.courses) lines.push(`- [${c.id}] ${c.provider}: ${c.detail.en}, completed ${range(c.date, c.date).split(" – ")[0]}.`);
   const f = p.future;
   lines.push(
     `- [erasmus] Erasmus exchange, ${range(f.erasmus.start, f.erasmus.end)}${has(f.erasmus.destination) ? ` in ${f.erasmus.destination.en}` : " (destination not published yet)"}. Then the final-year project (TFG). [full-time] Available full-time from ${range(f.fullTime, f.fullTime).split(" – ")[0]}; graduation expected ${range(f.graduation, f.graduation).split(" – ")[0]}.`,
@@ -39,7 +42,10 @@ function facts() {
 
   lines.push("\n## Projects (section: projects)");
   for (const pr of p.projects) {
-    lines.push(`- [${pr.id}] ${pr.name.en} — status: ${pr.status}. Problem: ${pr.problem.en} Built: ${pr.built.en}${has(pr.next) ? ` ${pr.next.en}` : ""} Stack: ${pr.stack.join(", ")}.${pr.repo ? (pr.repo.public ? ` Repo: ${pr.repo.url}` : " Repo is private for now (coming soon).") : ""}${pr.demo.kind === "cooling" && pr.demo.illustrative ? " The chart on the site is illustrative; there are no published simulator results yet." : ""}`);
+    const stack = pr.stack.map((s) => (isSkill(s) ? p.stack.find((x) => x.id === s)!.label.en : s.label)).join(", ");
+    const figures = pr.metrics?.length ? ` Figures: ${pr.metrics.map((m) => `${formatMetric(m, "en")} ${m.label.en}`).join(", ")}.` : "";
+    const status = pr.status === "done" && pr.date ? `completed ${range(pr.date, pr.date).split(" – ")[0]}` : pr.status;
+    lines.push(`- [${pr.id}] ${pr.name.en} — status: ${status}. Problem: ${pr.problem.en} Built: ${pr.built.en}${has(pr.next) ? ` ${pr.next.en}` : ""}${figures} Stack: ${stack}.${pr.repo ? (pr.repo.public ? ` Repo: ${pr.repo.url}` : " Repo is private for now (coming soon).") : ""}${pr.demo?.kind === "cooling" && pr.demo.illustrative ? " The chart on the site is illustrative; there are no published simulator results yet." : ""}`);
   }
 
   lines.push("\n## Skills (section: skills) — skill: where it was used");
@@ -51,7 +57,8 @@ function facts() {
 
   lines.push("\n## Leadership and impact (section: leadership)");
   for (const l of p.leadership) {
-    lines.push(`- [${l.id}] ${l.title.en}: ${l.description.en}${has(l.metric) ? ` (${l.metric.en})` : ""}`);
+    const when = has(l.start) ? `, ${l.end === undefined || isTodo(l.end) ? formatMonth(l.start, "en") : range(l.start, l.end)}` : "";
+    lines.push(`- [${l.id}] ${l.title.en}${when}: ${l.description.en}${l.metric ? ` (${formatMetric(l.metric, "en")} ${l.metric.label.en})` : ""}`);
   }
   lines.push(`Off the clock: ${p.offTheClock.map((h) => h.label.en).join(", ")}.`);
   lines.push(`\nThe hero shows a planetary gearbox as decoration (AI core in the centre; automation, data and operations as planet gears). [this-site] This website itself was built with Next.js, TypeScript, LLM APIs and Claude Code.`);

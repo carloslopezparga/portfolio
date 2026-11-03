@@ -1,6 +1,6 @@
 import { profile } from "@/content/profile";
 import { has, type Locale } from "@/content/types";
-import { brandOf, logoSrc } from "@/lib/assets";
+import { brandOf } from "@/lib/assets";
 import { brandStyle } from "@/lib/brand";
 import { copy, fill } from "@/lib/copy";
 import { formatDay, formatRange, studyYear, timeStatus } from "@/lib/i18n";
@@ -19,7 +19,7 @@ export async function Now({ lang, now }: { lang: Locale; now: Date }) {
   const t = copy.now;
   const job = profile.experience.find((e) => e.featured)!;
   const school = profile.education.find((e) => e.featured)!;
-  const [jobTone, schoolTone] = await Promise.all([brandOf(job.brand.logo, job.brand.color), brandOf(school.brand.logo, school.brand.color)]);
+  const [jobTone, schoolTone] = await Promise.all([brandOf(job.brand), brandOf(school.brand)]);
   const jobStatus = timeStatus(job.start, job.end, now);
   const year = studyYear(school.start!, school.end, now);
 
@@ -44,7 +44,7 @@ export async function Now({ lang, now }: { lang: Locale; now: Date }) {
             ) : null}
           </div>
           <div className="mt-6 flex items-center gap-4">
-            <LogoMark src={logoSrc(job.brand.logo)} monogram={job.brand.monogram} size={56} />
+            <LogoMark brand={job.brand} size={56} />
             <div className="min-w-0">
               <h3 className="text-[clamp(1.35rem,2.4vw,1.75rem)] leading-tight text-fg">{job.company}</h3>
               <p className="mt-0.5 text-[15px] font-medium text-[var(--d)]">{job.role[lang]}</p>
@@ -69,7 +69,7 @@ export async function Now({ lang, now }: { lang: Locale; now: Date }) {
             {year ? <span className="badge">{fill(t.year[lang], String(year))}</span> : null}
           </div>
           <div className="mt-6 flex items-center gap-4">
-            <LogoMark src={logoSrc(school.brand.logo)} monogram={school.brand.monogram} size={56} />
+            <LogoMark brand={school.brand} size={56} />
             <div className="min-w-0">
               <h3 className="text-[clamp(1.35rem,2.4vw,1.75rem)] leading-tight text-fg">{school.short}</h3>
               <p className="mt-0.5 text-[15px] font-medium text-[var(--d)]">{school.degree[lang]}</p>

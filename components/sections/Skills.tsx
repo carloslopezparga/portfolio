@@ -26,7 +26,7 @@ export async function Skills({ lang }: { lang: Locale }) {
         id,
         label: refLabels[id][lang],
         domain: "domain" in tone ? tone.domain : null,
-        tone: "brand" in tone ? await brandOf(tone.brand, tone.fallback) : null,
+        tone: "brand" in tone ? await brandOf(tone.brand) : null,
         kind,
         kindLabel: kind === "work" ? copy.experience.title[lang] : kind === "study" ? copy.education.title[lang] : "domain" in tone ? domainLabel[tone.domain] : "",
         card: kind === "work" ? id : (CARD[id] ?? null),

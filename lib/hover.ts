@@ -1,12 +1,11 @@
 /*
- * Shared by the pointer (components/ui/Cursor.tsx) and the hover light
- * (components/ui/HoverGlow.tsx): which elements count as interactive, and
- * the shape (box and corner radius) each one is highlighted with.
+ * For the hover light (components/ui/HoverGlow.tsx): which elements count as
+ * interactive, and the shape (box and corner radius) each one lights up with.
  */
 
-/** Buttons, links, chips, menu options… what the pointer snaps to. */
+/** Buttons, links, menu options… */
 export const CONTROLS =
-  'a[href], button, [role="button"], [role="tab"], [role="option"], [role="menuitem"], [role="switch"], summary, select, label[for], [data-cursor-morph]';
+  'a[href], button, [role="button"], [role="tab"], [role="option"], [role="menuitem"], [role="switch"], summary, select, label[for]';
 
 export interface HoverShape {
   left: number;

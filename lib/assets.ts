@@ -2,7 +2,7 @@ import "server-only";
 import fs from "node:fs";
 import path from "node:path";
 import { cacheLife } from "next/cache";
-import type { Hex } from "@/content/types";
+import type { Brand, Hex } from "@/content/types";
 import { brandTones, pixelsColor, svgColor, type BrandTones } from "./brand";
 
 const PUBLIC = path.join(process.cwd(), "public");
@@ -45,10 +45,11 @@ export function readDemo(file: string): string | null {
  * Returned as two AA tones, one per theme. Cached, so reading a PNG with
  * sharp happens once at build time and the page stays static.
  */
-export async function brandOf(logo: string, fallback: Hex): Promise<BrandTones> {
+export async function brandOf(brand: Brand): Promise<BrandTones> {
   "use cache";
   cacheLife("max");
-  const file = logoFile(logo);
+  if (brand.fixed) return brandTones(brand.color);
+  const file = logoFile(brand.logo);
   let color: Hex | null = null;
   try {
     if (file?.endsWith(".svg")) color = svgColor(fs.readFileSync(file, "utf8"));
@@ -60,5 +61,5 @@ export async function brandOf(logo: string, fallback: Hex): Promise<BrandTones> 
   } catch {
     color = null;
   }
-  return brandTones(color ?? fallback);
+  return brandTones(color ?? brand.color);
 }

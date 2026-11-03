@@ -1,12 +1,20 @@
 import {
+  siC,
   siClaude,
+  siCursor,
+  siGit,
   siGithub,
   siGmail,
   siGreenhouse,
   siN8n,
   siNextdotjs,
+  siPandas,
+  siPytest,
   siPython,
+  siScikitlearn,
+  siSupabase,
   siTelegram,
+  siTensorflow,
   siTypescript,
   type SimpleIcon,
 } from "simple-icons";
@@ -22,6 +30,14 @@ export const BRANDS = {
   telegram: siTelegram,
   greenhouse: siGreenhouse,
   github: siGithub,
+  supabase: siSupabase,
+  cursor: siCursor,
+  git: siGit,
+  pytest: siPytest,
+  tensorflow: siTensorflow,
+  sklearn: siScikitlearn,
+  pandas: siPandas,
+  c: siC,
 } satisfies Record<string, SimpleIcon>;
 export type BrandName = keyof typeof BRANDS;
 
@@ -83,6 +99,10 @@ const GLYPHS = {
   cap: "M2.5 9 12 4.5 21.5 9 12 13.5z M6.5 11v4.5c1.5 1.5 3.4 2.3 5.5 2.3s4-.8 5.5-2.3V11 M21.5 9v5",
   briefcase: "M4 7.5h16v11H4z M9 7.5V5.5h6v2 M4 12.5h16",
   pin: "M12 20.5s6-5.6 6-10.5a6 6 0 10-12 0c0 4.9 6 10.5 6 10.5z M12 8a2 2 0 100 4 2 2 0 000-4z",
+  calendar: "M4 6h16v14H4z M4 10.5h16 M8.5 3.5v4 M15.5 3.5v4 M8 14h2 M14 14h2 M8 17h2",
+  people: "M9 11a3 3 0 100-6 3 3 0 000 6z M3.5 19.5c.4-3.2 2.6-5.5 5.5-5.5s5.1 2.3 5.5 5.5 M16 11a2.5 2.5 0 100-5 M17.5 14.2c1.8.6 2.8 2.5 3 5.3",
+  spreadsheet: "M4 4h16v16H4z M4 9h16 M4 14h16 M10 4v16 M13 16.5l3-3.5 M13 13l3 3.5",
+  matrix: "M7 4H5v16h2 M17 4h2v16h-2 M9 8.5h.01 M12 8.5h.01 M15 8.5h.01 M9 12h.01 M12 12h.01 M15 12h.01 M9 15.5h.01 M12 15.5h.01 M15 15.5h.01",
 } as const;
 export type GlyphName = keyof typeof GLYPHS;
 
@@ -106,6 +126,16 @@ export const STACK_ICON: Record<StackId, { brand?: BrandName; glyph?: GlyphName 
   n8n: { brand: "n8n" },
   "llm-apis": { glyph: "api" },
   "claude-code": { brand: "claude" },
+  cursor: { brand: "cursor" },
+  tensorflow: { brand: "tensorflow" },
+  "excel-vba": { glyph: "spreadsheet" },
+  pandas: { brand: "pandas" },
+  sklearn: { brand: "sklearn" },
+  matlab: { glyph: "matrix" },
+  supabase: { brand: "supabase" },
+  git: { brand: "git" },
+  pytest: { brand: "pytest" },
+  c: { brand: "c" },
   automation: { glyph: "automation" },
   operations: { glyph: "operations" },
   sales: { glyph: "sales" },
