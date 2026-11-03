@@ -517,81 +517,268 @@ html.lenis body {
 }
 
 /* ------------------------------------------------------------------ */
-/* Cursor (iPadOS-style): a dot with zero lag that becomes the          */
-/* highlighted background of whatever interactive element it is over.   */
+/* Pointer (iPadOS-style, see Cursor.tsx) and hover light (HoverGlow)   */
 /* ------------------------------------------------------------------ */
-/* The native cursor is hidden only while the custom dot is painted (see Cursor.tsx). */
+:root,
+[data-theme="dark"] {
+  --cursor-fill: rgb(235 235 245 / 0.3);
+  --cursor-line: rgb(255 255 255 / 0.4);
+  --cursor-hl: rgb(255 255 255 / 0.08);
+  --glow-a: 0.3;
+  --glow-base: 0.05;
+  --glow-blend: plus-lighter;
+}
+[data-theme="light"] {
+  --cursor-fill: rgb(60 60 67 / 0.26);
+  --cursor-line: rgb(0 0 0 / 0.16);
+  --cursor-hl: rgb(0 0 0 / 0.05);
+  --glow-a: 0.16;
+  --glow-base: 0.03;
+  --glow-blend: normal;
+}
+/* The native cursor is hidden only while the custom one is painted. */
 html[data-custom-cursor] body,
 html[data-custom-cursor] body * {
   cursor: none !important;
 }
-html[data-custom-cursor] :is(input:not([type="checkbox"]):not([type="radio"]):not([type="submit"]):not([type="button"]), textarea, [contenteditable="true"]) {
-  cursor: text !important;
-}
 html[data-custom-cursor] :is(iframe, [data-native-cursor], [data-native-cursor] *) {
   cursor: auto !important;
 }
-.cursor-dot,
-.cursor-hl {
+.cursor,
+.cursor-dot {
   position: fixed;
   left: 0;
   top: 0;
   z-index: 2147483647;
   pointer-events: none;
   opacity: 0;
-}
-.cursor-dot {
-  width: 10px;
-  height: 10px;
-  border-radius: 999px;
-  background: var(--fg);
-  box-shadow:
-    0 0 0 1.5px rgb(var(--bg-rgb) / 0.55),
-    0 2px 8px rgb(0 0 0 / 0.25);
   will-change: transform;
+  transition: opacity 120ms var(--ease-out);
+}
+/* The wrapper sits on the shape's centre and follows the pointer exactly;
+   only morphing in and out (and the highlight itself) glides. */
+.cursor[data-snap] {
   transition:
-    opacity 120ms var(--ease-out),
-    scale 120ms var(--ease-out);
+    transform 160ms var(--ease-out),
+    opacity 120ms var(--ease-out);
 }
-.cursor-dot.is-down {
-  scale: 0.75;
-}
-.cursor-hl {
+.cursor[data-mode="morph"] {
   z-index: 2147483646;
-  width: 10px;
-  height: 10px;
-  background: rgb(var(--glow) / 0.12);
-  box-shadow: inset 0 0 0 1px rgb(var(--glow) / 0.25);
-  will-change: transform, width, height;
   transition:
-    transform 150ms var(--ease-out),
-    width 150ms var(--ease-out),
-    height 150ms var(--ease-out),
-    border-radius 150ms var(--ease-out),
-    opacity 150ms var(--ease-out);
+    transform 110ms var(--ease-out),
+    opacity 120ms var(--ease-out);
 }
-.cursor-hl[data-mode="label"] {
+.cursor-shape {
+  --press: 1;
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 18px;
+  height: 18px;
+  border-radius: 9px;
+  /* scale from the centre: the shape never moves when it shrinks */
+  transform: translate(-50%, -50%) scale(var(--press));
+  background: var(--cursor-fill);
+  box-shadow:
+    inset 0 0 0 0.5px var(--cursor-line),
+    0 1px 6px rgb(0 0 0 / 0.16);
+  -webkit-backdrop-filter: blur(6px) saturate(180%);
+  backdrop-filter: blur(6px) saturate(180%);
+  transition:
+    transform 100ms var(--ease-out),
+    width 160ms var(--ease-out),
+    height 160ms var(--ease-out),
+    border-radius 160ms var(--ease-out),
+    background-color 160ms var(--ease-out),
+    box-shadow 160ms var(--ease-out);
+}
+.cursor[data-down] .cursor-shape {
+  --press: 0.85;
+}
+.cursor[data-mode="morph"] .cursor-shape {
+  background: var(--cursor-hl);
+  box-shadow: inset 0 0 0 0.5px var(--cursor-line);
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+}
+.cursor[data-mode="morph"][data-down] .cursor-shape {
+  --press: 0.96;
+}
+.cursor[data-mode="ibeam"] .cursor-shape {
   background: var(--fg);
-  box-shadow: 0 6px 20px -6px rgb(0 0 0 / 0.4);
-  transition:
-    width 150ms var(--ease-out),
-    opacity 150ms var(--ease-out);
+  box-shadow: 0 0 0 1px rgb(var(--bg-rgb) / 0.55);
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
 }
-.cursor-hl > span {
+.cursor[data-mode="label"] .cursor-shape {
+  background: rgb(var(--bg-rgb) / 0.62);
+  -webkit-backdrop-filter: blur(14px) saturate(180%);
+  backdrop-filter: blur(14px) saturate(180%);
+  box-shadow:
+    inset 0 0 0 0.5px var(--cursor-line),
+    0 8px 24px -8px rgb(0 0 0 / 0.45);
+}
+.cursor-label {
+  position: absolute;
+  left: 0;
+  top: 0;
+  transform: translate(-50%, -50%);
+  font-size: 12.5px;
+  font-weight: 500;
+  letter-spacing: -0.005em;
+  color: var(--fg);
+  white-space: nowrap;
+  opacity: 0;
+  transition: opacity 120ms var(--ease-out);
+}
+.cursor[data-mode="label"] .cursor-label {
+  opacity: 1;
+}
+.cursor-dot > span {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 6px;
+  height: 6px;
+  border-radius: 999px;
+  transform: translate(-50%, -50%);
+  background: var(--fg);
+  box-shadow: 0 0 0 1px rgb(var(--bg-rgb) / 0.5);
+  transition: transform 100ms var(--ease-out);
+}
+html:has(.cursor[data-down]) .cursor-dot > span {
+  transform: translate(-50%, -50%) scale(0.8);
+}
+
+/* Hover light: a radial light in the element's accent, following the pointer
+   inside it, over a faint lift in brightness. Same timing as every hover. */
+.hover-glow {
+  --g: 255 255 255;
+  --gx: 50%;
+  --gy: 50%;
+  --gr: 160px;
+  position: fixed;
+  left: 0;
+  top: 0;
+  z-index: 2147483645;
+  pointer-events: none;
+  opacity: 0;
+  mix-blend-mode: var(--glow-blend);
+  background:
+    radial-gradient(var(--gr) circle at var(--gx) var(--gy), rgb(var(--g) / var(--glow-a)), rgb(var(--g) / 0) 70%),
+    rgb(var(--g) / var(--glow-base));
+  transition:
+    opacity var(--dur-hover) var(--ease-out),
+    box-shadow var(--dur-hover) var(--ease-out);
+}
+.hover-glow[data-neutral="true"] {
+  --glow-a: 0.14;
+}
+[data-theme="light"] .hover-glow[data-neutral="true"] {
+  --glow-a: 0.55;
+  --glow-base: 0.12;
+}
+.hover-glow--surface,
+.hover-glow--surface[data-neutral="true"] {
+  z-index: 2147483644;
+  --glow-a: 0.12;
+  --glow-base: 0.02;
+}
+[data-theme="light"] :is(.hover-glow--surface, .hover-glow--surface[data-neutral="true"]) {
+  --glow-a: 0.08;
+  --glow-base: 0.02;
+}
+.hover-glow[data-halo] {
+  box-shadow:
+    0 0 0 1px rgb(var(--g) / 0.22),
+    0 0 32px -6px rgb(var(--g) / 0.45);
+}
+[data-theme="light"] .hover-glow[data-halo] {
+  box-shadow:
+    0 0 0 1px rgb(var(--g) / 0.25),
+    0 0 28px -8px rgb(var(--g) / 0.4);
+}
+
+/* ------------------------------------------------------------------ */
+/* Media strips (public/media) and their lightbox                      */
+/* ------------------------------------------------------------------ */
+.media-strip {
+  display: flex;
+  gap: 0.5rem;
+  overflow-x: auto;
+  scrollbar-width: none;
+  padding: 2px;
+  margin: -2px;
+}
+.media-strip::-webkit-scrollbar {
+  display: none;
+}
+.media-thumb {
+  position: relative;
+  display: block;
+  flex: none;
+  width: 88px;
+  height: 66px;
+  overflow: hidden;
+  border-radius: 12px;
+  background:
+    radial-gradient(80% 80% at 30% 20%, rgb(var(--d-rgb, var(--glow)) / 0.3), transparent 70%),
+    var(--surface-2);
+  box-shadow: inset 0 0 0 1px var(--material-line);
+}
+@media (min-width: 768px) {
+  .media-thumb {
+    width: 104px;
+    height: 78px;
+  }
+}
+.media-thumb :is(img, video) {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  filter: grayscale(1) brightness(0.92);
+  transition:
+    filter var(--dur-hover) var(--ease-out),
+    scale var(--dur-base) var(--ease-out);
+}
+.media-thumb:is(:hover, :focus-visible) :is(img, video),
+[data-input="touch"] .media-strip[data-inview] :is(img, video) {
+  filter: none;
+}
+.media-thumb:hover :is(img, video) {
+  scale: 1.04;
+}
+.media-play {
+  position: absolute;
+  left: 6px;
+  bottom: 6px;
+  display: grid;
+  place-items: center;
+  width: 22px;
+  height: 22px;
+  border-radius: 999px;
+  color: #fff;
+  background: rgb(0 0 0 / 0.45);
+  -webkit-backdrop-filter: blur(8px);
+  backdrop-filter: blur(8px);
+}
+.media-more {
   position: absolute;
   inset: 0;
   display: grid;
   place-items: center;
-  font-family: var(--font-geist-mono), monospace;
-  font-size: 10.5px;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: var(--bg);
-  opacity: 0;
-  white-space: nowrap;
+  font-size: 15px;
+  font-weight: 600;
+  color: #fff;
+  background: rgb(0 0 0 / 0.5);
 }
-.cursor-hl[data-mode="label"] > span {
-  opacity: 1;
+.media-lightbox[open] {
+  animation: fade-in 200ms var(--ease-out) both;
+}
+[data-motion="reduce"] .media-thumb :is(img, video) {
+  transition: none;
 }
 /* legacy lab cursor bits */
 .cursor-el {

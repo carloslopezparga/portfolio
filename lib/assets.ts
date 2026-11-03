@@ -1,6 +1,7 @@
 import "server-only";
 import fs from "node:fs";
 import path from "node:path";
+import { cacheLife } from "next/cache";
 import type { Hex } from "@/content/types";
 import { brandTones, pixelsColor, svgColor, type BrandTones } from "./brand";
 
@@ -38,33 +39,26 @@ export function readDemo(file: string): string | null {
   }
 }
 
-const toneCache = new Map<string, Promise<BrandTones>>();
-
 /**
  * Brand colour read from the logo itself (SVG fills, or the dominant
  * saturated colour of a raster logo); `fallback` until the logo exists.
- * Returned as two AA tones, one per theme.
+ * Returned as two AA tones, one per theme. Cached, so reading a PNG with
+ * sharp happens once at build time and the page stays static.
  */
-export function brandOf(logo: string, fallback: Hex): Promise<BrandTones> {
-  const key = `${logo}|${fallback}`;
-  let p = toneCache.get(key);
-  if (!p) {
-    p = (async () => {
-      const file = logoFile(logo);
-      let color: Hex | null = null;
-      try {
-        if (file?.endsWith(".svg")) color = svgColor(fs.readFileSync(file, "utf8"));
-        else if (file) {
-          const { default: sharp } = await import("sharp");
-          const { data, info } = await sharp(file).resize(48, 48, { fit: "inside" }).ensureAlpha().raw().toBuffer({ resolveWithObject: true });
-          color = pixelsColor(data, info.channels);
-        }
-      } catch {
-        color = null;
-      }
-      return brandTones(color ?? fallback);
-    })();
-    toneCache.set(key, p);
+export async function brandOf(logo: string, fallback: Hex): Promise<BrandTones> {
+  "use cache";
+  cacheLife("max");
+  const file = logoFile(logo);
+  let color: Hex | null = null;
+  try {
+    if (file?.endsWith(".svg")) color = svgColor(fs.readFileSync(file, "utf8"));
+    else if (file) {
+      const { default: sharp } = await import("sharp");
+      const { data, info } = await sharp(file).resize(48, 48, { fit: "inside" }).ensureAlpha().raw().toBuffer({ resolveWithObject: true });
+      color = pixelsColor(data, info.channels);
+    }
+  } catch {
+    color = null;
   }
-  return p;
+  return brandTones(color ?? fallback);
 }

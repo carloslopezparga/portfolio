@@ -1,17 +1,18 @@
-import Image from "next/image";
 import { profile } from "@/content/profile";
 import { has, type Locale } from "@/content/types";
-import { photoSrc } from "@/lib/assets";
 import { copy } from "@/lib/copy";
+import { mediaFor } from "@/lib/media";
+import { CardMedia } from "@/components/media/CardMedia";
 import { Glyph, type GlyphName } from "@/components/ui/icons";
 import { SectionHeader, sheetOf } from "./SectionHeader";
 
 const HOBBY_ICON: Record<string, GlyphName> = { drums: "drums", dj: "vinyl", golf: "golf", sailing: "sail" };
 
 /** Compact bento of leadership and impact, plus the one-line "off the clock". */
-export function Leadership({ lang }: { lang: Locale }) {
+export async function Leadership({ lang }: { lang: Locale }) {
   const t = copy.leadership;
-  const cards = profile.leadership.map((l) => ({ ...l, src: l.photo ? photoSrc(l.photo) : null }));
+  // A card with photos or videos takes the wider slot.
+  const cards = await Promise.all(profile.leadership.map(async (l) => ({ ...l, wide: (await mediaFor("leadership", l.id, lang)).length > 0 })));
   return (
     <section id="leadership" data-sheet={sheetOf("leadership")} className="relative scroll-mt-20 py-14 md:py-20">
       <SectionHeader id="leadership" title={t.title[lang]} intro={t.intro[lang]} />
@@ -22,13 +23,8 @@ export function Leadership({ lang }: { lang: Locale }) {
             id={`lead-${c.id}`}
             data-target-id={c.id}
             data-accent={c.accent}
-            className={`lead-card group scroll-mt-24 ${c.src || i < 2 ? "md:col-span-3" : "md:col-span-2"}`}
+            className={`lead-card scroll-mt-24 ${c.wide || i < 2 ? "md:col-span-3" : "md:col-span-2"}`}
           >
-            {c.src ? (
-              <div className="relative aspect-[16/9] overflow-hidden" data-cursor={copy.cursor.view[lang]}>
-                <Image src={c.src} alt={c.title[lang]} fill sizes="(min-width: 768px) 50vw, 100vw" className="object-cover transition-transform duration-700 group-hover:scale-[1.03]" />
-              </div>
-            ) : null}
             <div className="flex flex-1 flex-col p-5">
               <span className="grid size-8 place-items-center rounded-[10px] bg-[rgb(var(--d-rgb)/0.16)]" aria-hidden>
                 <span className="size-2 rounded-full bg-[rgb(var(--d-rgb))] shadow-[0_0_10px_rgb(var(--d-rgb)/0.8)]" />
@@ -36,6 +32,7 @@ export function Leadership({ lang }: { lang: Locale }) {
               <h3 className="mt-4 text-[17px] font-medium leading-snug text-fg">{c.title[lang]}</h3>
               <p className="mt-1.5 text-[14px] leading-relaxed text-muted">{c.description[lang]}</p>
               {has(c.metric) ? <p className="mt-auto pt-4 text-[14px] font-medium text-[var(--d)]">{c.metric[lang]}</p> : null}
+              <CardMedia section="leadership" folder={c.id} lang={lang} alt={c.title[lang]} className="mt-4" />
             </div>
           </article>
         ))}

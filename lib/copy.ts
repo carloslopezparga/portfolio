@@ -1,4 +1,4 @@
-import type { L } from "@/content/types";
+import type { L, Locale } from "@/content/types";
 
 /** Interface copy (not profile content). Profile data lives in content/profile.ts. */
 export const copy = {
@@ -13,7 +13,17 @@ export const copy = {
   },
   cursor: {
     view: { en: "View", es: "Ver" },
+    open: { en: "Open", es: "Abrir" },
+    play: { en: "Play", es: "Reproducir" },
+    copy: { en: "Copy", es: "Copiar" },
     drag: { en: "Drag", es: "Arrastrar" },
+  },
+  media: {
+    title: { en: "Photos and videos", es: "Fotos y vídeos" },
+    video: { en: "Video", es: "Vídeo" },
+    close: { en: "Close", es: "Cerrar" },
+    prev: { en: "Previous", es: "Anterior" },
+    next: { en: "Next", es: "Siguiente" },
   },
   hero: {
     experience: { en: "Experience", es: "Experiencia" },
@@ -193,3 +203,14 @@ export const copy = {
 
 /** Fill "{x}" placeholders. */
 export const fill = (s: string, x: string) => s.replace("{x}", x);
+
+/** Labels for a media strip and its lightbox, in one language. */
+export const mediaLabels = (lang: Locale) => ({
+  title: copy.media.title[lang],
+  view: copy.cursor.view[lang],
+  play: copy.cursor.play[lang],
+  video: copy.media.video[lang],
+  close: copy.media.close[lang],
+  prev: copy.media.prev[lang],
+  next: copy.media.next[lang],
+});

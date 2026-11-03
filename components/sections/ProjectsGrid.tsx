@@ -5,6 +5,8 @@ import { useEffect, useRef, useState, type CSSProperties } from "react";
 import type { DomainId, ProjectId, StackId } from "@/content/types";
 import { StackIcon } from "@/components/ui/icons";
 import { LazyCooling, LazyMailFlow, LazyTerminal } from "@/components/demos/lazy";
+import { MediaStrip, type MediaLabels } from "@/components/media/MediaStrip";
+import type { MediaItem } from "@/lib/media";
 import { onUI } from "@/lib/ui-bus";
 
 export interface ProjectItem {
@@ -20,6 +22,7 @@ export interface ProjectItem {
   repo: { url: string; public: boolean } | null;
   demo: { kind: "terminal"; script: string } | { kind: "mail" } | { kind: "cooling" } | null;
   screenshot: string | null;
+  media: MediaItem[];
 }
 
 export interface ProjectLabels {
@@ -34,6 +37,7 @@ export interface ProjectLabels {
   realFlow: string;
   animated: string;
   view: string;
+  media: MediaLabels;
   mail: { gmail: string; claude: string; digest: string; inbox: string; search: string; telegram: string; tailored: string; building: string; steps: [string, string, string, string] };
   cooling: { illustrative: string; x: string; y: string; baseline: string; best: string; gen: string };
 }
@@ -116,6 +120,7 @@ export function ProjectsGrid({ items, labels }: { items: ProjectItem[]; labels: 
                 </li>
               ))}
             </ul>
+            {it.media.length ? <MediaStrip items={it.media} alt={it.name} labels={labels.media} className="mt-4" /> : null}
             <button
               type="button"
               aria-expanded={on}

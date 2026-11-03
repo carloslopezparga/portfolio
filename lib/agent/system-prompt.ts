@@ -17,7 +17,7 @@ function facts() {
 
   lines.push("\n## Experience (section: experience; the current job is also in section: now)");
   for (const e of p.experience) {
-    const where = [has(e.location) ? e.location.en : null, e.mode && has(e.mode) ? e.mode.en : null].filter(Boolean).join(", ");
+    const where = [e.mode && has(e.mode) ? e.mode.en : null, has(e.location) ? e.location.en : null].filter(Boolean).join(", ");
     const parts = [`- [${e.id}] ${e.role.en} — ${e.company}${e.context ? ` (${e.context.en})` : ""}, ${range(e.start, e.end)}${where ? `, ${where}` : ""}.`];
     if (has(e.summary)) parts.push(e.summary.en);
     e.bullets.filter(has).forEach((b) => parts.push(b.en));

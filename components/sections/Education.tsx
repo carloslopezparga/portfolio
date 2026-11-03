@@ -4,6 +4,7 @@ import { brandOf, logoSrc } from "@/lib/assets";
 import { brandStyle } from "@/lib/brand";
 import { copy, fill } from "@/lib/copy";
 import { formatMonth, formatRange, studyYear } from "@/lib/i18n";
+import { CardMedia } from "@/components/media/CardMedia";
 import { Glyph } from "@/components/ui/icons";
 import { LogoMark } from "@/components/ui/LogoMark";
 import { FutureCone } from "./FutureCone";
@@ -83,6 +84,7 @@ export async function Education({ lang, now }: { lang: Locale; now: Date }) {
                 {formatMonth(erasmus.start, lang)} – {formatMonth(erasmus.end, lang)}
               </span>
             </div>
+            <CardMedia section="education" folder="etsii" lang={lang} alt={upm.short} className="mt-4" />
           </article>
         </div>
 
@@ -108,6 +110,7 @@ export async function Education({ lang, now }: { lang: Locale; now: Date }) {
                 </ul>
               </div>
             </div>
+            <CardMedia section="education" folder="retamar" lang={lang} alt={retamar.institution[lang]} className="mt-4" />
           </article>
         </div>
 
@@ -130,6 +133,7 @@ export async function Education({ lang, now }: { lang: Locale; now: Date }) {
                 <SkillChips lang={lang} refId="cs50" className="mt-3" />
               </div>
             </div>
+            <CardMedia section="education" folder="cs50" lang={lang} alt={cs50.name} className="mt-4" />
           </article>
         </div>
 

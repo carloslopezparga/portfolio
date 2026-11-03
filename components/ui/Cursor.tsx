@@ -1,102 +1,202 @@
 "use client";
 
 import { useEffect, useRef } from "react";
+import { CONTROLS, shapeOf } from "@/lib/hover";
 import { usePrefs } from "@/lib/prefs";
 
-const INTERACTIVE = 'a, button, [role="button"], [role="tab"], summary, select, label[for], [data-cursor-morph]';
-/** Where the native cursor works better (I-beam, the embed's own cursor). */
-const NATIVE = 'input:not([type="checkbox"]):not([type="radio"]):not([type="submit"]):not([type="button"]), textarea, [contenteditable="true"], iframe, [data-native-cursor]';
-const DOT = 10;
-/** Elements larger than this keep the plain dot (a highlight that big reads as a flash). */
-const MAX_MORPH = { w: 520, h: 220 };
+/** Text fields: the pointer becomes an I-beam. */
+const FIELD = 'input:not([type="checkbox"]):not([type="radio"]):not([type="submit"]):not([type="button"]):not([type="range"]), textarea, [contenteditable="true"]';
+/** Embeds (Cal.com, video players): only the native cursor works there. */
+const NATIVE = "iframe, [data-native-cursor]";
+const RING = 18;
+/** Elements larger than this keep the ring (a highlight that big reads as a flash). */
+const MAX_MORPH = { w: 720, h: 180 };
+/** How far a highlighted element leans toward the pointer, in px. */
+const LIFT = 2;
+const EASE = "cubic-bezier(0.22, 1, 0.36, 1)";
+
+type Mode = "ring" | "morph" | "label" | "ibeam";
+
+const clamp = (v: number, a: number, b: number) => Math.min(b, Math.max(a, v));
+
+/** Height of the line of text under the pointer, or 0 when it isn't over text. */
+function textLine(x: number, y: number): number {
+  const d = document as Document & {
+    caretPositionFromPoint?: (x: number, y: number) => { offsetNode: Node } | null;
+    caretRangeFromPoint?: (x: number, y: number) => Range | null;
+  };
+  const node = d.caretPositionFromPoint ? d.caretPositionFromPoint(x, y)?.offsetNode : d.caretRangeFromPoint?.(x, y)?.startContainer;
+  if (!node || node.nodeType !== Node.TEXT_NODE || !node.textContent?.trim()) return 0;
+  if (node.parentElement?.closest("svg, [aria-hidden='true']")) return 0;
+  const range = document.createRange();
+  range.selectNodeContents(node);
+  for (const r of range.getClientRects()) if (x >= r.left - 1 && x <= r.right + 1 && y >= r.top && y <= r.bottom) return r.height;
+  return 0;
+}
 
 /**
  * iPadOS-style pointer that never disappears:
- * - the dot follows the mouse with zero lag and sits above everything
- *   (canvas, panels, the agent console) at the maximum z-index;
- * - over interactive elements a highlight takes the element's shape and
- *   radius, and the dot stays visible inside it;
- * - the native cursor is hidden only while the dot is actually painted at the
- *   pointer: before the first move, outside the window, over text fields,
- *   iframes (Cal.com) and while a modal dialog is open, the native one shows.
+ * - at rest, an 18 px translucent ring with vibrancy that follows the mouse
+ *   with zero lag; a click shrinks it from its centre, it never moves;
+ * - over buttons, links, chips and menu options it melts into the element
+ *   and becomes its highlight (same shape and radius); the element leans
+ *   1–2 px toward the pointer and a centre dot stays visible;
+ * - over text and text fields, a thin I-beam sized to the text;
+ * - over images and demos, a contextual label (data-cursor="View");
+ * - the native cursor is hidden only while this one is painted: before the
+ *   first move, outside the window, over iframes and while a modal dialog
+ *   is open, the native one shows.
  * Touch devices and reduced motion keep the native cursor.
  */
 export function Cursor() {
   const { reduced, touch } = usePrefs();
   const enabled = !reduced && !touch;
-  const hlRef = useRef<HTMLDivElement>(null);
-  const dotRef = useRef<HTMLDivElement>(null);
+  const rootRef = useRef<HTMLDivElement>(null);
+  const shapeRef = useRef<HTMLDivElement>(null);
   const labelRef = useRef<HTMLSpanElement>(null);
+  const dotRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (!enabled) return;
-    const hl = hlRef.current!;
-    const dot = dotRef.current!;
+    const root = rootRef.current!;
+    const shape = shapeRef.current!;
     const label = labelRef.current!;
+    const dot = dotRef.current!;
     const html = document.documentElement;
 
     let x = -100;
     let y = -100;
     let shown = false;
     let native = false;
-    let mode: "free" | "morph" | "label" = "free";
-    let target: HTMLElement | null = null;
+    let mode: Mode = "ring";
+    /** What the element under the pointer asks for; "ring" may still become an I-beam over text. */
+    let want: Mode = "ring";
+    let target: Element | null = null;
+    let lifted: HTMLElement | null = null;
+    let lx = 0;
+    let ly = 0;
+    let liftIntro = false;
+    let beam = 18;
+    let raf = 0;
+    let snapTimer = 0;
 
-    /** The custom cursor is drawn → hide the native one; otherwise show it. */
     const sync = () => {
       const on = shown && !native && !document.querySelector("dialog[open]");
-      dot.style.opacity = on ? "1" : "0";
-      hl.style.opacity = on && mode !== "free" ? "1" : "0";
+      root.style.opacity = on ? "1" : "0";
+      dot.style.opacity = on && mode === "morph" ? "1" : "0";
       if (on) html.dataset.customCursor = "";
       else delete html.dataset.customCursor;
     };
 
+    // Morphing in or out glides for a moment; otherwise the pointer is exact.
+    const snap = () => {
+      root.dataset.snap = "";
+      clearTimeout(snapTimer);
+      snapTimer = window.setTimeout(() => delete root.dataset.snap, 180);
+    };
+
+    const drop = () => {
+      if (!lifted) return;
+      const el = lifted;
+      const from = el.style.translate;
+      el.style.translate = "";
+      if (from) el.animate([{ translate: from }, { translate: "0px 0px" }], { duration: 180, easing: EASE });
+      lifted = null;
+      lx = ly = 0;
+    };
+
+    const setMode = (m: Mode) => {
+      if (m === mode) return;
+      if ((m === "morph") !== (mode === "morph")) snap();
+      if (m !== "morph") drop();
+      mode = m;
+      root.dataset.mode = m;
+      sync();
+    };
+
+    const size = (w: number, h: number, r: number) => {
+      shape.style.width = `${w}px`;
+      shape.style.height = `${h}px`;
+      shape.style.borderRadius = `${r}px`;
+    };
+
     const place = () => {
-      dot.style.transform = `translate3d(${x - DOT / 2}px, ${y - DOT / 2}px, 0)`;
+      dot.style.transform = `translate3d(${x}px, ${y}px, 0)`;
+      let cx = x;
+      let cy = y;
       if (mode === "morph" && target) {
-        const r = target.getBoundingClientRect();
-        const pad = Number(target.dataset.cursorPad ?? 6);
-        const w = r.width + pad * 2;
-        const h = r.height + pad * 2;
-        const base = parseFloat(getComputedStyle(target).borderTopLeftRadius) || 10;
-        // A hint of parallax toward the pointer, like iPadOS.
-        const dx = ((x - (r.left + r.width / 2)) / Math.max(r.width, 1)) * 5;
-        const dy = ((y - (r.top + r.height / 2)) / Math.max(r.height, 1)) * 4;
-        hl.style.width = `${w}px`;
-        hl.style.height = `${h}px`;
-        hl.style.borderRadius = `${Math.min(h / 2, base + pad)}px`;
-        hl.style.transform = `translate3d(${r.left - pad + dx}px, ${r.top - pad + dy}px, 0)`;
-      } else if (mode === "label") {
-        const w = Math.max(56, (label.textContent?.length ?? 0) * 7.4 + 26);
-        hl.style.width = `${w}px`;
-        hl.style.height = "28px";
-        hl.style.borderRadius = "14px";
-        hl.style.transform = `translate3d(${x + 14}px, ${y + 14}px, 0)`;
-      }
+        const s = shapeOf(target);
+        // The box without the lean, so the lean doesn't feed back into itself.
+        const w0 = s.width / 2;
+        const h0 = s.height / 2;
+        const mx = s.left - lx + w0;
+        const my = s.top - ly + h0;
+        const tx = clamp((x - mx) / w0, -1, 1) * LIFT;
+        const ty = clamp((y - my) / h0, -1, 1) * LIFT;
+        if (lifted) {
+          const v = `${tx.toFixed(2)}px ${ty.toFixed(2)}px`;
+          if (liftIntro) lifted.animate([{ translate: "0px 0px" }, { translate: v }], { duration: 160, easing: EASE });
+          liftIntro = false;
+          lifted.style.translate = v;
+          lx = tx;
+          ly = ty;
+        }
+        cx = mx + tx;
+        cy = my + ty;
+        size(s.width, s.height, s.radius);
+      } else if (mode === "ibeam") size(2, beam, 1);
+      else if (mode === "label") size(label.offsetWidth + 22, 30, 15);
+      else size(RING, RING, RING / 2);
+      root.style.transform = `translate3d(${cx}px, ${cy}px, 0)`;
+    };
+
+    /** Decide between ring and I-beam (text under a bare pointer); once per frame. */
+    const settle = () => {
+      raf = 0;
+      if (want !== "ring") return;
+      const h = textLine(x, y);
+      if (h) beam = clamp(Math.round(h * 0.82), 14, 44);
+      setMode(h ? "ibeam" : "ring");
+      place();
     };
 
     const resolve = (t: Element | null) => {
-      if (!t || !t.closest) return;
+      if (!t?.closest) return;
       native = !!t.closest(NATIVE);
-      const labelled = t.closest<HTMLElement>("[data-cursor]");
-      const inter = t.closest<HTMLElement>(INTERACTIVE);
-      let next: typeof mode = "free";
-      let nextTarget: HTMLElement | null = null;
-      if (!native && labelled?.dataset.cursor) {
+      const labelled = native ? null : t.closest<HTMLElement>("[data-cursor]");
+      const control = native ? null : t.closest(CONTROLS);
+      const field = native ? null : t.closest<HTMLElement>(FIELD);
+      let next: Mode = "ring";
+      let nextTarget: Element | null = null;
+      if (labelled?.dataset.cursor) {
         next = "label";
         label.textContent = labelled.dataset.cursor;
-      } else if (!native && inter && inter.dataset.cursorMorph !== "false") {
-        const r = inter.getBoundingClientRect();
+      } else if (control && (control as HTMLElement).dataset.cursorMorph !== "false" && !field) {
+        const r = control.getBoundingClientRect();
         if (r.width <= MAX_MORPH.w && r.height <= MAX_MORPH.h) {
           next = "morph";
-          nextTarget = inter;
+          nextTarget = control;
+        }
+      } else if (field) {
+        next = "ibeam";
+        beam = clamp(Math.round(parseFloat(getComputedStyle(field).fontSize) * 1.35), 16, 40);
+      }
+      if (nextTarget !== target) {
+        drop();
+        target = nextTarget;
+        if (
+          target instanceof HTMLElement &&
+          !target.closest(".magnetic, [data-no-lift]") &&
+          getComputedStyle(target).translate === "none" &&
+          getComputedStyle(target).position !== "fixed"
+        ) {
+          lifted = target;
+          liftIntro = true;
         }
       }
-      if (next !== mode || nextTarget !== target) {
-        mode = next;
-        target = nextTarget;
-        hl.dataset.mode = mode;
-      }
+      want = next;
+      setMode(next);
+      if (next === "ring") settle();
       place();
       sync();
     };
@@ -108,8 +208,10 @@ export function Cursor() {
       if (!shown) {
         shown = true;
         resolve(e.target as Element);
-      } else place();
-      sync();
+        return;
+      }
+      place();
+      if (want === "ring" && !raf) raf = requestAnimationFrame(settle);
     };
     const onOver = (e: PointerEvent) => {
       if (e.pointerType === "mouse") resolve(e.target as Element);
@@ -118,6 +220,8 @@ export function Cursor() {
     const onOut = (e: MouseEvent) => {
       if (!e.relatedTarget || (e.relatedTarget as Element).nodeName === "IFRAME") {
         shown = false;
+        drop();
+        target = null;
         sync();
       }
     };
@@ -129,8 +233,10 @@ export function Cursor() {
     const onScroll = () => {
       if (shown) resolve(document.elementFromPoint(x, y));
     };
-    const onDown = () => dot.classList.add("is-down");
-    const onUp = () => dot.classList.remove("is-down");
+    const onDown = (e: PointerEvent) => {
+      if (e.pointerType === "mouse") root.dataset.down = "";
+    };
+    const onUp = () => delete root.dataset.down;
     // A modal dialog lives in the top layer, above any z-index: use the native cursor meanwhile.
     const mo = new MutationObserver(sync);
     mo.observe(document.body, { subtree: true, attributes: true, attributeFilter: ["open"] });
@@ -144,6 +250,9 @@ export function Cursor() {
     window.addEventListener("pointerup", onUp, { passive: true });
     return () => {
       mo.disconnect();
+      cancelAnimationFrame(raf);
+      clearTimeout(snapTimer);
+      drop();
       window.removeEventListener("pointermove", onMove);
       document.removeEventListener("pointerover", onOver);
       document.removeEventListener("mouseout", onOut);
@@ -158,10 +267,13 @@ export function Cursor() {
   if (!enabled) return null;
   return (
     <>
-      <div ref={hlRef} className="cursor-hl" data-mode="free" aria-hidden>
-        <span ref={labelRef} />
+      <div ref={rootRef} className="cursor" data-mode="ring" aria-hidden>
+        <div ref={shapeRef} className="cursor-shape" />
+        <span ref={labelRef} className="cursor-label" />
       </div>
-      <div ref={dotRef} className="cursor-dot" aria-hidden />
+      <div ref={dotRef} className="cursor-dot" aria-hidden>
+        <span />
+      </div>
     </>
   );
 }

@@ -101,7 +101,7 @@ function CV({ lang, now }: { lang: Locale; now: Date }) {
         <Text style={s.h2}>{h.exp}</Text>
         {p.experience.map((e) => {
           const upcoming = timeStatus(e.start, e.end, now) === "upcoming";
-          const sub = [e.role[lang], e.context?.[lang], has(e.location) ? e.location[lang] : null, e.mode && has(e.mode) ? e.mode[lang] : null].filter(Boolean).join(" · ");
+          const sub = [e.role[lang], e.context?.[lang], e.mode && has(e.mode) ? e.mode[lang] : null, has(e.location) ? e.location[lang] : null].filter(Boolean).join(" · ");
           const bullets = e.bullets.filter(has);
           return (
             <Entry key={e.id} title={e.company} right={`${upcoming ? `${h.incoming} · ` : ""}${formatRange(e.start, e.end, lang)}`} sub={sub}>

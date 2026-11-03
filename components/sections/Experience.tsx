@@ -4,6 +4,7 @@ import { brandOf, logoSrc } from "@/lib/assets";
 import { brandStyle } from "@/lib/brand";
 import { copy, fill } from "@/lib/copy";
 import { formatDay, formatRange, timeStatus } from "@/lib/i18n";
+import { CardMedia } from "@/components/media/CardMedia";
 import { LogoMark } from "@/components/ui/LogoMark";
 import { SectionHeader, sheetOf } from "./SectionHeader";
 import { SkillChips } from "./SkillChips";
@@ -21,7 +22,7 @@ export async function Experience({ lang, now }: { lang: Locale; now: Date }) {
         {profile.experience.map((e, i) => {
           const status = timeStatus(e.start, e.end, now);
           const range = formatRange(e.start, e.end, lang);
-          const where = [has(e.location) ? e.location[lang] : null, has(e.mode) ? e.mode[lang] : null].filter(Boolean).join(" · ");
+          const where = [e.mode && has(e.mode) ? e.mode[lang] : null, has(e.location) ? e.location[lang] : null].filter(Boolean).join(" · ");
           const bullets = e.bullets.filter(has);
           return (
             <div key={e.id} className="tl-row brand" style={brandStyle(tones[i])}>
@@ -67,6 +68,7 @@ export async function Experience({ lang, now }: { lang: Locale; now: Date }) {
                 ) : null}
                 {has(e.results) ? <p className="mt-3 text-[14px] font-medium text-fg">{e.results[lang]}</p> : null}
                 <SkillChips lang={lang} refId={e.id} className="mt-4" />
+                <CardMedia section="experience" folder={e.id} lang={lang} alt={e.company} className="mt-4" />
               </article>
             </div>
           );

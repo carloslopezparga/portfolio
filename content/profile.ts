@@ -58,7 +58,7 @@ export const profile: Profile = {
       role: { en: "Tech Operations Intern", es: "Tech Operations Intern" },
       context: { en: "Proptech", es: "Proptech" },
       location: { en: "Madrid", es: "Madrid" },
-      mode: "TODO: presencial / híbrido / remoto",
+      mode: { en: "On-site", es: "Presencial" },
       start: "2026-11-03",
       end: "2027-02",
       summary: {
@@ -66,10 +66,19 @@ export const profile: Profile = {
         es: "Puente entre Operaciones y Tecnología: detecto tareas manuales en compra, reforma, alquiler y gestión de inmuebles y las automatizo con low-code, scripting e IA.",
       },
       bullets: [
-        { en: "Spot manual work across buying, renovating, renting and managing properties.", es: "Detectar tareas manuales en compra, reforma, alquiler y gestión de inmuebles." },
-        { en: "Automate it with low-code, scripting and AI.", es: "Automatizarlas con low-code, scripting e IA." },
-        { en: "Translate operational needs into requirements for the internal platform.", es: "Traducir necesidades operativas a requisitos para la plataforma interna." },
-        { en: "Integrate data between tools and measure the impact of each automation.", es: "Integrar datos entre herramientas y medir el impacto de cada automatización." },
+        {
+          en: "Bridge between Operations and Tech: I spot manual work across buying, renovating, renting and managing properties.",
+          es: "Hago de puente entre Operaciones y Tecnología: detecto tareas manuales en compra, reforma, alquiler y gestión de inmuebles.",
+        },
+        { en: "I automate it with low-code, scripting and AI.", es: "Las automatizo con low-code, scripting e IA." },
+        {
+          en: "I translate operational needs into requirements for the internal client-tracking platform.",
+          es: "Traduzco necesidades operativas a requisitos para la plataforma interna de seguimiento de clientes.",
+        },
+        {
+          en: "I integrate data across tools, measure impact and document processes for the team.",
+          es: "Integro datos entre herramientas, mido el impacto y documento los procesos para el equipo.",
+        },
       ],
       results: "TODO: resultados",
       featured: true,
@@ -80,7 +89,7 @@ export const profile: Profile = {
       brand: { logo: "grupo-lalala", monogram: "GL", color: "#FF375F" },
       role: { en: "Operations & Sales Lead", es: "Operations & Sales Lead" },
       context: { en: "Events", es: "Eventos" },
-      location: "TODO: ciudad",
+      location: { en: "Madrid", es: "Madrid" },
       start: "2024-11",
       end: null,
       summary: {
@@ -89,11 +98,10 @@ export const profile: Profile = {
       },
       bullets: [
         { en: "Operations for nightlife, private, daytime and sports events.", es: "Operaciones de eventos nocturnos, privados, diurnos y deportivos." },
-        { en: "Events including the F1 afternoon party, Mutua Madrid Open and Pádel XP.", es: "Eventos como el tardeo de la F1, el Mutua Madrid Open y Pádel XP." },
-        { en: "Event sales and the relationship with sponsors, including negotiation.", es: "Ventas de eventos y relación con patrocinadores, incluida la negociación." },
+        { en: "Sports events including an F1 day party, the Mutua Madrid Open and Pádel XP.", es: "Eventos deportivos como el tardeo de la F1, el Mutua Madrid Open y Pádel XP." },
+        { en: "Sales and sponsor relationships, including deal negotiation.", es: "Ventas y relación con patrocinadores, incluida la negociación de acuerdos." },
       ],
       results: "TODO: nº de eventos, asistentes y patrocinios",
-      photo: "events-1",
     },
     {
       id: "induforum",
@@ -267,7 +275,6 @@ export const profile: Profile = {
       metric: "TODO: voluntarios coordinados, toneladas / envíos",
       start: "TODO: mes de inicio (AAAA-MM)",
       end: "TODO: mes de fin (AAAA-MM)",
-      photo: "dana",
     },
     {
       id: "mentor",
@@ -280,7 +287,6 @@ export const profile: Profile = {
       metric: "TODO: nº de mentorizados",
       start: "TODO: inicio (AAAA-MM)",
       end: "TODO: fin (AAAA-MM)",
-      photo: "mentor",
     },
     {
       id: "food-bank",
@@ -292,7 +298,6 @@ export const profile: Profile = {
       },
       metric: "TODO: kg recogidos",
       start: "TODO: fecha (AAAA-MM)",
-      photo: "volunteering-1",
     },
     {
       id: "charity-events",
@@ -314,7 +319,6 @@ export const profile: Profile = {
         es: "Construcción en un orfanato en Sudáfrica.",
       },
       start: "TODO: fecha (AAAA-MM)",
-      photo: "volunteering-2",
     },
   ],
 
@@ -324,6 +328,19 @@ export const profile: Profile = {
     { id: "golf", label: { en: "Golf · handicap 18.5", es: "Golf · hándicap 18,5" } },
     { id: "sailing", label: { en: "Sailing", es: "Vela" } },
   ],
+
+  // Photos and videos live in public/media/<section>/<folder>/ and are found
+  // automatically (see public/media/README.md). Here only what a file can't
+  // say by itself: captions by file name, and videos hosted elsewhere.
+  // Folders: experience/{prophero, grupo-lalala, induforum, classy-night-society},
+  // education/{etsii, retamar, cs50}, projects/{job-hunt-copilot, mail-autopilot,
+  // cooling-agent}, leadership/{dana, mentor, food-bank, charity-events, orphanage}.
+  // Example:
+  //   "experience/prophero": {
+  //     captions: { "01-first-day.jpg": { en: "First day", es: "Primer día" } },
+  //     external: [{ kind: "youtube", id: "dQw4w9WgXcQ", caption: { en: "Demo", es: "Demo" } }],
+  //   },
+  media: {},
 };
 
 /** Display names for every node a skill can point to. */

@@ -14,6 +14,12 @@ const nextConfig: NextConfig = {
   },
   images: {
     formats: ["image/avif", "image/webp"],
+    // Covers of external videos (profile.media): YouTube, Vimeo and Vercel Blob.
+    remotePatterns: [
+      { protocol: "https", hostname: "i.ytimg.com", pathname: "/vi/**" },
+      { protocol: "https", hostname: "i.vimeocdn.com" },
+      { protocol: "https", hostname: "**.public.blob.vercel-storage.com" },
+    ],
   },
   // English lives at "/", Spanish at "/es". Internally both render app/[lang].
   async rewrites() {

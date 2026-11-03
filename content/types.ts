@@ -111,8 +111,6 @@ export interface Experience {
   results?: Maybe<L>;
   /** Bigger card with the "Current" badge. */
   featured?: boolean;
-  /** Optional photo in public/photos. */
-  photo?: string;
 }
 
 export interface Chip {
@@ -152,7 +150,6 @@ export interface Leadership {
   metric?: Maybe<L>;
   start?: Maybe<DateISO>;
   end?: Maybe<DateISO>;
-  photo?: string;
 }
 
 /** A link from a skill to where it was used; w = attention weight (line thickness, default 1). */
@@ -186,6 +183,27 @@ export interface FuturePlan {
   graduation: DateISO;
 }
 
+/** Sections whose cards show media from public/media/<section>/<folder>/. */
+export type MediaSection = "experience" | "education" | "projects" | "leadership";
+
+/**
+ * A video hosted elsewhere, for files too heavy for the repo:
+ * - youtube: the video id (unlisted videos work);
+ * - vimeo: the video id, plus `hash` for hidden/private links (the "h=" part);
+ * - video: a direct .mp4/.webm URL, e.g. from Vercel Blob.
+ */
+export type ExternalMedia =
+  | { kind: "youtube"; id: string; caption?: L }
+  | { kind: "vimeo"; id: string; hash?: string; poster?: string; caption?: L }
+  | { kind: "video"; src: string; poster?: string; caption?: L };
+
+export interface MediaConfig {
+  /** Optional captions, by file name (e.g. "01-demo-day.jpg"). */
+  captions?: Record<string, L>;
+  /** Videos hosted outside the repo; shown after the local files. */
+  external?: ExternalMedia[];
+}
+
 export interface Profile {
   name: string;
   initials: string;
@@ -209,4 +227,9 @@ export interface Profile {
   languages: Language[];
   leadership: Leadership[];
   offTheClock: Hobby[];
+  /**
+   * Media folders (keys like "experience/prophero"): captions and external
+   * videos. Local files are found automatically; nothing here is required.
+   */
+  media: Partial<Record<`${MediaSection}/${string}`, MediaConfig>>;
 }

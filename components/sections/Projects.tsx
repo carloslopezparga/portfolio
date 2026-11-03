@@ -1,13 +1,15 @@
 import { profile } from "@/content/profile";
 import { has, type Locale } from "@/content/types";
 import { photoSrc, readDemo } from "@/lib/assets";
-import { copy } from "@/lib/copy";
+import { copy, mediaLabels } from "@/lib/copy";
+import { mediaFor } from "@/lib/media";
 import { ProjectsGrid, type ProjectItem } from "./ProjectsGrid";
 import { SectionHeader, sheetOf } from "./SectionHeader";
 
-export function Projects({ lang }: { lang: Locale }) {
+export async function Projects({ lang }: { lang: Locale }) {
   const t = copy.projects;
-  const items: ProjectItem[] = profile.projects.map((p) => {
+  const media = await Promise.all(profile.projects.map((p) => mediaFor("projects", p.id, lang)));
+  const items: ProjectItem[] = profile.projects.map((p, i) => {
     let demo: ProjectItem["demo"] = null;
     if (p.demo.kind === "terminal") {
       const script = readDemo(p.demo.file);
@@ -30,6 +32,7 @@ export function Projects({ lang }: { lang: Locale }) {
       repo: p.repo ?? null,
       demo,
       screenshot: p.screenshot ? photoSrc(p.screenshot) : null,
+      media: media[i],
     };
   });
 
@@ -51,6 +54,7 @@ export function Projects({ lang }: { lang: Locale }) {
             realFlow: t.realFlow[lang],
             animated: t.animated[lang],
             view: copy.cursor.view[lang],
+            media: mediaLabels(lang),
             mail: {
               gmail: t.mail.gmail[lang],
               claude: t.mail.claude[lang],

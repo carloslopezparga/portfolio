@@ -23,7 +23,8 @@ npm run todos      # lists every TODO still missing in content/profile.ts
 ## Logos, photos and demos
 
 - `public/logos/`: company and school logos. Expected names are in [`public/logos/README.md`](public/logos/README.md). If a file is missing, a monogram is shown. The logo also sets the card's brand colour, which is read from the file at build time.
-- `public/photos/`: portrait, card photos and the n8n screenshot. Expected names are in [`public/photos/README.md`](public/photos/README.md). If a file is missing, it is left out.
+- `public/media/<section>/<id>/`: photos and videos for each experience, education, project and leadership card. Files are detected at build time, sorted by name (`01-`, `02-`…) and shown as a thumbnail strip that opens in a lightbox. Captions and external videos (YouTube, Vimeo, Vercel Blob) go in `media` in `content/profile.ts`. Full guide, including how to upload from the GitHub website: [`public/media/README.md`](public/media/README.md).
+- `public/photos/`: the portrait and the n8n screenshot. Details in [`public/photos/README.md`](public/photos/README.md). If a file is missing, it is left out.
 - `content/demos/job-hunt-copilot.txt`: a real CLI run, replayed as an animated terminal. The format is in [`content/demos/README.md`](content/demos/README.md).
 
 ## Environment variables (Vercel → Settings → Environment Variables)
