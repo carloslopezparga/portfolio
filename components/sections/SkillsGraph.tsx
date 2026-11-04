@@ -260,7 +260,7 @@ export function SkillsGraph({ skills, refs, layout, labels }: { skills: GraphSki
                   aria-label={`${r.label} · ${r.kindLabel}`}
                   aria-pressed={active.id === r.id}
                   data-target-id={r.card ? undefined : r.id}
-                  className={`g-node g-ref ${t.className} ${on ? "is-lit" : ""} ${active.id === r.id ? "is-active" : ""}`}
+                  className={`g-node g-ref ${r.logo ? "g-logo" : ""} ${t.className} ${on ? "is-lit" : ""} ${active.id === r.id ? "is-active" : ""}`}
                   style={t.style}
                   data-domain={t.domain}
                   onPointerEnter={() => pick({ kind: "ref", id: r.id })}

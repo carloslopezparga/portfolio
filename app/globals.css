@@ -1553,7 +1553,7 @@ html.js .chip-stage:not([data-play]) .chip-art *,
   opacity: 1;
 }
 .skills-graph:has(.is-active) .g-node:not(.is-lit) {
-  opacity: 0.5;
+  opacity: 0.65;
 }
 .g-disc {
   fill: #ffffff;
@@ -1564,7 +1564,8 @@ html.js .chip-stage:not([data-play]) .chip-art *,
 [data-theme="dark"] .g-disc {
   fill: #1c1c1e;
 }
-.g-ref .g-disc {
+/* logos sit on white in both themes; the other nodes follow the theme */
+.g-logo .g-disc {
   fill: #ffffff;
 }
 .g-halo {
