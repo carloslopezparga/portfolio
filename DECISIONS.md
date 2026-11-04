@@ -105,6 +105,14 @@ Grupo (a) completo, del 1 al 16, y el reveal del grupo (b). Capturas antes/despu
 - **Color del texto:** bullets, descripciones, intros de sección y el resumen del hero en #1D1D1F (#F5F5F7 en oscuro). El gris #6E6E73 queda solo para metadatos.
 - **Grafo en oscuro:** discos oscuros para los nodos sin logo (los logos siguen sobre blanco). Los nodos apagados se atenúan a 0,65 (antes 0,5).
 
+### Variante del hero (rama `claude/hero-asymmetric`, PR aparte sobre el del pulido)
+Para elegir entre esta y el hero centrado del pulido.
+- **Composición asimétrica:** en escritorio, texto a la izquierda y chip a la derecha, a la altura del texto y entero en la primera pantalla (comprobado de 1024 × 768 a 1920 × 1080). En tablet y móvil, el chip va debajo.
+- **Tagline en negro sólido** (#1D1D1F; #F5F5F7 en oscuro). Solo «automatizados» / «automated» va en el azul de acento, plano.
+- **Sin la píldora «Busco prácticas…»:** pasa a una línea de metadatos gris bajo el nombre, con un punto verde fijo (sin pulso).
+- **Chip:** el resplandor de colores se sustituye por un disco plano gris muy suave (#F5F5F7; #1C1C1E en oscuro), como un plato de producto.
+- Mismos textos, mismo agente y mismos botones.
+
 ## 2. Decidido por mí (revisar)
 
 ### Contenido
@@ -131,7 +139,7 @@ Grupo (a) completo, del 1 al 16, y el reveal del grupo (b). Capturas antes/despu
 - **El chip 3D** usa exactamente la misma vista isométrica que el SVG, así que el cambio de 2D a 3D no se nota.
 - **Herramienta `focus_part` del agente:** eliminada, porque solo servía para la reductora. Ahora el chip reacciona solo cuando el agente responde.
 - **Página `/lab`:** eliminada, junto con sus componentes. Era el laboratorio de motion del principio y no encajaba en la nueva dirección. Sigue en el historial de git.
-- **Imagen para compartir (OG):** en claro, con nombre, tagline en degradado, resumen y el chip.
+- **Imagen para compartir (OG):** en claro, con nombre, tagline en degradado, resumen y el chip. Si eliges la variante asimétrica del hero, conviene pasar también la OG a tagline en negro (no lo he tocado).
 
 ### Pulido estético
 - **Fragmentos de proyecto:** se dibujan en un lienzo fijo del tamaño de la tarjeta de escritorio (540 px) y se escalan. En el móvil el texto de los fragmentos queda pequeño (unos 6,5 px), pero nítido y con la misma composición que en escritorio. Es ilustración: no lleva información que no esté en la tarjeta.
@@ -195,6 +203,6 @@ Grupo (a) completo, del 1 al 16, y el reveal del grupo (b). Capturas antes/despu
 - **Patrón de secciones:** etiqueta + título + intro + tarjetas se repite en todas. Romperlo en una o dos (por ejemplo, Cifras o Contacto) daría ritmo.
 - **Hero centrado:** composición asimétrica (texto a la izquierda, chip a la derecha).
 - **Resplandor del chip:** más contenido o un único color plano.
-- La tagline, el hero y el resplandor se prueban en un PR aparte (variante del hero). El patrón de secciones sigue como propuesta.
+- La tagline, el hero y el resplandor se prueban en un PR aparte (variante del hero, ver arriba). El patrón de secciones sigue como propuesta.
 
 **Lanzamiento:** cuando digas «lanzamiento», poner `LAUNCHED = true` en `lib/site.ts`.
