@@ -56,7 +56,7 @@ export async function Experience({ lang, now }: { lang: Locale; now: Date }) {
                   {where ? ` · ${where}` : ""}
                 </p>
                 {bullets.length ? (
-                  <ul className="xp-bullets mt-5 space-y-2 text-[16px] leading-relaxed text-muted">
+                  <ul className="xp-bullets mt-5 space-y-2 text-[16px] leading-relaxed text-fg">
                     {bullets.map((b) => (
                       <li key={b.en}>{b[lang]}</li>
                     ))}

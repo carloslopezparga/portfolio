@@ -74,7 +74,7 @@ export async function Leadership({ lang }: { lang: Locale }) {
             >
               {c.when ? <p className="mb-1.5 text-[13px] font-semibold text-muted">{c.when}</p> : null}
               <h3 className="text-[clamp(1.2rem,1.9vw,1.45rem)] leading-snug text-fg">{c.title[lang]}</h3>
-              <p className="mt-2 text-[15.5px] leading-relaxed text-muted">{c.description[lang]}</p>
+              <p className="mt-2 text-[15.5px] leading-relaxed text-fg">{c.description[lang]}</p>
               {metric ? <div className="mt-auto text-muted">{metric}</div> : null}
             </article>
           );

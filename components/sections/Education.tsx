@@ -130,7 +130,7 @@ export async function Education({ lang, now }: { lang: Locale; now: Date }) {
           {when("2027 → 2028")}
           <div data-target-id="full-time" className="card reveal p-5 sm:p-6 md:p-9">
             <MonteCarlo from={lang === "en" ? "Now" : "Ahora"} to={t.cone[lang]} />
-            <p className="mt-3 text-[15px] text-muted">{t.coneNote[lang]}</p>
+            <p className="mt-3 text-[15px] leading-relaxed text-fg">{t.coneNote[lang]}</p>
           </div>
         </div>
       </TimelineRail>
