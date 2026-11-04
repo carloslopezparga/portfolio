@@ -43,7 +43,7 @@ export async function Now({ lang, now }: { lang: Locale; now: Date }) {
           <LogoMark brand={job.brand} size={64} className="mt-8" />
           <h3 className="mt-5 text-[clamp(1.75rem,3vw,2.25rem)] leading-tight text-fg">{job.company}</h3>
           <p className="mt-1 text-[16px] font-semibold text-[var(--d)]">{job.role[lang]}</p>
-          {has(job.summary) ? <p className="mt-4 text-[16px] leading-relaxed text-muted">{job.summary[lang]}</p> : null}
+          {has(job.summary) ? <p className="mt-4 text-[16px] leading-relaxed text-fg">{job.summary[lang]}</p> : null}
           <div className="mt-auto flex flex-wrap items-center justify-between gap-3 pt-8 text-[14px] text-muted">
             <span>
               {formatRange(job.start, job.end, lang)}

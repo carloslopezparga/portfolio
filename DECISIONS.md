@@ -1,6 +1,6 @@
 # Decisiones
 
-Lo aprobado, lo que he decidido yo al construir (para que lo revises) y lo que falta. Última actualización: 04-11-2026. Incluye las tres fases: contenido y CV, dirección visual Apple × Evolve, y piezas visuales.
+Lo aprobado, lo que he decidido yo al construir (para que lo revises) y lo que falta. Última actualización: 04-11-2026. Incluye las tres fases (contenido y CV, dirección visual Apple × Evolve, piezas visuales) y el pulido estético de la rama `claude/design-polish`.
 
 ## 1. Aprobado (hecho)
 
@@ -49,7 +49,7 @@ Lo aprobado, lo que he decidido yo al construir (para que lo revises) y lo que f
   7. Liderazgo: tarjetas de foto para las entradas con foto y tipográficas para el resto, más «Off the clock».
   8. Contacto: banda oscura #1D1D1F.
 - **Motion:**
-  - Reveals de opacidad con subida de 24 px en 700 ms, y count-up en las cifras.
+  - Reveals: los títulos de sección suben 24 px; tarjetas y resto aparecen solo con opacidad. Count-up en las cifras.
   - Lift y brillo al hover.
   - Flotación lenta de los fragmentos.
   - Todo respeta el movimiento reducido.
@@ -81,6 +81,30 @@ Lo aprobado, lo que he decidido yo al construir (para que lo revises) y lo que f
   - El inspector de debajo nunca está vacío.
   - En el móvil, lista por dominio con hoja inferior.
 
+### Pulido estético (rama `claude/design-polish`, PR contra `main`)
+Grupo (a) completo, del 1 al 16, y el reveal del grupo (b). Capturas antes/después de cada bloque en `docs/review/` (se borran al fusionar).
+
+**Bloque 1: hero, animaciones, ⌘K y aterrizajes**
+- **Hero:** más compacto y con alturas según la pantalla. En escritorio el chip asoma en la primera pantalla (38-80 % visible) y el hero mide 1,1-1,3 pantallas; en el móvil, 1,3 (el chip asoma en 375 × 812 y 390 × 844; en una pantalla baja, 375 × 667, el hero mide 1,6 y el chip no llega a verse).
+- **Animaciones que siempre terminan:** las cifras llegan a su valor final en 0,9 s, también al saltar con el menú o ⌘K, con la pestaña en segundo plano o con movimiento reducido. Nada se queda oculto: si un reveal no se dispara, se muestra igual.
+- **⌘K:** cada vez que se abre empieza con la búsqueda vacía (antes conservaba la anterior y la segunda búsqueda no encontraba nada).
+- **Aterrizajes:** la etiqueta de cada sección queda justo bajo la píldora (antes caía hasta 180 px más abajo). También al abrir una URL con `#sección`, que en el móvil se quedaba ~6.000 px corta.
+- **Móvil:** los chips y las skills con nombre largo pasan a dos líneas en vez de salirse. Las etiquetas del Monte Carlo son texto HTML legible.
+
+**Bloque 2: maquetación y móvil**
+- **Proyectos:** la ilustración va a sangre en la parte superior de la tarjeta (sin panel interior de radio 18 dentro del de 24). Los fragmentos se escalan con la tarjeta en vez de amontonarse en el móvil.
+- **Formación:** el Erasmus es una fila bajo un separador, no una caja dentro de la tarjeta.
+- **Liderazgo:** fuera el punto decorativo de las tarjetas tipográficas; abre la fecha.
+- **Timeline en el móvil:** logos de 32 px y tarjetas con 20 px de margen interior (unos 20 px más de ancho para el texto).
+- **Tipografía:** los títulos se parten en líneas equilibradas y los párrafos evitan una palabra sola en la última línea.
+- **Cifras:** icono de línea sin círculo blanco y tarjetas más compactas.
+- **Pie:** la línea superior se alinea con el texto.
+
+**Bloque 3: foco y color**
+- **Teclado:** anillo de foco visible en la barra del agente. El grafo de skills tiene un anillo claro en el nodo con foco y es una sola parada de tabulador (antes 33): las flechas llevan al nodo más cercano en esa dirección; Inicio y Fin, al primero y al último.
+- **Color del texto:** bullets, descripciones, intros de sección y el resumen del hero en #1D1D1F (#F5F5F7 en oscuro). El gris #6E6E73 queda solo para metadatos.
+- **Grafo en oscuro:** discos oscuros para los nodos sin logo (los logos siguen sobre blanco). Los nodos apagados se atenúan a 0,65 (antes 0,5).
+
 ## 2. Decidido por mí (revisar)
 
 ### Contenido
@@ -109,6 +133,15 @@ Lo aprobado, lo que he decidido yo al construir (para que lo revises) y lo que f
 - **Página `/lab`:** eliminada, junto con sus componentes. Era el laboratorio de motion del principio y no encajaba en la nueva dirección. Sigue en el historial de git.
 - **Imagen para compartir (OG):** en claro, con nombre, tagline en degradado, resumen y el chip.
 
+### Pulido estético
+- **Fragmentos de proyecto:** se dibujan en un lienzo fijo del tamaño de la tarjeta de escritorio (540 px) y se escalan. En el móvil el texto de los fragmentos queda pequeño (unos 6,5 px), pero nítido y con la misma composición que en escritorio. Es ilustración: no lleva información que no esté en la tarjeta.
+- **Fondo de la ilustración:** solo el tinte del dominio sobre el gris de la tarjeta; antes era un panel blanco.
+- **Erasmus en el móvil:** las fechas van en su propia línea bajo «Erasmus», para que no se partan.
+- **Cifras:** la flecha que aparece al pasar el ratón sube junto al icono; así la fila que ocupaba abajo desaparece.
+- **Qué sigue en gris:** fechas, lugares, el «· contexto» tras la empresa, las etiquetas bajo las cifras, «Especialidad:», pies de foto y notas.
+- **Grafo:** se anuncia como barra de herramientas (`toolbar`), que es lo que hace que los lectores de pantalla indiquen que se navega con flechas. No añade texto nuevo.
+- **Arreglo que no estaba en la lista:** la línea del timeline iba 20-32 px a la izquierda del centro de los logos en todos los tamaños. Ahora pasa por el centro.
+
 ### Técnicas
 - **Secciones fuera de pantalla con `content-visibility`,** que acelera el primer render en el móvil.
   - Como sus alturas son estimadas hasta que se pintan, el scroll a una sección hace una segunda pasada de corrección.
@@ -117,16 +150,20 @@ Lo aprobado, lo que he decidido yo al construir (para que lo revises) y lo que f
 - **La caché de build de Turbopack está desactivada.** Una vez sirvió un `globals.css` antiguo, y Vercel restaura esa caché entre despliegues. El build tarda segundos, así que no compensa el riesgo.
 - **En móvil no se carga three.js** ni se construye el grafo SVG.
 - **El chip 2D empieza a animarse** cuando la página está ociosa.
+- **El tamaño de los logos** (`LogoMark`) se puede fijar desde CSS con `--logo`. El timeline lo usa para tener 32 px en el móvil.
+- **Desarrollo local:** a veces `next dev` deja de recoger los cambios de `globals.css`. Se arregla parando el servidor y borrando `.next/dev`.
 
 ## 3. Resultados (build de producción, local)
 
 | Lighthouse (04-11) | Rendimiento | Accesibilidad | Buenas prácticas | SEO |
 | --- | --- | --- | --- | --- |
-| Móvil, `/` (3 pasadas) | 85–89 | 100 | 100 | 66* |
-| Escritorio, `/` y `/es` | 100 | 100 | 100 | 66* |
+| Móvil, `/` (6 pasadas, rama del pulido) | 86–92 (mediana 87,5) | 100 | 100 | 66* |
+| Móvil, `/` (6 pasadas, `main`, alternando con la rama) | 84–90 (mediana 87,5) | 100 | 100 | 66* |
+| Escritorio, `/es` (rama y `main`, 2 pasadas cada una) | 100 | 100 | 100 | 66* |
 
 \* El único fallo de SEO es «la página no es rastreable», que es el noindex intencionado. Pasará a 100 al lanzar.
 
+- **El pulido no empeora el rendimiento:** con `main` medido en la misma sesión, la mediana de rendimiento es igual (87,5) y el LCP mejora (2,64 s frente a 2,89 s de mediana). El TBT sube 40 ms de mediana (386 frente a 346 ms), dentro de la variación de ambas versiones (253–427 y 287–423 ms). CLS 0 en las dos.
 - **Sobre el móvil:** desde el 03-11 la máquina de pruebas es más lenta. La versión de la fase 2 da 86–87 en esta misma máquina (en la anterior daba 92–94), así que la fase 3 no empeora el rendimiento.
 - **axe:** 0 incidencias en claro y oscuro, escritorio y móvil.
 
@@ -152,5 +189,12 @@ Lo aprobado, lo que he decidido yo al construir (para que lo revises) y lo que f
 - `UPSTASH_REDIS_REST_URL` y `UPSTASH_REDIS_REST_TOKEN` (o las `KV_*`).
 - `NEXT_PUBLIC_CALCOM_LINK`.
 - `NEXT_PUBLIC_SITE_URL`.
+
+**Propuestas de diseño pendientes (grupo b del pulido; se quedaron fuera de este PR)**
+- **Tagline en degradado:** pasarla a negro sólido, como mucho con una palabra en un color plano.
+- **Patrón de secciones:** etiqueta + título + intro + tarjetas se repite en todas. Romperlo en una o dos (por ejemplo, Cifras o Contacto) daría ritmo.
+- **Hero centrado:** composición asimétrica (texto a la izquierda, chip a la derecha).
+- **Resplandor del chip:** más contenido o un único color plano.
+- La tagline, el hero y el resplandor se prueban en un PR aparte (variante del hero). El patrón de secciones sigue como propuesta.
 
 **Lanzamiento:** cuando digas «lanzamiento», poner `LAUNCHED = true` en `lib/site.ts`.

@@ -7,8 +7,10 @@ import { CV_URL } from "@/lib/site";
 import { onUI } from "@/lib/ui-bus";
 
 const HL_MS = 1900;
-/** Where a scrolled-to element lands: just under the floating nav. */
-const TOP = 88;
+/** Where a scrolled-to element lands: just under the floating pill (--nav-offset in globals.css). */
+const navOffset = () => parseFloat(getComputedStyle(document.documentElement).getPropertyValue("--nav-offset")) || 88;
+/** A section lands by its label (the small grey line over the title), not by its padding. */
+const anchorOf = (el: HTMLElement) => (el.matches("main > section") ? (el.querySelector<HTMLElement>(".eyebrow") ?? el) : el);
 
 const inView = (el: Element) => {
   const r = el.getBoundingClientRect();
@@ -34,16 +36,18 @@ export function UIActionHost() {
      * height is only estimated until they render on the way: when the scroll
      * ends, measure again and finish the last stretch if needed.
      */
-    const scrollTo = (target: HTMLElement | 0, center = false, pass = 0): void => {
+    const scrollTo = (el: HTMLElement | 0, center = false, pass = 0): void => {
       const reduced = getPrefs().reduced;
-      if (target === 0) {
+      if (el === 0) {
         if (lenis) lenis.scrollTo(0, { duration: 1.1 });
         else window.scrollTo({ top: 0, behavior: reduced ? "auto" : "smooth" });
         return;
       }
-      const want = () => (center ? Math.max(TOP, (window.innerHeight - target.getBoundingClientRect().height) / 2) : TOP);
+      const target = center ? el : anchorOf(el);
+      const top = navOffset();
+      const want = () => (center ? Math.max(top, (window.innerHeight - target.getBoundingClientRect().height) / 2) : top);
       const check = () => {
-        if (pass < 2 && Math.abs(target.getBoundingClientRect().top - want()) > 6) scrollTo(target, center, pass + 1);
+        if (pass < 2 && Math.abs(target.getBoundingClientRect().top - want()) > 6) scrollTo(el, center, pass + 1);
       };
       const delta = target.getBoundingClientRect().top - want();
       if (lenis) lenis.scrollTo(window.scrollY + delta, { duration: pass ? 0.5 : 1.1, onComplete: check });
@@ -66,6 +70,23 @@ export function UIActionHost() {
       history.replaceState(null, "", `#${id}`);
     };
     document.addEventListener("click", onClick);
+
+    // Opening the page at a #hash: the browser jumps before the sections above
+    // know their real height (content-visibility), so it lands short. Redo the
+    // jump instantly, measuring again until it settles.
+    let landing = 0;
+    const id = decodeURIComponent(window.location.hash.slice(1));
+    const hashTarget = id && id !== "top" ? document.getElementById(id) : null;
+    if (hashTarget) {
+      let tries = 0;
+      const land = () => {
+        const target = anchorOf(hashTarget);
+        const delta = target.getBoundingClientRect().top - navOffset();
+        if (Math.abs(delta) > 4) window.scrollTo({ top: window.scrollY + delta, behavior: "auto" });
+        if (++tries < 6 && Math.abs(delta) > 4) landing = window.setTimeout(land, 120);
+      };
+      landing = window.setTimeout(land, 60);
+    }
 
     const highlight = (id: string) => {
       const main = document.querySelector("main");
@@ -112,6 +133,7 @@ export function UIActionHost() {
     ];
     return () => {
       document.removeEventListener("click", onClick);
+      window.clearTimeout(landing);
       offs.forEach((off) => off());
       window.clearTimeout(clear);
       window.clearTimeout(delayed);

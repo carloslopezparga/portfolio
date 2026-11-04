@@ -266,6 +266,18 @@
     font-weight: 600;
     letter-spacing: -0.02em;
   }
+  /* titles break into even lines; running text avoids a lone last word */
+  h1,
+  h2,
+  h3 {
+    text-wrap: balance;
+  }
+  p,
+  li,
+  dd,
+  dt {
+    text-wrap: pretty;
+  }
   * {
     scrollbar-width: thin;
     scrollbar-color: var(--line-strong) transparent;
@@ -342,15 +354,31 @@ html.lenis body {
 /* ------------------------------------------------------------------ */
 /* Layout                                                              */
 /* ------------------------------------------------------------------ */
+/* Where a jump lands (nav, ⌘K, agent, #links): a section's label sits
+   --nav-offset from the top, ~20–24 px under the floating pill. JS reads the
+   same variable (UIActionHost); scroll-margin covers #hash loads and no-JS. */
+:root {
+  --nav-offset: 84px;
+}
+@media (min-width: 640px) {
+  :root {
+    --nav-offset: 92px;
+  }
+}
 .section {
+  --pad-top: 88px;
   position: relative;
-  scroll-margin-top: 72px;
-  padding-block: 88px;
+  padding-block: var(--pad-top) 88px;
+  scroll-margin-top: calc(var(--nav-offset) - var(--pad-top));
 }
 @media (min-width: 768px) {
   .section {
-    padding-block: 128px;
+    --pad-top: 128px;
+    padding-bottom: 128px;
   }
+}
+.scroll-mt-nav {
+  scroll-margin-top: var(--nav-offset);
 }
 /* Off-screen sections skip layout and paint until they get close (faster first render on phones). */
 main > .section:not(:first-child) {
@@ -368,29 +396,37 @@ main > .section:not(:first-child) {
   --btn-2-hover: rgb(255 255 255 / 0.16);
 }
 .wrap {
+  --gutter: 20px;
   margin-inline: auto;
   width: 100%;
   max-width: 1200px;
-  padding-inline: 20px;
+  padding-inline: var(--gutter);
 }
 @media (min-width: 640px) {
   .wrap {
-    padding-inline: 32px;
+    --gutter: 32px;
   }
 }
 
-/* Reveals: opacity + 24 px rise, 700 ms (RevealObserver adds data-in).
-   Hidden only once JS runs; a failsafe shows everything after 3 s. */
+/* Reveals (RevealObserver adds data-in): section titles fade in and rise
+   24 px (.reveal-rise); cards and everything else only fade in. Hidden only
+   once JS runs; the JS shows anything in view as soon as a scroll settles,
+   and this CSS failsafe still shows everything after 3 s if JS breaks. */
 html.js .reveal:not([data-in]) {
   opacity: 0;
-  transform: translate3d(0, 24px, 0);
   animation: failsafe 0s 3s forwards;
 }
+html.js .reveal-rise:not([data-in]) {
+  transform: translate3d(0, 24px, 0);
+}
 .reveal {
+  transition: opacity 600ms var(--ease-out);
+  transition-delay: var(--rd, 0ms);
+}
+.reveal-rise {
   transition:
     opacity var(--dur-reveal) var(--ease-out),
     transform var(--dur-reveal) var(--ease-out);
-  transition-delay: var(--rd, 0ms);
 }
 @keyframes failsafe {
   to {
@@ -459,6 +495,11 @@ html.js .reveal:not([data-in]) {
   --ai-grad: conic-gradient(from var(--ai-angle), #0a84ff, #5e5ce6, #bf5af2, #ff375f, #ff9f0a, #bf5af2, #0a84ff);
   position: relative;
   isolation: isolate;
+}
+/* the field draws no outline of its own: the whole bar shows the focus */
+.ai-glow:has(input:focus-visible) {
+  outline: 2px solid var(--accent);
+  outline-offset: 3px;
 }
 .ai-glow::before,
 .ai-glow::after {
@@ -661,13 +702,16 @@ html.js .reveal:not([data-in]) {
   background: rgb(var(--d-rgb) / 0.1);
   white-space: nowrap;
 }
+/* Chips grow to two lines instead of spilling out when a label is long (phones). */
 .chip {
   display: inline-flex;
   align-items: center;
   gap: 0.4rem;
-  height: 30px;
-  padding: 0 0.75rem;
-  border-radius: 999px;
+  min-height: 30px;
+  max-width: 100%;
+  padding: 0.3rem 0.75rem;
+  border-radius: 15px;
+  line-height: 1.25;
   font-size: 13px;
   font-weight: 500;
   color: var(--fg);
@@ -819,16 +863,23 @@ html.js .reveal:not([data-in]) {
 /* ------------------------------------------------------------------ */
 .tl {
   --tl: 0;
-  --rail: 22px; /* half the logo size on the rail */
+  --logo: 32px; /* the milestone tiles: 32 px on phones, 44 px from 640 px */
+  --rail: calc(var(--logo) / 2); /* the line runs through their centre */
   position: relative;
+}
+@media (min-width: 640px) {
+  .tl {
+    --logo: 44px;
+  }
 }
 .tl::before,
 .tl::after {
   content: "";
   position: absolute;
-  top: 22px;
-  bottom: 22px;
-  left: var(--rail);
+  top: var(--rail);
+  bottom: var(--rail);
+  /* absolute boxes start at the padding edge: add the .wrap gutter */
+  left: calc(var(--gutter, 0px) + var(--rail));
   width: 2px;
   margin-left: -1px;
   border-radius: 2px;
@@ -852,7 +903,7 @@ html.js .reveal:not([data-in]) {
   left: 0;
   top: 0;
   z-index: 1;
-  border-radius: 13px;
+  border-radius: calc(var(--logo) * 0.3);
   box-shadow: 0 0 0 5px var(--bg);
   transition: box-shadow 400ms var(--ease-out);
 }
@@ -870,11 +921,11 @@ html.js .reveal:not([data-in]) {
     0 0 0 7px rgb(var(--d-rgb) / 0.35);
 }
 .tl-dot {
-  width: 44px;
-  height: 44px;
+  width: var(--logo);
+  height: var(--logo);
   display: grid;
   place-items: center;
-  border-radius: 13px;
+  border-radius: calc(var(--logo) * 0.3);
   background: var(--card);
   color: var(--d);
 }
@@ -884,7 +935,7 @@ html.js .reveal:not([data-in]) {
 @media (min-width: 1024px) {
   .tl::before,
   .tl::after {
-    left: calc(180px + 40px + var(--rail));
+    left: calc(var(--gutter, 0px) + 180px + 40px + var(--rail));
   }
   .tl-row {
     display: grid;
@@ -1414,14 +1465,25 @@ html.js .chip-stage:not([data-play]) .chip-art *,
 .frag-stage {
   --px: 0;
   --py: 0;
-  background:
-    radial-gradient(90% 80% at 50% 0%, rgb(var(--d-rgb) / 0.14), transparent 70%),
-    var(--bg);
+  container-type: inline-size;
+  /* full-bleed at the top of the card: only the domain tint, on the card's own grey */
+  background: radial-gradient(90% 80% at 50% 0%, rgb(var(--d-rgb) / 0.14), transparent 70%);
 }
 [data-theme="dark"] .frag-stage {
-  background:
-    radial-gradient(90% 80% at 50% 0%, rgb(var(--d-rgb) / 0.22), transparent 70%),
-    rgb(255 255 255 / 0.03);
+  background: radial-gradient(90% 80% at 50% 0%, rgb(var(--d-rgb) / 0.22), transparent 70%);
+}
+/* The fragments are laid out on a fixed canvas the size of the desktop card
+   and scaled to the card's width: on a phone the whole composition shrinks
+   instead of the cards piling up. (tan(atan2()) turns the width ratio into a
+   number; where unsupported, the canvas stays at 1:1 and is clipped.) */
+.frag-canvas {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 540px;
+  aspect-ratio: 16 / 10;
+  transform-origin: 0 0;
+  scale: tan(atan2(100cqw, 540px));
 }
 .frag {
   position: absolute;
@@ -1480,8 +1542,18 @@ html.js .chip-stage:not([data-play]) .chip-art *,
   outline: none;
   transition: opacity 350ms var(--ease-out);
 }
+/* keyboard focus: a ring in the accent colour around the disc */
+.g-ring {
+  fill: none;
+  stroke: var(--accent);
+  stroke-width: 2;
+  opacity: 0;
+}
+.g-node:focus-visible .g-ring {
+  opacity: 1;
+}
 .skills-graph:has(.is-active) .g-node:not(.is-lit) {
-  opacity: 0.5;
+  opacity: 0.65;
 }
 .g-disc {
   fill: #ffffff;
@@ -1492,7 +1564,8 @@ html.js .chip-stage:not([data-play]) .chip-art *,
 [data-theme="dark"] .g-disc {
   fill: #1c1c1e;
 }
-.g-ref .g-disc {
+/* logos sit on white in both themes; the other nodes follow the theme */
+.g-logo .g-disc {
   fill: #ffffff;
 }
 .g-halo {

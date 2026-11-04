@@ -214,7 +214,7 @@ export function ProjectArt({ id, lang }: { id: ProjectId; lang: Locale }) {
   return (
     <div
       ref={ref}
-      className="frag-stage relative aspect-[16/10] overflow-hidden rounded-[18px]"
+      className="frag-stage relative aspect-[16/10] overflow-hidden rounded-t-[var(--radius-card)]"
       aria-hidden
       onPointerMove={(e) => {
         if (e.pointerType !== "mouse" || getPrefs().reduced) return;
@@ -227,7 +227,9 @@ export function ProjectArt({ id, lang }: { id: ProjectId; lang: Locale }) {
         e.currentTarget.style.setProperty("--py", "0");
       }}
     >
-      <Art lang={lang} />
+      <div className="frag-canvas">
+        <Art lang={lang} />
+      </div>
     </div>
   );
 }

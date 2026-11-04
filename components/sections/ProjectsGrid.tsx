@@ -98,15 +98,15 @@ export function ProjectsGrid({ items, labels, lang }: { items: ProjectItem[]; la
             key={it.id}
             data-target-id={it.id}
             data-domain={it.domain}
-            className={`card card-hover reveal flex flex-col p-2 ${on ? "shadow-[var(--shadow)]" : ""}`}
+            className={`card card-hover reveal flex flex-col ${on ? "shadow-[var(--shadow)]" : ""}`}
             style={{ order: i * 2 + 1, ["--rd" as string]: `${(i % 2) * 90}ms` } as CSSProperties}
           >
             <ProjectArt id={it.id} lang={lang} />
-            <div className="flex flex-1 flex-col px-4 pb-4 pt-6 md:px-6 md:pb-6">
+            <div className="flex flex-1 flex-col px-6 pb-6 pt-5 md:px-8 md:pb-8">
               <span className="badge self-start">{it.status}</span>
               <h3 className="mt-4 text-[clamp(1.5rem,2.4vw,1.9rem)] leading-tight text-fg">{it.name}</h3>
               <p className="mt-1.5 text-[15px] font-semibold text-[var(--d)]">{it.oneLiner}</p>
-              <p className="mt-3 text-[16px] leading-relaxed text-muted">{it.problem}</p>
+              <p className="mt-3 text-[16px] leading-relaxed text-fg">{it.problem}</p>
               {it.metrics.length ? (
                 <dl className="mt-5 flex flex-wrap gap-x-8 gap-y-3">
                   {it.metrics.map((m) => (
@@ -174,7 +174,7 @@ export function ProjectsGrid({ items, labels, lang }: { items: ProjectItem[]; la
               {item.next ? (
                 <div>
                   <dt className="eyebrow">{labels.next}</dt>
-                  <dd className="mt-2 text-[16px] leading-relaxed text-muted">{item.next}</dd>
+                  <dd className="mt-2 text-[16px] leading-relaxed text-fg">{item.next}</dd>
                 </div>
               ) : null}
               {item.repo ? (
