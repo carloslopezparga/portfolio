@@ -496,6 +496,11 @@ html.js .reveal-rise:not([data-in]) {
   position: relative;
   isolation: isolate;
 }
+/* the field draws no outline of its own: the whole bar shows the focus */
+.ai-glow:has(input:focus-visible) {
+  outline: 2px solid var(--accent);
+  outline-offset: 3px;
+}
 .ai-glow::before,
 .ai-glow::after {
   content: "";
@@ -1536,6 +1541,16 @@ html.js .chip-stage:not([data-play]) .chip-art *,
   cursor: pointer;
   outline: none;
   transition: opacity 350ms var(--ease-out);
+}
+/* keyboard focus: a ring in the accent colour around the disc */
+.g-ring {
+  fill: none;
+  stroke: var(--accent);
+  stroke-width: 2;
+  opacity: 0;
+}
+.g-node:focus-visible .g-ring {
+  opacity: 1;
 }
 .skills-graph:has(.is-active) .g-node:not(.is-lit) {
   opacity: 0.5;

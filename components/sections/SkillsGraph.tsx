@@ -39,6 +39,24 @@ export interface GraphLabels {
 
 type Active = { kind: "skill" | "ref"; id: string };
 const TOUR_MS = 3200;
+const ARROWS: Record<string, [number, number]> = { ArrowRight: [1, 0], ArrowLeft: [-1, 0], ArrowDown: [0, 1], ArrowUp: [0, -1] };
+
+/** The nearest node in an arrow's direction (within ~60° of it, favouring the axis), or null at the edge. */
+function nearest(pos: Map<string, { x: number; y: number }>, from: string, [dx, dy]: [number, number]): string | null {
+  const a = pos.get(from)!;
+  let best: string | null = null;
+  let score = Infinity;
+  for (const [id, p] of pos) {
+    const along = (p.x - a.x) * dx + (p.y - a.y) * dy;
+    const across = Math.abs((p.x - a.x) * dy - (p.y - a.y) * dx);
+    if (id === from || along <= 0 || across > along * 1.8) continue;
+    if (along + across * 2 < score) {
+      score = along + across * 2;
+      best = id;
+    }
+  }
+  return best;
+}
 
 const tone = (r: GraphRef) => ({ className: r.brand ? "brand" : "", style: r.brand ?? undefined, domain: r.brand ? undefined : (r.domain ?? undefined) });
 
@@ -127,6 +145,13 @@ export function SkillsGraph({ skills, refs, layout, labels }: { skills: GraphSki
   const [sheet, setSheet] = useState<Active | null>(null);
   const [show, setShow] = useState(false);
   const graphRef = useRef<HTMLDivElement>(null);
+  // One tab stop for the whole graph (the last node focused); arrow keys move between nodes.
+  const [stop, setStop] = useState<string>(skills[0].id);
+  const nodes = useRef(new Map<string, SVGGElement>());
+  const nodeRef = (id: string) => (el: SVGGElement | null) => {
+    if (el) nodes.current.set(id, el);
+    else nodes.current.delete(id);
+  };
 
   // The SVG graph is desktop-only: it mounts when its (visible) box nears the
   // viewport, so phones never build it and the first load stays light.
@@ -182,11 +207,21 @@ export function SkillsGraph({ skills, refs, layout, labels }: { skills: GraphSki
   if (active.kind === "skill") skills.find((s) => s.id === active.id)?.usedIn.forEach((u) => lit.add(u.id));
   else skills.forEach((s) => s.usedIn.some((u) => u.id === active.id) && lit.add(s.id));
   const isOn = (skill: string, ref: string) => (active.kind === "skill" ? active.id === skill : active.id === ref);
+  const focusNode = (a: Active) => {
+    pick(a);
+    setStop(a.id);
+  };
   const keys = (a: Active) => (e: KeyboardEvent) => {
     if (e.key === "Enter" || e.key === " ") {
       e.preventDefault();
       pick(a);
+      return;
     }
+    const all = [...order, ...refs.map((r) => r.id)];
+    const to = ARROWS[e.key] ? nearest(pos, a.id, ARROWS[e.key]) : e.key === "Home" ? all[0] : e.key === "End" ? all[all.length - 1] : null;
+    if (!to) return;
+    e.preventDefault();
+    nodes.current.get(to)?.focus();
   };
 
   return (
@@ -194,7 +229,7 @@ export function SkillsGraph({ skills, refs, layout, labels }: { skills: GraphSki
       {/* desktop: the graph and its inspector */}
       <div ref={graphRef} className="hidden lg:block">
         {show ? (
-          <svg viewBox={`0 0 ${layout.w} ${layout.h}`} className="skills-graph block h-auto w-full" role="group" aria-label={labels.tour}>
+          <svg viewBox={`0 0 ${layout.w} ${layout.h}`} className="skills-graph block h-auto w-full" role="toolbar" aria-label={labels.tour}>
             <g aria-hidden>
               {skills.flatMap((s) =>
                 s.usedIn.map((u) => {
@@ -219,8 +254,9 @@ export function SkillsGraph({ skills, refs, layout, labels }: { skills: GraphSki
               return (
                 <g
                   key={r.id}
+                  ref={nodeRef(r.id)}
                   role="button"
-                  tabIndex={0}
+                  tabIndex={stop === r.id ? 0 : -1}
                   aria-label={`${r.label} · ${r.kindLabel}`}
                   aria-pressed={active.id === r.id}
                   data-target-id={r.card ? undefined : r.id}
@@ -228,11 +264,12 @@ export function SkillsGraph({ skills, refs, layout, labels }: { skills: GraphSki
                   style={t.style}
                   data-domain={t.domain}
                   onPointerEnter={() => pick({ kind: "ref", id: r.id })}
-                  onFocus={() => pick({ kind: "ref", id: r.id })}
+                  onFocus={() => focusNode({ kind: "ref", id: r.id })}
                   onClick={() => (r.card ? dispatchUI({ type: "highlight", targetId: r.card }) : pick({ kind: "ref", id: r.id }))}
                   onKeyDown={keys({ kind: "ref", id: r.id })}
                 >
                   <circle cx={p.x} cy={p.y} r={34} fill="transparent" />
+                  <circle cx={p.x} cy={p.y} r={33} className="g-ring" />
                   <circle cx={p.x} cy={p.y} r={27} className="g-disc" />
                   {r.logo ? (
                     <>
@@ -264,21 +301,23 @@ export function SkillsGraph({ skills, refs, layout, labels }: { skills: GraphSki
               return (
                 <g
                   key={s.id}
+                  ref={nodeRef(s.id)}
                   role="button"
-                  tabIndex={0}
+                  tabIndex={stop === s.id ? 0 : -1}
                   aria-label={`${s.label} · ${s.domainLabel}`}
                   aria-pressed={active.id === s.id}
                   data-target-id={s.id}
                   data-domain={s.domain}
                   className={`g-node g-skill ${lit.has(s.id) ? "is-lit" : ""} ${active.id === s.id ? "is-active" : ""}`}
                   onPointerEnter={() => pick({ kind: "skill", id: s.id })}
-                  onFocus={() => pick({ kind: "skill", id: s.id })}
+                  onFocus={() => focusNode({ kind: "skill", id: s.id })}
                   onClick={() => pick({ kind: "skill", id: s.id })}
                   onKeyDown={keys({ kind: "skill", id: s.id })}
                 >
                   <circle cx={p.x} cy={p.y} r={30} fill="transparent" />
                   <circle cx={p.x} cy={p.y} r={29} className="g-halo" />
                   <circle cx={p.x} cy={p.y} r={21} className="g-disc" />
+                  <circle cx={p.x} cy={p.y} r={26} className="g-ring" />
                   <g transform={`translate(${p.x - 9} ${p.y - 9})`} className="text-[var(--d)]">
                     <StackIcon id={s.id} size={18} />
                   </g>
