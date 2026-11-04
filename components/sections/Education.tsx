@@ -68,13 +68,13 @@ export async function Education({ lang, now }: { lang: Locale; now: Date }) {
                 </li>
               ))}
             </ul>
-            <div data-target-id="erasmus" className="mt-5 flex items-center gap-3 rounded-[16px] bg-[var(--bg)] px-4 py-3 text-[15px] dark:bg-[rgb(255_255_255/0.05)]">
+            <div data-target-id="erasmus" className="mt-6 flex flex-wrap items-center gap-x-3 gap-y-0.5 border-t border-[var(--line)] pt-5 text-[15px]">
               <Glyph name="globe" className="size-[18px] shrink-0 text-[var(--d)]" />
               <span className="font-medium text-fg">
                 {t.erasmus[lang]}
                 {has(erasmus.destination) ? ` · ${erasmus.destination[lang]}` : ""}
               </span>
-              <span className="ml-auto text-[14px] text-muted">
+              <span className="whitespace-nowrap text-[14px] text-muted max-sm:basis-full max-sm:pl-[30px] sm:ml-auto">
                 {formatMonth(erasmus.start, lang)} – {formatMonth(erasmus.end, lang)}
               </span>
             </div>
