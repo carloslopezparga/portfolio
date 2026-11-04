@@ -21,7 +21,7 @@ export function Contact({ lang }: { lang: Locale }) {
   return (
     <section id="contact" className="band-dark section scroll-mt-0">
       <div className="wrap grid gap-12 md:grid-cols-[minmax(0,1fr)_auto] md:items-end">
-        <div className="reveal">
+        <div className="reveal reveal-rise">
           <p className="eyebrow">{t.eyebrow[lang]}</p>
           <h2 className="mt-3 text-[clamp(2.75rem,7vw,5rem)] leading-[1] text-fg">{t.title[lang]}</h2>
           <p className="mt-5 max-w-[56ch] text-[17px] leading-relaxed text-muted md:text-[19px]">{t.intro[lang]}</p>

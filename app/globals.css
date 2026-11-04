@@ -379,18 +379,25 @@ main > .section:not(:first-child) {
   }
 }
 
-/* Reveals: opacity + 24 px rise, 700 ms (RevealObserver adds data-in).
-   Hidden only once JS runs; a failsafe shows everything after 3 s. */
+/* Reveals (RevealObserver adds data-in): section titles fade in and rise
+   24 px (.reveal-rise); cards and everything else only fade in. Hidden only
+   once JS runs; the JS shows anything in view as soon as a scroll settles,
+   and this CSS failsafe still shows everything after 3 s if JS breaks. */
 html.js .reveal:not([data-in]) {
   opacity: 0;
-  transform: translate3d(0, 24px, 0);
   animation: failsafe 0s 3s forwards;
 }
+html.js .reveal-rise:not([data-in]) {
+  transform: translate3d(0, 24px, 0);
+}
 .reveal {
+  transition: opacity 600ms var(--ease-out);
+  transition-delay: var(--rd, 0ms);
+}
+.reveal-rise {
   transition:
     opacity var(--dur-reveal) var(--ease-out),
     transform var(--dur-reveal) var(--ease-out);
-  transition-delay: var(--rd, 0ms);
 }
 @keyframes failsafe {
   to {
