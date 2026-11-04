@@ -48,10 +48,11 @@ export function brandColor(icon: SimpleIcon) {
   return lum < 0.12 ? "var(--fg)" : `#${icon.hex}`;
 }
 
-export function BrandIcon({ name, className, title }: { name: BrandName; className?: string; title?: string }) {
+/** `size` sets width/height attributes: needed when the icon is nested inside another SVG, where CSS sizes don't apply. */
+export function BrandIcon({ name, className, title, size }: { name: BrandName; className?: string; title?: string; size?: number }) {
   const icon = BRANDS[name];
   return (
-    <svg viewBox="0 0 24 24" fill="currentColor" className={className} role={title ? "img" : undefined} aria-hidden={title ? undefined : true}>
+    <svg viewBox="0 0 24 24" width={size} height={size} fill="currentColor" className={className} role={title ? "img" : undefined} aria-hidden={title ? undefined : true}>
       {title ? <title>{title}</title> : null}
       <path d={icon.path} />
     </svg>
@@ -106,9 +107,9 @@ const GLYPHS = {
 } as const;
 export type GlyphName = keyof typeof GLYPHS;
 
-export function Glyph({ name, className, strokeWidth = 1.5 }: { name: GlyphName; className?: string; strokeWidth?: number }) {
+export function Glyph({ name, className, strokeWidth = 1.5, size }: { name: GlyphName; className?: string; strokeWidth?: number; size?: number }) {
   return (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={strokeWidth} strokeLinecap="round" strokeLinejoin="round" className={className} aria-hidden>
+    <svg viewBox="0 0 24 24" width={size} height={size} fill="none" stroke="currentColor" strokeWidth={strokeWidth} strokeLinecap="round" strokeLinejoin="round" className={className} aria-hidden>
       <path d={GLYPHS[name]} />
     </svg>
   );
@@ -142,10 +143,10 @@ export const STACK_ICON: Record<StackId, { brand?: BrandName; glyph?: GlyphName 
   negotiation: { glyph: "negotiation" },
 };
 
-export function StackIcon({ id, className }: { id: StackId; className?: string }) {
+export function StackIcon({ id, className, size }: { id: StackId; className?: string; size?: number }) {
   const def = STACK_ICON[id];
-  if (def.brand) return <BrandIcon name={def.brand} className={className} />;
-  return <Glyph name={def.glyph!} className={className} />;
+  if (def.brand) return <BrandIcon name={def.brand} className={className} size={size} />;
+  return <Glyph name={def.glyph!} className={className} size={size} />;
 }
 
 export function stackColor(id: StackId) {

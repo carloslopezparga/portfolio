@@ -9,6 +9,7 @@ import { LazyCooling, LazyMailFlow, LazyTerminal } from "@/components/demos/lazy
 import { MediaStrip, type MediaLabels } from "@/components/media/MediaStrip";
 import type { MediaItem } from "@/lib/media";
 import { onUI } from "@/lib/ui-bus";
+import { ProjectArt } from "./ProjectArt";
 
 export interface ProjectItem {
   id: ProjectId;
@@ -75,22 +76,6 @@ function Demo({ item, labels }: { item: ProjectItem; labels: ProjectLabels }) {
   );
 }
 
-/** The illustration at the top of each card (the floating interface fragments go here). */
-function Art({ item }: { item: ProjectItem }) {
-  const icons = item.stack.filter((s) => s.id).slice(0, 4);
-  return (
-    <div className="relative grid aspect-[16/10] place-items-center overflow-hidden rounded-[18px] bg-[radial-gradient(90%_80%_at_50%_0%,rgb(var(--d-rgb)/0.16),transparent_70%),var(--bg)] dark:bg-[radial-gradient(90%_80%_at_50%_0%,rgb(var(--d-rgb)/0.2),transparent_70%),rgb(255_255_255/0.03)]" aria-hidden>
-      <div className="flex gap-3">
-        {icons.map((s) => (
-          <span key={s.label} data-domain={s.domain ?? undefined} className="grid size-14 place-items-center rounded-[16px] bg-[var(--card)] text-[var(--d)] shadow-[var(--shadow)]">
-            <StackIcon id={s.id!} className="size-7" />
-          </span>
-        ))}
-      </div>
-    </div>
-  );
-}
-
 /**
  * Four large cards (illustration, status, name, problem, figures, stack).
  * Opening one unfolds its demo and case study in a panel under its row on
@@ -116,7 +101,7 @@ export function ProjectsGrid({ items, labels, lang }: { items: ProjectItem[]; la
             className={`card card-hover reveal flex flex-col p-2 ${on ? "shadow-[var(--shadow)]" : ""}`}
             style={{ order: i * 2 + 1, ["--rd" as string]: `${(i % 2) * 90}ms` } as CSSProperties}
           >
-            <Art item={it} />
+            <ProjectArt id={it.id} lang={lang} />
             <div className="flex flex-1 flex-col px-4 pb-4 pt-6 md:px-6 md:pb-6">
               <span className="badge self-start">{it.status}</span>
               <h3 className="mt-4 text-[clamp(1.5rem,2.4vw,1.9rem)] leading-tight text-fg">{it.name}</h3>

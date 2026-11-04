@@ -18,7 +18,7 @@ const inView = (el: Element) => {
 /**
  * Runs the page-level UI actions shared by the agent, clicks and ⌘K:
  * scroll_to, highlight, open_project (scroll; the switcher opens it) and
- * download_cv. focus_part, filter_domain and open_booking are handled by the
+ * download_cv. open_booking is handled by the
  * components that own them.
  */
 export function UIActionHost() {

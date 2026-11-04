@@ -1,6 +1,6 @@
 "use client";
 
-import type { DomainId, ProjectId, SectionId } from "@/content/types";
+import type { ProjectId, SectionId } from "@/content/types";
 
 /**
  * Every interface action the agent (and the rest of the page) can trigger.
@@ -12,8 +12,7 @@ export type UIAction =
   | { type: "highlight"; targetId: string }
   | { type: "open_project"; projectId: ProjectId }
   | { type: "download_cv" }
-  | { type: "open_booking" }
-  | { type: "filter_domain"; domain: DomainId | null };
+  | { type: "open_booking" };
 
 const EVENT = "ui:action";
 
@@ -51,7 +50,7 @@ export function createStore<T>(initial: T) {
   };
 }
 
-/** True while the agent is generating — the gearbox's neural core pulses faster. */
+/** True while the agent is generating: the hero chip's cores and pulses speed up (html[data-agent-busy]). */
 export const agentBusy = createStore(false);
 agentBusy.subscribe(() => {
   if (typeof document === "undefined") return;

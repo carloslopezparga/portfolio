@@ -52,7 +52,7 @@ export function ChipArt({ className, title }: { className?: string; title: strin
       <g className="chip-layer" data-layer="die">
         <Slab faces={slabFaces(D)} />
         {CORES.map((c, i) => (
-          <polygon key={i} points={boxFaces(c.x0, c.y0, c.x1, c.y1, dTop, 0).top} className="chip-core" style={{ ["--ci" as string]: i }} />
+          <polygon key={i} points={boxFaces(c.x0, c.y0, c.x1, c.y1, dTop, 0).top} className="chip-core" style={{ ["--ci" as string]: i, ["--core-c" as string]: `var(--pulse-${i % 4})` }} />
         ))}
       </g>
 

@@ -1,4 +1,5 @@
 import { notFound } from "next/navigation";
+import { Suspense } from "react";
 import { profile, SECTIONS, sectionLabels } from "@/content/profile";
 import { AgentHost } from "@/components/agent/AgentHost";
 import { Hero } from "@/components/hero/Hero";
@@ -52,14 +53,32 @@ export default async function Home({ params }: PageProps<"/[lang]">) {
       />
       <main>
         <Hero lang={lang} />
-        <Stats lang={lang} />
-        <Now lang={lang} now={now} />
-        <Experience lang={lang} now={now} />
-        <Education lang={lang} now={now} />
-        <Projects lang={lang} />
-        <Skills lang={lang} />
-        <Leadership lang={lang} />
-        <Contact lang={lang} />
+        {/* Each section is its own Suspense boundary, so React hydrates them in
+            separate tasks (the main thread gets breathing room on phones). */}
+        <Suspense fallback={null}>
+          <Stats lang={lang} />
+        </Suspense>
+        <Suspense fallback={null}>
+          <Now lang={lang} now={now} />
+        </Suspense>
+        <Suspense fallback={null}>
+          <Experience lang={lang} now={now} />
+        </Suspense>
+        <Suspense fallback={null}>
+          <Education lang={lang} now={now} />
+        </Suspense>
+        <Suspense fallback={null}>
+          <Projects lang={lang} />
+        </Suspense>
+        <Suspense fallback={null}>
+          <Skills lang={lang} />
+        </Suspense>
+        <Suspense fallback={null}>
+          <Leadership lang={lang} />
+        </Suspense>
+        <Suspense fallback={null}>
+          <Contact lang={lang} />
+        </Suspense>
       </main>
       <Footer lang={lang} year={now.getUTCFullYear()} />
 

@@ -3,6 +3,11 @@ import { LAUNCHED } from "./lib/site";
 
 const nextConfig: NextConfig = {
   cacheComponents: true,
+  experimental: {
+    // The persistent build cache once served a stale globals.css (old styles
+    // shipped). The build is quick, so production builds always start clean.
+    turbopackFileSystemCacheForBuild: false,
+  },
   partialPrefetching: true,
   turbopack: {
     rules: {

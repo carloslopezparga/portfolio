@@ -7,7 +7,7 @@ import { formatMonth, formatRange, studyYear } from "@/lib/i18n";
 import { CardMedia } from "@/components/media/CardMedia";
 import { Glyph } from "@/components/ui/icons";
 import { LogoMark } from "@/components/ui/LogoMark";
-import { FutureCone } from "./FutureCone";
+import { MonteCarlo } from "./MonteCarlo";
 import { SectionHeader } from "./SectionHeader";
 import { SkillChips } from "./SkillChips";
 import { TargetLink } from "./TargetLink";
@@ -129,7 +129,7 @@ export async function Education({ lang, now }: { lang: Locale; now: Date }) {
           </span>
           {when("2027 → 2028")}
           <div data-target-id="full-time" className="card reveal p-6 md:p-9">
-            <FutureCone from={lang === "en" ? "Now" : "Ahora"} to={t.cone[lang]} />
+            <MonteCarlo from={lang === "en" ? "Now" : "Ahora"} to={t.cone[lang]} />
             <p className="mt-3 text-[15px] text-muted">{t.coneNote[lang]}</p>
           </div>
         </div>

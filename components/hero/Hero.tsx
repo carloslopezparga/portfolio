@@ -4,6 +4,7 @@ import { copy } from "@/lib/copy";
 import { CV_URL } from "@/lib/site";
 import { PromptBar } from "@/components/agent/PromptBar";
 import { ChipArt } from "./ChipArt";
+import { ChipStage } from "./ChipStage";
 
 const icon = (d: string) => (
   <svg viewBox="0 0 16 16" className="size-4" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
@@ -47,7 +48,9 @@ export function Hero({ lang }: { lang: Locale }) {
 
       <div className="relative mx-auto mt-14 w-full max-w-[560px] px-6 pb-10 md:mt-20">
         <div className="ai-haze" aria-hidden />
-        <ChipArt title={copy.hero.chip[lang]} className="relative w-full" />
+        <ChipStage>
+          <ChipArt title={copy.hero.chip[lang]} className="relative block w-full" />
+        </ChipStage>
       </div>
     </section>
   );
