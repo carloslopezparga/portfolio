@@ -157,11 +157,13 @@ Grupo (a) completo, del 1 al 16, y el reveal del grupo (b). Capturas antes/despu
 
 | Lighthouse (04-11) | Rendimiento | Accesibilidad | Buenas prácticas | SEO |
 | --- | --- | --- | --- | --- |
-| Móvil, `/` (3 pasadas) | 85–89 | 100 | 100 | 66* |
-| Escritorio, `/` y `/es` | 100 | 100 | 100 | 66* |
+| Móvil, `/` (6 pasadas, rama del pulido) | 86–92 (mediana 87,5) | 100 | 100 | 66* |
+| Móvil, `/` (6 pasadas, `main`, alternando con la rama) | 84–90 (mediana 87,5) | 100 | 100 | 66* |
+| Escritorio, `/es` (rama y `main`, 2 pasadas cada una) | 100 | 100 | 100 | 66* |
 
 \* El único fallo de SEO es «la página no es rastreable», que es el noindex intencionado. Pasará a 100 al lanzar.
 
+- **El pulido no empeora el rendimiento:** con `main` medido en la misma sesión, la mediana de rendimiento es igual (87,5) y el LCP mejora (2,64 s frente a 2,89 s de mediana). El TBT sube 40 ms de mediana (386 frente a 346 ms), dentro de la variación de ambas versiones (253–427 y 287–423 ms). CLS 0 en las dos.
 - **Sobre el móvil:** desde el 03-11 la máquina de pruebas es más lenta. La versión de la fase 2 da 86–87 en esta misma máquina (en la anterior daba 92–94), así que la fase 3 no empeora el rendimiento.
 - **axe:** 0 incidencias en claro y oscuro, escritorio y móvil.
 
