@@ -1440,6 +1440,7 @@ html.js .chip-stage:not([data-play]) .chip-art *,
 .frag-stage {
   --px: 0;
   --py: 0;
+  container-type: inline-size;
   background:
     radial-gradient(90% 80% at 50% 0%, rgb(var(--d-rgb) / 0.14), transparent 70%),
     var(--bg);
@@ -1448,6 +1449,19 @@ html.js .chip-stage:not([data-play]) .chip-art *,
   background:
     radial-gradient(90% 80% at 50% 0%, rgb(var(--d-rgb) / 0.22), transparent 70%),
     rgb(255 255 255 / 0.03);
+}
+/* The fragments are laid out on a fixed canvas the size of the desktop card
+   and scaled to the card's width: on a phone the whole composition shrinks
+   instead of the cards piling up. (tan(atan2()) turns the width ratio into a
+   number; where unsupported, the canvas stays at 1:1 and is clipped.) */
+.frag-canvas {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 540px;
+  aspect-ratio: 16 / 10;
+  transform-origin: 0 0;
+  scale: tan(atan2(100cqw, 540px));
 }
 .frag {
   position: absolute;

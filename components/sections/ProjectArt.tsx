@@ -227,7 +227,9 @@ export function ProjectArt({ id, lang }: { id: ProjectId; lang: Locale }) {
         e.currentTarget.style.setProperty("--py", "0");
       }}
     >
-      <Art lang={lang} />
+      <div className="frag-canvas">
+        <Art lang={lang} />
+      </div>
     </div>
   );
 }
