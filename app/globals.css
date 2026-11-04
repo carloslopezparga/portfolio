@@ -71,7 +71,6 @@
   --cyan-rgb: 50 173 230;
 
   /* Apple Intelligence: blue → purple → pink → orange (AA-dark stops for text) */
-  --ai-text: linear-gradient(90deg, #0066cc 0%, #8944ab 36%, #d30f45 68%, #c93400 100%);
   --ai-fill: linear-gradient(90deg, #0a84ff, #bf5af2 40%, #ff375f 70%, #ff9f0a);
 
   --glow-a: 0.16;
@@ -131,7 +130,6 @@
   --cyan-text: #64d2ff;
   --cyan-rgb: 100 210 255;
 
-  --ai-text: linear-gradient(90deg, #2997ff 0%, #bf5af2 36%, #ff375f 68%, #ff9f0a 100%);
 
   --glow-a: 0.3;
   --glow-base: 0.05;
@@ -342,13 +340,6 @@ html.lenis body {
   .tabular {
     font-variant-numeric: tabular-nums;
   }
-  /* Apple Intelligence gradient text (tagline) */
-  .text-ai {
-    background: var(--ai-text);
-    -webkit-background-clip: text;
-    background-clip: text;
-    color: transparent;
-  }
 }
 
 /* ------------------------------------------------------------------ */
@@ -550,22 +541,13 @@ html.js .reveal-rise:not([data-in]) {
   background: var(--btn);
   color: var(--btn-fg);
 }
-/* The coloured haze behind the hero chip */
-.ai-haze {
+/* Behind the hero chip: one flat, very soft disc (the card grey), no glow */
+.chip-plate {
   position: absolute;
-  inset: 8% 14%;
+  inset: 12% 2% 4%;
   border-radius: 50%;
-  background:
-    radial-gradient(closest-side at 30% 50%, rgb(10 132 255 / 0.55), transparent),
-    radial-gradient(closest-side at 50% 40%, rgb(191 90 242 / 0.5), transparent),
-    radial-gradient(closest-side at 68% 55%, rgb(255 55 95 / 0.45), transparent),
-    radial-gradient(closest-side at 82% 45%, rgb(255 159 10 / 0.45), transparent);
-  filter: blur(48px);
-  opacity: 0.45;
+  background: var(--card);
   pointer-events: none;
-}
-[data-theme="dark"] .ai-haze {
-  opacity: 0.5;
 }
 
 .type-caret {
