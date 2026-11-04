@@ -154,7 +154,7 @@ export function MonteCarlo({ from, to }: { from: string; to: string }) {
       {/* HTML labels: they keep their size on phones, where the drawing shrinks */}
       <div className="mt-2 flex items-start justify-between gap-4 text-[13px] font-semibold leading-snug">
         <span className="text-muted">{from}</span>
-        <span className="text-right text-fg">{to}</span>
+        <span className="text-balance text-right text-fg">{to}</span>
       </div>
     </div>
   );
