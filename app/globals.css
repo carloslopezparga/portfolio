@@ -1441,14 +1441,11 @@ html.js .chip-stage:not([data-play]) .chip-art *,
   --px: 0;
   --py: 0;
   container-type: inline-size;
-  background:
-    radial-gradient(90% 80% at 50% 0%, rgb(var(--d-rgb) / 0.14), transparent 70%),
-    var(--bg);
+  /* full-bleed at the top of the card: only the domain tint, on the card's own grey */
+  background: radial-gradient(90% 80% at 50% 0%, rgb(var(--d-rgb) / 0.14), transparent 70%);
 }
 [data-theme="dark"] .frag-stage {
-  background:
-    radial-gradient(90% 80% at 50% 0%, rgb(var(--d-rgb) / 0.22), transparent 70%),
-    rgb(255 255 255 / 0.03);
+  background: radial-gradient(90% 80% at 50% 0%, rgb(var(--d-rgb) / 0.22), transparent 70%);
 }
 /* The fragments are laid out on a fixed canvas the size of the desktop card
    and scaled to the card's width: on a phone the whole composition shrinks
