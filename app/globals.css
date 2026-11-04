@@ -384,14 +384,15 @@ main > .section:not(:first-child) {
   --btn-2-hover: rgb(255 255 255 / 0.16);
 }
 .wrap {
+  --gutter: 20px;
   margin-inline: auto;
   width: 100%;
   max-width: 1200px;
-  padding-inline: 20px;
+  padding-inline: var(--gutter);
 }
 @media (min-width: 640px) {
   .wrap {
-    padding-inline: 32px;
+    --gutter: 32px;
   }
 }
 
@@ -845,16 +846,23 @@ html.js .reveal-rise:not([data-in]) {
 /* ------------------------------------------------------------------ */
 .tl {
   --tl: 0;
-  --rail: 22px; /* half the logo size on the rail */
+  --logo: 32px; /* the milestone tiles: 32 px on phones, 44 px from 640 px */
+  --rail: calc(var(--logo) / 2); /* the line runs through their centre */
   position: relative;
+}
+@media (min-width: 640px) {
+  .tl {
+    --logo: 44px;
+  }
 }
 .tl::before,
 .tl::after {
   content: "";
   position: absolute;
-  top: 22px;
-  bottom: 22px;
-  left: var(--rail);
+  top: var(--rail);
+  bottom: var(--rail);
+  /* absolute boxes start at the padding edge: add the .wrap gutter */
+  left: calc(var(--gutter, 0px) + var(--rail));
   width: 2px;
   margin-left: -1px;
   border-radius: 2px;
@@ -878,7 +886,7 @@ html.js .reveal-rise:not([data-in]) {
   left: 0;
   top: 0;
   z-index: 1;
-  border-radius: 13px;
+  border-radius: calc(var(--logo) * 0.3);
   box-shadow: 0 0 0 5px var(--bg);
   transition: box-shadow 400ms var(--ease-out);
 }
@@ -896,11 +904,11 @@ html.js .reveal-rise:not([data-in]) {
     0 0 0 7px rgb(var(--d-rgb) / 0.35);
 }
 .tl-dot {
-  width: 44px;
-  height: 44px;
+  width: var(--logo);
+  height: var(--logo);
   display: grid;
   place-items: center;
-  border-radius: 13px;
+  border-radius: calc(var(--logo) * 0.3);
   background: var(--card);
   color: var(--d);
 }
@@ -910,7 +918,7 @@ html.js .reveal-rise:not([data-in]) {
 @media (min-width: 1024px) {
   .tl::before,
   .tl::after {
-    left: calc(180px + 40px + var(--rail));
+    left: calc(var(--gutter, 0px) + 180px + 40px + var(--rail));
   }
   .tl-row {
     display: grid;
