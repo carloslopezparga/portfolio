@@ -684,13 +684,16 @@ html.js .reveal-rise:not([data-in]) {
   background: rgb(var(--d-rgb) / 0.1);
   white-space: nowrap;
 }
+/* Chips grow to two lines instead of spilling out when a label is long (phones). */
 .chip {
   display: inline-flex;
   align-items: center;
   gap: 0.4rem;
-  height: 30px;
-  padding: 0 0.75rem;
-  border-radius: 999px;
+  min-height: 30px;
+  max-width: 100%;
+  padding: 0.3rem 0.75rem;
+  border-radius: 15px;
+  line-height: 1.25;
   font-size: 13px;
   font-weight: 500;
   color: var(--fg);

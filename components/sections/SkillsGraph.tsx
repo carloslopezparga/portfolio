@@ -314,7 +314,7 @@ export function SkillsGraph({ skills, refs, layout, labels }: { skills: GraphSki
                       <span className="grid size-9 shrink-0 place-items-center rounded-full bg-[var(--bg)] text-[var(--d)] shadow-[inset_0_0_0_1.5px_var(--d)] dark:bg-[rgb(255_255_255/0.04)]">
                         <StackIcon id={s.id} className="size-4" />
                       </span>
-                      <span className="min-w-0 text-[14px] font-medium leading-tight text-fg">{s.label}</span>
+                      <span className="min-w-0 text-[14px] font-medium leading-tight text-fg [overflow-wrap:anywhere]">{s.label}</span>
                     </button>
                   </li>
                 ))}
