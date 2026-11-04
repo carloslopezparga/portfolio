@@ -19,7 +19,7 @@ export function Contact({ lang }: { lang: Locale }) {
   const portrait = photoSrc("carlos");
   const booking = bookingEnabled();
   return (
-    <section id="contact" className="band-dark section scroll-mt-0">
+    <section id="contact" className="band-dark section">
       <div className="wrap grid gap-12 md:grid-cols-[minmax(0,1fr)_auto] md:items-end">
         <div className="reveal reveal-rise">
           <p className="eyebrow">{t.eyebrow[lang]}</p>

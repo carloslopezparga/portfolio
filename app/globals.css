@@ -342,15 +342,31 @@ html.lenis body {
 /* ------------------------------------------------------------------ */
 /* Layout                                                              */
 /* ------------------------------------------------------------------ */
+/* Where a jump lands (nav, ⌘K, agent, #links): a section's label sits
+   --nav-offset from the top, ~20–24 px under the floating pill. JS reads the
+   same variable (UIActionHost); scroll-margin covers #hash loads and no-JS. */
+:root {
+  --nav-offset: 84px;
+}
+@media (min-width: 640px) {
+  :root {
+    --nav-offset: 92px;
+  }
+}
 .section {
+  --pad-top: 88px;
   position: relative;
-  scroll-margin-top: 72px;
-  padding-block: 88px;
+  padding-block: var(--pad-top) 88px;
+  scroll-margin-top: calc(var(--nav-offset) - var(--pad-top));
 }
 @media (min-width: 768px) {
   .section {
-    padding-block: 128px;
+    --pad-top: 128px;
+    padding-bottom: 128px;
   }
+}
+.scroll-mt-nav {
+  scroll-margin-top: var(--nav-offset);
 }
 /* Off-screen sections skip layout and paint until they get close (faster first render on phones). */
 main > .section:not(:first-child) {

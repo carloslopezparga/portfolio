@@ -39,7 +39,7 @@ export async function Education({ lang, now }: { lang: Locale; now: Date }) {
             <LogoMark brand={upm.brand} size={44} />
           </span>
           {when(formatRange(upm.start, upm.end, lang), profile.location[lang])}
-          <article id={`edu-${upm.id}`} data-target-id={upm.id} className="card card-tint reveal scroll-mt-28 p-6 md:p-9">
+          <article id={`edu-${upm.id}`} data-target-id={upm.id} className="card card-tint reveal scroll-mt-nav p-6 md:p-9">
             <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
               <h3 className="text-[clamp(1.5rem,2.6vw,2rem)] leading-tight text-fg">{upm.degree[lang]}</h3>
               {year ? <span className="badge">{fill(t.year[lang], String(year))}</span> : null}
@@ -88,7 +88,7 @@ export async function Education({ lang, now }: { lang: Locale; now: Date }) {
             <LogoMark brand={retamar.brand} size={44} />
           </span>
           {when(formatRange(retamar.start, retamar.end, lang), t.school[lang])}
-          <article id={`edu-${retamar.id}`} data-target-id={retamar.id} className="card reveal scroll-mt-28 p-6 md:p-9">
+          <article id={`edu-${retamar.id}`} data-target-id={retamar.id} className="card reveal scroll-mt-nav p-6 md:p-9">
             <h3 className="text-[clamp(1.25rem,2vw,1.5rem)] leading-tight text-fg">{retamar.degree[lang]}</h3>
             <p className="mt-1.5 text-[16px] font-semibold text-[var(--d)]">{retamar.institution[lang]}</p>
             <p className="mt-1 text-[14px] text-muted lg:hidden">{formatRange(retamar.start, retamar.end, lang)}</p>
@@ -109,7 +109,7 @@ export async function Education({ lang, now }: { lang: Locale; now: Date }) {
             <LogoMark brand={cs50.brand} size={44} />
           </span>
           {when(formatMonth(cs50.date, lang), cs50.provider)}
-          <article id="edu-cs50" data-target-id="cs50" className="card reveal scroll-mt-28 p-6 md:p-9">
+          <article id="edu-cs50" data-target-id="cs50" className="card reveal scroll-mt-nav p-6 md:p-9">
             <h3 className="text-[clamp(1.2rem,1.9vw,1.4rem)] leading-snug text-fg">{cs50.detail[lang]}</h3>
             <p className="mt-1.5 text-[16px]">
               <span className="font-semibold text-[var(--d)]">{cs50.provider}</span>
