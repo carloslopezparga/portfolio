@@ -541,14 +541,6 @@ html.js .reveal-rise:not([data-in]) {
   background: var(--btn);
   color: var(--btn-fg);
 }
-/* Behind the hero chip: one flat, very soft disc (the card grey), no glow */
-.chip-plate {
-  position: absolute;
-  inset: 12% 2% 4%;
-  border-radius: 50%;
-  background: var(--card);
-  pointer-events: none;
-}
 
 .type-caret {
   display: inline-block;
@@ -1310,135 +1302,78 @@ main[data-focusing] > section:not(:has([data-hl])) {
 }
 
 /* ------------------------------------------------------------------ */
-/* Hero chip (ChipArt): fine line art, grey on white / light on black   */
+/* Hero chip: a point cloud (WebGL), over SVG posters of the same cloud */
 /* ------------------------------------------------------------------ */
-.chip-art {
-  --chip-line: rgb(29 29 31 / 0.72);
-  --chip-top: #ffffff;
-  --chip-left: #f5f5f7;
-  --chip-right: #e8e8ed;
-  --pulse-0: #0a84ff;
-  --pulse-1: #bf5af2;
-  --pulse-2: #ff375f;
-  --pulse-3: #ff9f0a;
-  overflow: visible;
+/* The cell is the chip's column (desktop) or a box under the buttons
+   (phones). The chip lives in the largest square that fits it; posters and
+   canvas cover that square plus 15 % on every side (BLEED in
+   lib/chip-cloud.ts) so scattered points have room. */
+.chip-cell {
+  position: absolute;
+  inset: 0;
+  container-type: size;
+  pointer-events: none;
 }
-[data-theme="dark"] .chip-art {
-  --chip-line: rgb(245 245 247 / 0.7);
-  --chip-top: #000000;
-  --chip-left: #0e0e10;
-  --chip-right: #18181b;
+.chip-square {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: min(100cqw, 100cqh);
+  aspect-ratio: 1;
+  translate: -50% -50%;
 }
-.chip-art :is(.chip-t, .chip-l, .chip-r, .chip-ball, .chip-core, .chip-pad) {
-  stroke: var(--chip-line);
-  stroke-width: 1;
-  stroke-linejoin: round;
-  vector-effect: non-scaling-stroke;
+.chip-poster,
+.chip-canvas {
+  position: absolute;
+  inset: -15%;
+  width: 130%;
+  height: 130%;
 }
-.chip-t {
-  fill: var(--chip-top);
+/* posters are masks: the page paints the dots in its own ink */
+.chip-poster {
+  background: var(--fg);
+  -webkit-mask: var(--poster) center / 100% 100% no-repeat;
+  mask: var(--poster) center / 100% 100% no-repeat;
 }
-.chip-l {
-  fill: var(--chip-left);
+.chip-poster-live {
+  --poster: url(/chip/sphere-m.svg);
 }
-.chip-r {
-  fill: var(--chip-right);
-}
-.chip-ball {
-  fill: var(--chip-top);
-}
-.chip-pad {
-  fill: none;
-  stroke-dasharray: 3 3;
-  opacity: 0.6;
-}
-.chip-trace {
-  fill: none;
-  stroke: var(--chip-line);
-  stroke-width: 1;
-  opacity: 0.45;
-  vector-effect: non-scaling-stroke;
-}
-.chip-core {
-  fill: rgb(var(--fg-rgb) / 0.05);
-}
-/* data packets running along the traces */
-.chip-pulse {
-  fill: none;
-  stroke: var(--pc);
-  stroke-width: 2.6;
-  stroke-linecap: round;
-  stroke-dasharray: 8 300;
-  stroke-dashoffset: 8;
-  vector-effect: non-scaling-stroke;
-  animation: chip-pulse 2.8s linear infinite;
-  animation-delay: var(--pd);
-}
-@keyframes chip-pulse {
-  to {
-    stroke-dashoffset: -100;
-  }
-}
-/* cores light up one after another */
-.chip-core {
-  animation: chip-core 4.4s ease-in-out infinite;
-  animation-delay: calc(var(--ci) * 0.55s);
-}
-@keyframes chip-core {
-  0%,
-  30%,
-  100% {
-    fill: rgb(var(--fg-rgb) / 0.05);
-  }
-  12% {
-    fill: color-mix(in srgb, var(--core-c) 70%, transparent);
-  }
-}
-html[data-agent-busy] .chip-core {
-  animation-duration: 1.4s;
-  animation-delay: calc(var(--ci) * 0.17s);
-}
-html[data-agent-busy] .chip-pulse {
-  animation-duration: 1.3s;
-}
-/* layers spread a little on hover (the 3D chip does the same) */
-.chip-layer {
-  transition: transform 700ms var(--ease-out);
-}
-@media (hover: hover) {
-  .chip-stage:hover .chip-layer[data-layer="sink"] {
-    transform: translateY(-16px);
-  }
-  .chip-stage:hover .chip-layer[data-layer="die"] {
-    transform: translateY(-9px);
-  }
-  .chip-stage:hover .chip-layer[data-layer="interposer"] {
-    transform: translateY(-4px);
-  }
-}
-html.js .chip-stage:not([data-play]) .chip-art *,
-.chip-stage[data-paused] .chip-art *,
-.chip-stage[data-3d] .chip-art * {
-  animation-play-state: paused;
-}
-.chip-stage .chip-art {
-  transition: opacity 600ms var(--ease-out);
-}
-.chip-stage canvas {
-  opacity: 0;
-  transition: opacity 600ms var(--ease-out);
-}
-.chip-stage[data-3d] canvas {
-  opacity: 1;
-}
-.chip-stage[data-3d] .chip-art {
-  opacity: 0;
-}
-[data-motion="reduce"] .chip-pulse {
+.chip-poster-still {
+  --poster: url(/chip/still-m.svg);
   display: none;
 }
-[data-motion="reduce"] .chip-core {
-  animation: none;
+.chip-poster-cores {
+  --poster: url(/chip/cores-m.svg);
+  background: linear-gradient(90deg, #0a84ff, #bf5af2, #ff375f, #ff9f0a);
+  display: none;
+}
+@media (min-width: 1024px) {
+  .chip-poster-live {
+    --poster: url(/chip/sphere-d.svg);
+  }
+  .chip-poster-still {
+    --poster: url(/chip/still-d.svg);
+  }
+  .chip-poster-cores {
+    --poster: url(/chip/cores-d.svg);
+  }
+}
+/* the WebGL scene drew its first frame (identical to the sphere poster) */
+.chip-square[data-live] .chip-poster-live {
+  visibility: hidden;
+}
+/* no JavaScript, reduced motion or no WebGL: the assembled chip, still */
+html:not(.js) .chip-poster-live,
+[data-motion="reduce"] .chip-poster-live,
+.chip-square[data-fallback] .chip-poster-live,
+[data-motion="reduce"] .chip-canvas,
+.chip-square[data-fallback] .chip-canvas {
+  display: none;
+}
+html:not(.js) :is(.chip-poster-still, .chip-poster-cores),
+[data-motion="reduce"] :is(.chip-poster-still, .chip-poster-cores),
+.chip-square[data-fallback] :is(.chip-poster-still, .chip-poster-cores) {
+  display: block;
 }
 
 /* ------------------------------------------------------------------ */
