@@ -1440,6 +1440,36 @@ html:not(.js) :is(.chip-poster-still, .chip-poster-cores),
   animation: none;
   transition: none;
 }
+/* Phones (< 768 px): the scaled composition would be unreadable (5-7 px
+   text), so each project keeps only its main fragment, centred and at 1.3×:
+   its smallest text (8.5 px) becomes 11 px. */
+@media (max-width: 767.98px) {
+  .frag-stage {
+    aspect-ratio: 4 / 3;
+  }
+  .frag-canvas {
+    width: 100%;
+    height: 100%;
+    aspect-ratio: auto;
+    scale: none;
+  }
+  .frag:not(.frag-main) {
+    display: none;
+  }
+  .frag-main {
+    left: 50%;
+    top: 50%;
+    right: auto;
+    bottom: auto;
+    width: min(69%, 300px);
+    transform: translate(-50%, -50%) rotate(var(--rot)) scale(1.3);
+  }
+}
+@media (max-width: 399.98px) {
+  .frag-stage {
+    aspect-ratio: 1;
+  }
+}
 
 /* ------------------------------------------------------------------ */
 /* Skills graph                                                        */
