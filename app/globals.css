@@ -1322,12 +1322,28 @@ main[data-focusing] > section:not(:has([data-hl])) {
   aspect-ratio: 1;
   translate: -50% -50%;
 }
+.chip-stage {
+  position: absolute;
+  inset: 0;
+}
 .chip-poster,
 .chip-canvas {
   position: absolute;
   inset: -15%;
   width: 130%;
   height: 130%;
+}
+/* the pause control (WCAG 2.2.2), in the square's corner, clear of the chip */
+.chip-pause {
+  position: absolute;
+  top: 2%;
+  right: 2%;
+  z-index: 2;
+  pointer-events: auto;
+}
+/* light dots on black read bolder: dark mode draws the ink a little lighter (the scene does the same) */
+[data-theme="dark"] :is(.chip-poster-live, .chip-poster-still) {
+  opacity: 0.85;
 }
 /* posters are masks: the page paints the dots in its own ink */
 .chip-poster {
@@ -1361,20 +1377,20 @@ main[data-focusing] > section:not(:has([data-hl])) {
   }
 }
 /* the WebGL scene drew its first frame (identical to the sphere poster) */
-.chip-square[data-live] .chip-poster-live {
+.chip-stage[data-live] .chip-poster-live {
   visibility: hidden;
 }
 /* no JavaScript, reduced motion or no WebGL: the assembled chip, still */
 html:not(.js) .chip-poster-live,
 [data-motion="reduce"] .chip-poster-live,
-.chip-square[data-fallback] .chip-poster-live,
+.chip-stage[data-fallback] .chip-poster-live,
 [data-motion="reduce"] .chip-canvas,
-.chip-square[data-fallback] .chip-canvas {
+.chip-stage[data-fallback] .chip-canvas {
   display: none;
 }
 html:not(.js) :is(.chip-poster-still, .chip-poster-cores),
 [data-motion="reduce"] :is(.chip-poster-still, .chip-poster-cores),
-.chip-square[data-fallback] :is(.chip-poster-still, .chip-poster-cores) {
+.chip-stage[data-fallback] :is(.chip-poster-still, .chip-poster-cores) {
   display: block;
 }
 /* high contrast: the dots in the system's text colour */

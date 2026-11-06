@@ -21,9 +21,9 @@ export function MotionToggle({ label, className }: { label: string; className?: 
       aria-label={label}
       title={label}
       onClick={toggle}
-      className={`grid size-8 place-items-center rounded-full text-muted transition-colors duration-200 hover:bg-[var(--btn-2)] hover:text-fg ${className ?? ""}`}
+      className={`grid size-7 place-items-center rounded-full bg-[rgb(var(--fg-rgb)/0.04)] text-fg/60 shadow-[inset_0_0_0_1px_var(--line)] transition-colors duration-200 hover:bg-[var(--btn-2)] hover:text-fg ${className ?? ""}`}
     >
-      <svg viewBox="0 0 16 16" className="size-3.5" fill="currentColor" aria-hidden>
+      <svg viewBox="0 0 16 16" className="size-3" fill="currentColor" aria-hidden>
         {reduced ? <path d="M5 3.2v9.6a.6.6 0 0 0 .9.5l7.6-4.8a.6.6 0 0 0 0-1L5.9 2.7a.6.6 0 0 0-.9.5Z" /> : <path d="M4.5 3h2.2v10H4.5zM9.3 3h2.2v10H9.3z" />}
       </svg>
     </button>
