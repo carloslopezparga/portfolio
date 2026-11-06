@@ -3,8 +3,6 @@
 import { useEffect } from "react";
 import { getPrefs } from "@/lib/prefs";
 
-type IdleWindow = Window & { requestIdleCallback?: (cb: () => void, o?: { timeout: number }) => number; cancelIdleCallback?: (id: number) => void };
-
 /**
  * Reveals .reveal elements once they come into view (section titles rise a
  * little, everything else only fades in: see globals.css). Nothing can stay
@@ -13,26 +11,11 @@ type IdleWindow = Window & { requestIdleCallback?: (cb: () => void, o?: { timeou
  * once. Watches the DOM, so client components that mount later are picked up
  * too. Reduced motion: CSS shows everything immediately.
  *
- * It starts once the browser is idle: by then React has hydrated every
- * section, so marking an element as revealed never races its hydration.
+ * It may mark an element before React has hydrated its section; every
+ * .reveal element carries suppressHydrationWarning, so that is expected.
  */
 export function RevealObserver() {
-  useEffect(() => {
-    const w = window as IdleWindow;
-    const idle = typeof w.requestIdleCallback === "function";
-    let stop: (() => void) | undefined;
-    let cancelled = false;
-    const go = () => {
-      if (!cancelled) stop = observe();
-    };
-    const id = idle ? w.requestIdleCallback!(go, { timeout: 800 }) : window.setTimeout(go, 150);
-    return () => {
-      cancelled = true;
-      if (idle) w.cancelIdleCallback?.(id);
-      else window.clearTimeout(id);
-      stop?.();
-    };
-  }, []);
+  useEffect(() => observe(), []);
   return null;
 }
 
