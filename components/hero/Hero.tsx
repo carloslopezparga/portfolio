@@ -4,6 +4,7 @@ import { copy } from "@/lib/copy";
 import { CV_URL } from "@/lib/site";
 import { PromptBar } from "@/components/agent/PromptBar";
 import { ChipCloud } from "./ChipCloud";
+import { MotionToggle } from "./MotionToggle";
 
 const icon = (d: string) => (
   <svg viewBox="0 0 16 16" className="size-4" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
@@ -30,7 +31,7 @@ export function Hero({ lang }: { lang: Locale }) {
   const [now, ...rest] = profile.availability[lang].split(" · ");
   const later = rest.join(" · ");
   return (
-    <section id="top" className="relative overflow-hidden pt-24 sm:pt-[clamp(96px,12vh,124px)]">
+    <section id="top" className="relative overflow-x-clip pt-24 sm:pt-[clamp(96px,12vh,124px)]">
       <div className="wrap">
         <h1 className="text-center text-[clamp(2.75rem,min(10.5vw,10.5vh),6rem)] leading-[0.98] tracking-[-0.045em] text-fg lg:whitespace-nowrap">{profile.name}</h1>
         <p className="mt-4 text-center text-[14px] leading-snug md:text-[15px]">
@@ -45,7 +46,7 @@ export function Hero({ lang }: { lang: Locale }) {
         </p>
 
         <div className="mt-7 grid gap-y-8 md:mt-9 lg:mt-[clamp(28px,5vh,48px)] lg:grid-cols-[minmax(0,1fr)_minmax(0,0.78fr)] lg:gap-x-12">
-          <div className="text-center lg:text-left">
+          <div className="relative z-[1] text-center lg:text-left">
             <Tagline text={profile.tagline[lang]} className="mx-auto max-w-[24ch] font-display text-[clamp(1.5rem,min(3vw,4.4vh),2.4rem)] font-semibold leading-[1.12] tracking-[-0.03em] text-fg lg:mx-0" />
             <p className="mx-auto mt-4 max-w-[62ch] text-[16px] leading-relaxed text-fg md:text-[17px] lg:mx-0">{profile.summary[lang]}</p>
 
@@ -67,8 +68,8 @@ export function Hero({ lang }: { lang: Locale }) {
           </div>
 
           {/* The chip: a box of its own on phones (≤ 40 % of the screen height); on desktop it fills the column's height without adding to it. */}
-          <div className="relative h-[min(40svh,340px)] lg:h-auto" role="img" aria-label={copy.hero.chip[lang]}>
-            <div className="chip-cell">
+          <div className="relative h-[min(40svh,340px)] lg:h-auto">
+            <div className="chip-cell" role="img" aria-label={copy.hero.chip[lang]}>
               <div className="chip-square">
                 <span className="chip-poster chip-poster-live" aria-hidden />
                 <span className="chip-poster chip-poster-still" aria-hidden />
@@ -76,6 +77,7 @@ export function Hero({ lang }: { lang: Locale }) {
                 <ChipCloud />
               </div>
             </div>
+            <MotionToggle label={copy.hero.pause[lang]} className="absolute bottom-0 right-0 z-[2]" />
           </div>
         </div>
       </div>
