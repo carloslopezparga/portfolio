@@ -1342,9 +1342,11 @@ main[data-focusing] > section:not(:has([data-hl])) {
   --poster: url(/chip/still-m.svg);
   display: none;
 }
+/* the cores, in their own colours: a plain image, not a mask */
 .chip-poster-cores {
-  --poster: url(/chip/cores-m.svg);
-  background: linear-gradient(90deg, #0a84ff, #bf5af2, #ff375f, #ff9f0a);
+  background: url(/chip/cores-m.svg) center / 100% 100% no-repeat;
+  -webkit-mask: none;
+  mask: none;
   display: none;
 }
 @media (min-width: 1024px) {
@@ -1355,7 +1357,7 @@ main[data-focusing] > section:not(:has([data-hl])) {
     --poster: url(/chip/still-d.svg);
   }
   .chip-poster-cores {
-    --poster: url(/chip/cores-d.svg);
+    background-image: url(/chip/cores-d.svg);
   }
 }
 /* the WebGL scene drew its first frame (identical to the sphere poster) */
@@ -1374,6 +1376,16 @@ html:not(.js) :is(.chip-poster-still, .chip-poster-cores),
 [data-motion="reduce"] :is(.chip-poster-still, .chip-poster-cores),
 .chip-square[data-fallback] :is(.chip-poster-still, .chip-poster-cores) {
   display: block;
+}
+/* high contrast: the dots in the system's text colour */
+@media (forced-colors: active) {
+  .chip-poster {
+    forced-color-adjust: none;
+    background-color: CanvasText;
+  }
+  .chip-poster-cores {
+    background-color: transparent;
+  }
 }
 
 /* ------------------------------------------------------------------ */

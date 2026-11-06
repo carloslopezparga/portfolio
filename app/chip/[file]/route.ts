@@ -22,9 +22,9 @@ export function generateStaticParams() {
 
 export async function GET(_req: Request, ctx: { params: Promise<{ file: string }> }) {
   const { file } = await ctx.params;
-  const entry = FILES[file as keyof typeof FILES];
+  const entry = Object.hasOwn(FILES, file) ? FILES[file as keyof typeof FILES] : undefined;
   if (!entry) return new Response("Not found", { status: 404 });
   return new Response(posterSVG(entry[0], entry[1]), {
-    headers: { "content-type": "image/svg+xml; charset=utf-8", "cache-control": "public, max-age=3600, s-maxage=31536000" },
+    headers: { "content-type": "image/svg+xml; charset=utf-8", "cache-control": "public, max-age=86400, s-maxage=31536000" },
   });
 }

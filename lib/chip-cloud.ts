@@ -10,10 +10,7 @@
  */
 import { BALLS, CORES, FIN, LAYERS, TRACES } from "./chip";
 
-/** Points per device class: desktop (≥ 1024 px wide) and everything else. */
-export const CLOUD_SIZE = { desktop: 8000, mobile: 2500 } as const;
-/** Width from which the desktop cloud (and its poster) is used. */
-export const DESKTOP_QUERY = "(min-width: 1024px)";
+export { CLOUD_SIZE, DESKTOP_QUERY } from "./chip-config";
 
 /**
  * Camera: perspective, at (0, 0, dist) looking at the origin. The chip is
@@ -306,11 +303,12 @@ export function project(v: ArrayLike<number>, yaw = CAM.yaw, tilt = CAM.tilt): [
 export const projectedSize = (s: number, depth: number) => (s / depth / Math.tan(((CAM.fov / 2) * Math.PI) / 180)) / 2;
 
 /**
- * An SVG of the cloud's first frame (the sphere), of the assembled chip
- * without its cores (for reduced motion and no JavaScript), or of the cores
- * alone. Black dots on transparent: used as a CSS mask, so the page paints
- * them in its own ink colour. Dots are round-capped zero-length strokes,
- * grouped by diameter and opacity.
+ * An SVG of the cloud's first frame (the sphere) or of the assembled chip
+ * without its cores (for reduced motion and no JavaScript): black dots on
+ * transparent, used as a CSS mask so the page paints them in its own ink. Or
+ * the cores alone, in their accent colours, used as a plain image. Dots are
+ * round-capped zero-length strokes, grouped by diameter, opacity and colour,
+ * on integer coordinates (finer than the poster is ever drawn).
  */
 export function posterSVG(n: number, mode: "sphere" | "still" | "cores"): string {
   const c = buildCloud(n);
@@ -322,16 +320,18 @@ export function posterSVG(n: number, mode: "sphere" | "still" | "cores"): string
     const src = mode === "sphere" ? c.sphere : c.chip;
     const [u, v, depth] = project(src.subarray(i * 3, i * 3 + 3));
     const d = Math.max(0.5, Math.round(projectedSize(c.size[i], depth) * V * 0.975 * 4) / 4);
-    const key = `${d}|${c.alpha[i]}`;
+    const colour = mode === "cores" ? AI[c.core[i] % AI.length] : "#000";
+    const alpha = mode === "cores" ? 0.9 : c.alpha[i];
+    const key = `${d}|${alpha}|${colour}`;
     const list = groups.get(key) ?? [];
-    list.push(`M${(u * V).toFixed(1)} ${(v * V).toFixed(1)}h0`);
+    list.push(`M${Math.round(u * V)} ${Math.round(v * V)}h0`);
     groups.set(key, list);
   }
   const paths = [...groups.entries()]
     .map(([key, list]) => {
-      const [d, a] = key.split("|");
-      return `<path stroke-width="${d}"${a === "1" ? "" : ` stroke-opacity="${a}"`} d="${list.join("")}"/>`;
+      const [d, a, colour] = key.split("|");
+      return `<path stroke="${colour}" stroke-width="${d}"${a === "1" ? "" : ` stroke-opacity="${a}"`} d="${list.join("")}"/>`;
     })
     .join("");
-  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${V} ${V}"><g fill="none" stroke="#000" stroke-linecap="round">${paths}</g></svg>`;
+  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${V} ${V}"><g fill="none" stroke-linecap="round">${paths}</g></svg>`;
 }
