@@ -40,7 +40,7 @@ export default async function Image({ params }: { params: Promise<{ lang: string
   const { lang: raw } = await params;
   const lang = hasLocale(raw) ? raw : "en";
   const [now, ...rest] = profile.availability[lang].split(" · ");
-  // word by word, so the line wraps naturally; «automated / automatizados» in blue (its full stop stays in ink)
+  // word by word, so the line wraps naturally; «automated / automatizados» in blue (with its full stop: the card renderer would leave a gap before a separate one)
   const words = profile.tagline[lang].split(" ").flatMap((w) => (/^automat/i.test(w) ? [{ t: w.replace(/[.,]$/, ""), blue: true, tail: w.match(/[.,]$/)?.[0] ?? "" }] : [{ t: w, blue: false, tail: "" }]));
   return new ImageResponse(
     (
@@ -54,9 +54,8 @@ export default async function Image({ params }: { params: Promise<{ lang: string
           </div>
           <div style={{ display: "flex", flexWrap: "wrap", fontSize: 38, lineHeight: 1.18, marginTop: 30, fontWeight: 600, letterSpacing: -1 }}>
             {words.map((w, i) => (
-              <span key={i} style={{ marginRight: 10 }}>
-                <span style={{ color: w.blue ? BLUE : INK }}>{w.t}</span>
-                {w.tail}
+              <span key={i} style={{ marginRight: 10, color: w.blue ? BLUE : INK }}>
+                {w.t + w.tail}
               </span>
             ))}
           </div>
