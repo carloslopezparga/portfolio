@@ -1,11 +1,11 @@
 import { BufferAttribute, BufferGeometry, Color, Group, LinearSRGBColorSpace, PerspectiveCamera, Points, Scene, ShaderMaterial, WebGLRenderer } from "three";
-import { AI, buildCloud, buildPackets, CAM } from "@/lib/chip-cloud";
+import { AI, buildCloud, buildPackets, CAM, SWAY } from "@/lib/chip-cloud";
 
 const INK = { light: "#1d1d1f", dark: "#f5f5f7" };
 /** Seconds for the sphere to condense into the chip. */
 const MORPH = 1.5;
-/** Slow turn of the chip, radians per second. */
-const SPIN = 0.1;
+/** Ink opacity per theme: light dots on black read bolder, so dark mode is a little lighter (the posters match it in CSS). */
+const INK_ALPHA = { light: 1, dark: 0.85 };
 
 /*
  * Colours go to the shaders as plain sRGB numbers and the shaders write them
@@ -36,7 +36,7 @@ const CLOUD_VERT = /* glsl */ `
 attribute vec3 aSphere;
 attribute vec4 aMeta; // size, alpha, seed, layer
 attribute float aCore;
-uniform float uMorph, uScroll, uSpread, uPx, uCoreClock;
+uniform float uMorph, uScroll, uSpread, uPx, uCoreClock, uInkAlpha;
 uniform vec3 uInk;
 uniform vec3 uAI[4];
 varying vec4 vColor;
@@ -63,7 +63,7 @@ void main() {
   // twinkle (exactly 1 at t = 0, so the first frame matches the poster)
   float tw = 1.0 - 0.32 * (0.5 - 0.5 * cos(uTime * (0.9 + seed * 2.2)));
   float fade = (1.0 - smoothstep(0.5, 1.0, s)) * edgeFade(gl_Position);
-  float alpha = aMeta.y * tw * fade;
+  float alpha = aMeta.y * tw * fade * uInkAlpha;
   vec3 col = uInk;
   if (aCore >= 0.0) {
     float ph = fract(uCoreClock - aCore / 8.0);
@@ -141,7 +141,7 @@ const pixelRatio = () => Math.min(window.devicePixelRatio || 1, 2);
 
 /**
  * The hero chip as a point cloud (three.js Points with custom shaders): it
- * condenses from a sphere, turns slowly and twinkles; data packets run along
+ * condenses from a sphere, sways slowly about its 3/4 view and twinkles; data packets run along
  * the traces and the cores light up in sequence (faster while the agent
  * answers); the cursor pushes points aside with a ripple; scrolling spreads
  * the layers, then scatters the points until they fade at the figures. Set up
@@ -205,6 +205,7 @@ export function mountChip(canvas: HTMLCanvasElement, opts: ChipOptions): () => v
       uPx: { value: 1 },
       uHover: { value: 0 },
       uCoreClock: { value: 0 },
+      uInkAlpha: { value: 1 },
       uMouse: { value: mouseUniform },
       uInk: { value: ink },
       uAI: { value: AI.map(srgb) },
@@ -237,7 +238,7 @@ export function mountChip(canvas: HTMLCanvasElement, opts: ChipOptions): () => v
       uScroll: uniforms.uScroll,
       uSpread: uniforms.uSpread,
       uPx: uniforms.uPx,
-      uSize: { value: opts.n < 4000 ? 0.07 : 0.06 },
+      uSize: { value: opts.n < 4000 ? 0.085 : 0.075 },
     };
     const pMat = new ShaderMaterial({ vertexShader: PACKET_VERT, fragmentShader: GLOW_FRAG, uniforms: pUniforms, transparent: true, depthWrite: false, depthTest: false });
     const packets = new Points(pGeo, pMat);
@@ -260,7 +261,12 @@ export function mountChip(canvas: HTMLCanvasElement, opts: ChipOptions): () => v
         document.body.append(probe);
         ink.setStyle(getComputedStyle(probe).color, LinearSRGBColorSpace);
         probe.remove();
-      } else ink.setStyle(html.dataset.theme === "dark" ? INK.dark : INK.light, LinearSRGBColorSpace);
+        uniforms.uInkAlpha.value = 1;
+      } else {
+        const dark = html.dataset.theme === "dark";
+        ink.setStyle(dark ? INK.dark : INK.light, LinearSRGBColorSpace);
+        uniforms.uInkAlpha.value = dark ? INK_ALPHA.dark : INK_ALPHA.light;
+      }
       if (started) draw();
     };
     const themeObs = new MutationObserver(applyTheme);
@@ -313,7 +319,7 @@ export function mountChip(canvas: HTMLCanvasElement, opts: ChipOptions): () => v
     let parked = false; // fully faded by the scroll: nothing to draw until it comes back
 
     const draw = () => {
-      group.rotation.set(CAM.tilt + mouse.py * 0.06, CAM.yaw + t * SPIN + mouse.px * 0.14, 0);
+      group.rotation.set(CAM.tilt + mouse.py * 0.06, CAM.yaw + SWAY.amp * Math.sin(SWAY.speed * t) + mouse.px * 0.14, 0);
       uniforms.uTime.value = t;
       uniforms.uMorph.value = Math.min(1, t / MORPH);
       uniforms.uScroll.value = scroll;

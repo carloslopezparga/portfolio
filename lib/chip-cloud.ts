@@ -17,7 +17,14 @@ export { CLOUD_SIZE, DESKTOP_QUERY } from "./chip-config";
  * turned (yaw, about y) and then tipped towards the viewer (tilt, about x),
  * exactly like three.js applies rotation.set(tilt, yaw, 0) in "XYZ" order.
  */
-export const CAM = { fov: 30, dist: 9.1, tilt: 0.5, yaw: -0.72 };
+export const CAM = { fov: 30, dist: 7.9, tilt: 0.55, yaw: -1.05 };
+
+/**
+ * The chip's slow turn: a sway of ±amp radians about the 3/4 view (a full
+ * turn passes angles where the fins face the camera and the chip stops
+ * reading). yaw(t) = CAM.yaw + amp · sin(speed · t), so at t = 0 it is CAM.yaw.
+ */
+export const SWAY = { amp: 0.32, speed: 0.15 };
 
 /**
  * The canvas and the posters cover the chip's square plus this margin on
@@ -29,7 +36,7 @@ export const BLEED = 0.15;
 export const AI = ["#0a84ff", "#bf5af2", "#ff375f", "#ff9f0a"];
 
 const SIZES = [0.017, 0.026, 0.038];
-const ALPHAS = [0.3, 0.55, 0.88];
+const ALPHAS = [0.22, 0.45, 0.8];
 
 export interface Cloud {
   n: number;
@@ -75,23 +82,35 @@ const Z_MIN = S.z - 5 - 3.6;
 const Z_MAX = H.z + H.h + FIN.h;
 const ZC = (Z_MIN + Z_MAX) / 2;
 /** Lifts the chip so that, tipped towards the viewer, it sits in the middle of its square. */
-const LIFT = 0.13;
+const LIFT = 0.16;
 /** chip "mm" (x right, y depth, z up) → world */
 export const toWorld = (x: number, y: number, z: number): [number, number, number] => [x / 100, (z - ZC) / 100 + LIFT, y / 100];
 
 type Weights = [number, number, number];
-const EDGE: [Weights, Weights] = [[0.4, 0.45, 0.15], [0.25, 0.5, 0.25]];
-const FACE: [Weights, Weights] = [[0.62, 0.3, 0.08], [0.45, 0.4, 0.15]];
-const FINS: [Weights, Weights] = [[0.55, 0.37, 0.08], [0.4, 0.45, 0.15]];
-const LINE: [Weights, Weights] = [[0.45, 0.5, 0.05], [0.4, 0.45, 0.15]];
+// edges dark and crisp, faces light: the hierarchy that makes the shape read
+const EDGE: [Weights, Weights] = [[0.4, 0.45, 0.15], [0.1, 0.45, 0.45]];
+const FACE: [Weights, Weights] = [[0.75, 0.22, 0.03], [0.7, 0.27, 0.03]];
+const FINS: [Weights, Weights] = [[0.6, 0.35, 0.05], [0.65, 0.3, 0.05]];
+const LINE: [Weights, Weights] = [[0.8, 0.2, 0], [0.75, 0.25, 0]];
 const CORE: [Weights, Weights] = [[0.45, 0.45, 0.1], [0.3, 0.5, 0.2]];
-const BALL: [Weights, Weights] = [[0.3, 0.5, 0.2], [0.2, 0.5, 0.3]];
+const BALL: [Weights, Weights] = [[0.5, 0.5, 0], [0.5, 0.5, 0]];
+
+/**
+ * Share of the points per part. Phones have fewer points, so the edges get
+ * a larger share there (they carry the shape) and the fills and dust less.
+ * Dust takes whatever is left.
+ */
+const BUDGET = {
+  desktop: { sEdge: 0.055, sTop: 0.08, sSide: 0.03, balls: 0.06, iEdge: 0.05, iTop: 0.07, traces: 0.035, dEdge: 0.045, dSide: 0.03, dTop: 0.03, cores: 0.06, hEdge: 0.055, hTop: 0.07, fins: 0.26, finTop: 0.3 },
+  mobile: { sEdge: 0.1, sTop: 0.035, sSide: 0.015, balls: 0.07, iEdge: 0.09, iTop: 0.03, traces: 0.035, dEdge: 0.08, dSide: 0.02, dTop: 0.02, cores: 0.07, hEdge: 0.1, hTop: 0.03, fins: 0.26, finTop: 0.45 },
+};
 const DUST: [Weights, Weights] = [[0.75, 0.22, 0.03], [0.8, 0.2, 0]];
 
 /** The point cloud for n points (same n → same cloud, always). */
 export function buildCloud(n: number): Cloud {
   const rnd = mulberry32(20261105 + n);
-  const k = n < 4000 ? 1.3 : 1; // fewer points on phones: a little larger
+  const k = n < 4000 ? 1.15 : 1; // fewer points on phones: a little larger
+  const b = n < 4000 ? BUDGET.mobile : BUDGET.desktop;
   const pts: { p: [number, number, number]; s: number; a: number; layer: number; core: number }[] = [];
   const choose = (w: Weights) => {
     const r = rnd();
@@ -157,30 +176,31 @@ export function buildCloud(n: number): Cloud {
   const slab = (s: { w: number; d: number; z: number; h: number }) => [-s.w, s.w, -s.d, s.d, s.z, s.z + s.h] as const;
 
   // substrate (layer 0) and its BGA balls
-  boxEdges(...slab(S), share(0.04), 0);
-  top(-S.w, S.w, -S.d, S.d, S.z + S.h, share(0.07), 0);
-  sides(S, share(0.03), 0);
-  const perBall = Math.max(2, Math.round((n * 0.1) / BALLS.length));
-  for (const [bx, by] of BALLS)
+  boxEdges(...slab(S), share(b.sEdge), 0);
+  top(-S.w, S.w, -S.d, S.d, S.z + S.h, share(b.sTop), 0);
+  sides(S, share(b.sSide), 0);
+  // each ball as a small ring at its equator: reads as a sphere, not a smudge
+  const perBall = Math.max(3, Math.round((n * b.balls) / BALLS.length));
+  for (const [bx, by] of BALLS) {
+    const turn = rnd() * Math.PI * 2;
     for (let i = 0; i < perBall; i++) {
-      const u = rnd() * 2 - 1;
-      const th = rnd() * Math.PI * 2;
-      const r = Math.sqrt(1 - u * u) * 3.6;
-      add(bx + r * Math.cos(th), by + r * Math.sin(th), S.z - 5 + u * 3.6, BALL, 0);
+      const th = turn + (i / perBall) * Math.PI * 2;
+      add(bx + 3.6 * Math.cos(th), by + 3.6 * Math.sin(th), S.z - 5, BALL, 0);
     }
+  }
 
   // interposer (layer 1) and its traces
-  boxEdges(...slab(I), share(0.035), 1);
-  top(-I.w, I.w, -I.d, I.d, I.z + I.h, share(0.06), 1, (x, y) => Math.abs(x) < D.w && Math.abs(y) < D.d);
-  const perTrace = Math.max(3, Math.round((n * 0.11) / TRACES.length));
+  boxEdges(...slab(I), share(b.iEdge), 1);
+  top(-I.w, I.w, -I.d, I.d, I.z + I.h, share(b.iTop), 1, (x, y) => Math.abs(x) < D.w && Math.abs(y) < D.d);
+  const perTrace = Math.max(6, Math.round((n * b.traces) / TRACES.length));
   for (const t of TRACES) polyline(t.map(([x, y]) => [x, y, I.z + I.h + 0.4]), perTrace, LINE, 1);
 
   // die (layer 2) and its cores
-  boxEdges(...slab(D), share(0.03), 2);
-  sides(D, share(0.025), 2);
+  boxEdges(...slab(D), share(b.dEdge), 2);
+  sides(D, share(b.dSide), 2);
   const inCore = (x: number, y: number) => CORES.some((c) => x > c.x0 - 1 && x < c.x1 + 1 && y > c.y0 - 1 && y < c.y1 + 1);
-  top(-D.w, D.w, -D.d, D.d, D.z + D.h, share(0.025), 2, inCore);
-  const perCore = Math.max(4, Math.round((n * 0.06) / CORES.length));
+  top(-D.w, D.w, -D.d, D.d, D.z + D.h, share(b.dTop), 2, inCore);
+  const perCore = Math.max(4, Math.round((n * b.cores) / CORES.length));
   const side = Math.max(2, Math.round(Math.sqrt(perCore)));
   CORES.forEach((c, ci) => {
     for (let i = 0; i < side; i++)
@@ -192,20 +212,22 @@ export function buildCloud(n: number): Cloud {
   });
 
   // heat sink (layer 3): plate and fins
-  boxEdges(...slab(H), share(0.04), 3);
-  top(-H.w, H.w, -H.d, H.d, H.z + H.h, share(0.06), 3);
+  boxEdges(...slab(H), share(b.hEdge), 3);
+  top(-H.w, H.w, -H.d, H.d, H.z + H.h, share(b.hTop), 3);
   const finStep = (H.d * 2 - FIN.t) / (FIN.count - 1);
-  const perFin = Math.max(6, Math.round((n * 0.22) / FIN.count));
+  const perFin = Math.max(6, Math.round((n * b.fins) / FIN.count));
+  const finTop = Math.round(perFin * b.finTop);
+  const finEnd = Math.round(perFin * 0.06);
   const fz0 = H.z + H.h;
   for (let f = 0; f < FIN.count; f++) {
     const y0 = -H.d + f * finStep;
     const x0 = -H.w + 4;
     const x1 = H.w - 4;
     // top edge (dense), the two vertical ends, then the face (sparse)
-    segment([x0, y0, fz0 + FIN.h], [x1, y0, fz0 + FIN.h], Math.round(perFin * 0.25), EDGE, 3);
-    segment([x0, y0, fz0], [x0, y0, fz0 + FIN.h], Math.round(perFin * 0.06), EDGE, 3);
-    segment([x1, y0, fz0], [x1, y0, fz0 + FIN.h], Math.round(perFin * 0.06), EDGE, 3);
-    for (let i = 0, m = perFin - 2 * Math.round(perFin * 0.06) - Math.round(perFin * 0.25); i < m; i++)
+    segment([x0, y0, fz0 + FIN.h], [x1, y0, fz0 + FIN.h], finTop, EDGE, 3);
+    segment([x0, y0, fz0], [x0, y0, fz0 + FIN.h], finEnd, EDGE, 3);
+    segment([x1, y0, fz0], [x1, y0, fz0 + FIN.h], finEnd, EDGE, 3);
+    for (let i = 0, m = perFin - 2 * finEnd - finTop; i < m; i++)
       add(x0 + (x1 - x0) * rnd(), y0 + (rnd() < 0.5 ? 0 : FIN.t), fz0 + FIN.h * rnd(), FINS, 3);
   }
 
@@ -319,7 +341,7 @@ export function posterSVG(n: number, mode: "sphere" | "still" | "cores"): string
     if ((mode === "still" && isCore) || (mode === "cores" && !isCore)) continue;
     const src = mode === "sphere" ? c.sphere : c.chip;
     const [u, v, depth] = project(src.subarray(i * 3, i * 3 + 3));
-    const d = Math.max(0.5, Math.round(projectedSize(c.size[i], depth) * V * 0.975 * 4) / 4);
+    const d = Math.max(0.5, Math.round(projectedSize(c.size[i], depth) * V * 4) / 4);
     const colour = mode === "cores" ? AI[c.core[i] % AI.length] : "#000";
     const alpha = mode === "cores" ? 0.9 : c.alpha[i];
     const key = `${d}|${alpha}|${colour}`;

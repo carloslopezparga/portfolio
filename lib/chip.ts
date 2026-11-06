@@ -15,7 +15,7 @@ export interface Slab {
 }
 
 /** Gaps between layers in the exploded view. The sink rides higher so the die and its cores show underneath. */
-export const GAPS = { interposer: 46, die: 40, sink: 100 };
+export const GAPS = { interposer: 34, die: 30, sink: 72 };
 
 export const LAYERS = {
   substrate: { w: 100, d: 100, z: 0, h: 7 },
@@ -55,8 +55,9 @@ export const BALLS = (() => {
  * edge, as polylines (each one is a path a data pulse runs along).
  */
 export const TRACES: [number, number][][] = (() => {
-  const e = LAYERS.interposer.w - 6;
-  const f = LAYERS.die.w + 4;
+  // from under the die out to the interposer's edge: a fan-out, not stubs
+  const e = LAYERS.interposer.w - 3;
+  const f = LAYERS.die.w - 10;
   const out: [number, number][][] = [];
   for (const k of [-36, -18, 0, 18, 36]) {
     out.push([[f, k], [f + 10, k], [f + 14, k + Math.sign(k || 1) * 6], [e, k + Math.sign(k || 1) * 6]]);
