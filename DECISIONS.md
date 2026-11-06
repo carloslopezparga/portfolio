@@ -109,11 +109,12 @@ Grupo (a) completo, del 1 al 16, y el reveal del grupo (b). Capturas antes/despu
 - **Chip de partículas** (inspirado en la esfera de evolve.es):
   - Unos 8.000 puntos en escritorio y 2.500 en móvil, monocromos (#1D1D1F en claro, #F5F5F7 en oscuro) y de varios tamaños.
   - Al cargar, los puntos aparecen como una esfera y se condensan en el chip en ~1,5 s.
-  - Siempre vivo: gira despacio, los puntos titilan, los paquetes de datos (azul, morado, rosa y naranja) recorren las pistas y los núcleos se encienden en secuencia. Es el único color.
+  - Siempre vivo: se balancea despacio sobre su vista de ¾, los puntos titilan, los paquetes de datos (azul, morado, rosa y naranja) recorren las pistas y los núcleos se encienden en secuencia. Es el único color.
   - Cursor (escritorio): los puntos cercanos se apartan con una onda y vuelven; el chip hace un leve parallax.
-  - Scroll: al bajar, primero se separan las capas, luego los puntos se dispersan y se desvanecen cuando «Cifras» llega a un tercio de la pantalla. Al volver, se recompone.
+  - Scroll: al bajar, primero se separan las capas, luego los puntos se dispersan y se desvanecen cuando «Cifras» llega a un tercio de la pantalla. Al volver, se recompone. En el móvil empieza a contar cuando el chip ya se ve entero (está bajo los botones).
   - Cuando el agente responde, núcleos y paquetes se aceleran.
   - Técnica: three.js con `Points` y shaders propios (morph, repulsión y dispersión en el vertex shader).
+  - Un botón pequeño en la esquina del chip pausa y reanuda las animaciones de la página (WCAG 2.2.2): activa el movimiento reducido durante la sesión.
 - **Proyectos en el móvil (< 768 px):** cada proyecto muestra solo su fragmento principal, a 1,3×, con el texto entre 11,1 y 12,4 px; los demás se ocultan. En escritorio, igual que antes.
   - Fragmentos principales: el terminal de job-hunt-copilot (cifras reales), el «Resumen de hoy» del correo, la gráfica de generaciones con su etiqueta «Ilustrativo» y la clasificación de señales de CS50.
 
@@ -142,7 +143,7 @@ Grupo (a) completo, del 1 al 16, y el reveal del grupo (b). Capturas antes/despu
   - Si hay más de una foto, la tarjeta lleva un botón «Fotos y vídeos · n» que abre el visor.
 - **Herramienta `focus_part` del agente:** eliminada, porque solo servía para la reductora. Ahora el chip reacciona solo cuando el agente responde.
 - **Página `/lab`:** eliminada, junto con sus componentes. Era el laboratorio de motion del principio y no encajaba en la nueva dirección. Sigue en el historial de git.
-- **Imagen para compartir (OG):** usa la fuente por defecto del generador de imágenes, como antes, no Plus Jakarta Sans.
+- **Imagen para compartir (OG):** usa las fuentes del sitio (Plus Jakarta Sans e Inter). Están en `assets/og` en TrueType (licencia OFL), porque el generador no lee los WOFF2 de la página.
 
 ### Pulido estético (aprobadas el 05-11)
 - **Fragmentos de proyecto:** en escritorio se dibujan en un lienzo del tamaño de la tarjeta (540 px) y se escalan con ella. En el móvil (< 768 px) se ve solo el fragmento principal de cada proyecto, legible (ver «Hero definitivo»).
@@ -154,7 +155,9 @@ Grupo (a) completo, del 1 al 16, y el reveal del grupo (b). Capturas antes/despu
 - **Arreglo que no estaba en la lista:** la línea del timeline iba 20-32 px a la izquierda del centro de los logos en todos los tamaños. Ahora pasa por el centro.
 
 ### Hero definitivo (revisar)
-- **Chip en el móvil:** three.js se carga al primer toque o scroll, o 4 s después de que la página termine de cargar. Hasta entonces se ve la esfera (el póster). Así el script grande no compite con la carga en un móvil medio.
+- **Chip en el móvil:** three.js se carga 4 s después de que la página termine de cargar, y solo si el chip está cerca de la pantalla. Hasta entonces se ve la esfera (el póster). No arranca al primer toque: en un móvil medio el montaje bloquea unos cientos de milisegundos y retrasaba la primera tecla en el agente.
+- **Vaivén en vez de giro completo:** el chip se balancea ±18° sobre su vista de ¾. Al girar entero pasaba por ángulos en que las aletas quedaban de frente y dejaba de leerse como chip.
+- **Botón de pausa:** arriba a la derecha del chip, con un aro fino. Pausa también el punto que late y el resto de animaciones (es la preferencia de movimiento reducido de la web).
 - **Disponibilidad en el móvil:** no cabe en una línea, así que «Tiempo completo desde ene 2028» baja a la segunda línea sin el «·».
 - **Tablets (768–1023 px):** hero centrado con el chip debajo, como en el móvil. Los fragmentos de proyecto mantienen la composición escalada de escritorio, porque pediste el cambio por debajo de 768 px; ahí su texto queda pequeño (5–6 px).
 - **Escenario de los fragmentos en el móvil:** 4:3, y cuadrado por debajo de 400 px para que el «Resumen de hoy» quepa a 320 px.
@@ -168,7 +171,8 @@ Grupo (a) completo, del 1 al 16, y el reveal del grupo (b). Capturas antes/despu
 - **La caché de build de Turbopack está desactivada.** Una vez sirvió un `globals.css` antiguo, y Vercel restaura esa caché entre despliegues. El build tarda segundos, así que no compensa el riesgo.
 - **En móvil no se construye el grafo SVG.** three.js sí se carga para el chip, pero tarde (ver «Hero definitivo»).
 - **Pósters del chip:** `lib/chip-cloud.ts` genera la nube de forma determinista. El mismo código prerenderiza en el build unos SVG del primer frame (`app/chip/[file]`), que la página pinta como máscaras CSS: no mueven el layout ni cuentan como LCP. El primer frame de WebGL coincide con el póster (comprobado píxel a píxel), así que el cambio no se nota. Sin JavaScript, sin WebGL o con movimiento reducido se ve un póster del chip montado.
-- **Reveals:** empiezan cuando el navegador queda ocioso, con todas las secciones ya hidratadas. Antes, con el hero más corto, el título de «Cifras» se revelaba antes de hidratarse y React avisaba de un desajuste.
+- **Reveals:** pueden marcar un elemento antes de que React hidrate su sección (con el hero más corto, «Cifras» ya está en la primera pantalla). Cada `.reveal` lleva `suppressHydrationWarning`, así que React lo espera y no avisa.
+- **Grafo de skills:** los textos visibles de cada nodo son `aria-hidden` y su nombre accesible es el `aria-label` (axe marcaba «pilotoautomático» al juntar las líneas).
 - **El tamaño de los logos** (`LogoMark`) se puede fijar desde CSS con `--logo`. El timeline lo usa para tener 32 px en el móvil.
 - **Desarrollo local:** a veces `next dev` deja de recoger los cambios de `globals.css`. Se arregla parando el servidor y borrando `.next/dev`.
 
