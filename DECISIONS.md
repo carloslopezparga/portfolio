@@ -1,6 +1,6 @@
 # Decisiones
 
-Lo aprobado, lo que he decidido yo al construir (para que lo revises) y lo que falta. Última actualización: 04-11-2026. Incluye las tres fases (contenido y CV, dirección visual Apple × Evolve, piezas visuales) y el pulido estético de la rama `claude/design-polish`.
+Lo aprobado, lo que he decidido yo al construir (para que lo revises) y lo que falta. Última actualización: 05-11-2026. Incluye las tres fases (contenido y CV, dirección visual Apple × Evolve, piezas visuales), el pulido estético (rama `claude/design-polish`) y el hero definitivo con el chip de partículas (rama `claude/hero-asymmetric`).
 
 ## 1. Aprobado (hecho)
 
@@ -30,7 +30,7 @@ Lo aprobado, lo que he decidido yo al construir (para que lo revises) y lo que f
 
 ### Fase 2: dirección visual Apple × Evolve
 - **Tema:** claro por defecto (#FFFFFF y #F5F5F7, texto #1D1D1F). El oscuro es el de Apple (#000 y superficies #1C1C1E) y se activa con el botón de tema.
-- **El color sale de:** los logos, acentos Apple por dominio en dosis pequeñas, y el degradado Apple Intelligence. Ese degradado está en el borde de la barra del agente, la tagline y el resplandor detrás del chip.
+- **El color sale de:** los logos, acentos Apple por dominio en dosis pequeñas, y el degradado Apple Intelligence. Desde el hero definitivo, ese degradado solo queda en el borde de la barra del agente; en el chip, el color va en los paquetes de datos y los núcleos.
 - **Tipografía:**
   - Plus Jakarta Sans en titulares; el nombre del hero mide hasta 96 px.
   - Inter en el texto.
@@ -40,7 +40,7 @@ Lo aprobado, lo que he decidido yo al construir (para que lo revises) y lo que f
 - **Navegación:** píldora flotante con CL, secciones, búsqueda, ES/EN, tema y un botón negro «CV». En el móvil, «CV» y «Menú» (pantalla completa).
 - **Fuera:** auroras, nebulosa, retícula, números de lámina, cajetín, cotas y engranaje de progreso. En oscuro queda un estrellado muy sutil y quieto.
 - **Estructura:**
-  1. Hero centrado.
+  1. Hero: nombre centrado arriba; debajo, texto a la izquierda y chip a la derecha (centrado en el móvil).
   2. Cifras (4 tarjetas con count-up que llevan a su entrada).
   3. Ahora mismo.
   4. Experiencia y Formación como timeline con logos, con la línea dibujándose al hacer scroll.
@@ -55,15 +55,7 @@ Lo aprobado, lo que he decidido yo al construir (para que lo revises) y lo que f
   - Todo respeta el movimiento reducido.
 
 ### Fase 3: piezas visuales
-- **Chip de IA en el hero:**
-  - Vista explosionada con disipador, die con 8 núcleos, interposer con pistas, sustrato y bolas BGA. Line-art fino sobre blanco (claro sobre negro en modo oscuro), con el resplandor Apple Intelligence detrás.
-  - En escritorio es 3D (three.js):
-    - se ensambla al cargar;
-    - los paquetes de datos recorren las pistas sin parar y los núcleos se encienden en secuencia;
-    - gira y hace parallax con el cursor;
-    - al pasar el ratón las capas se separan;
-    - cuando el agente responde va todo más rápido.
-  - En el móvil es la versión 2D con los mismos pulsos y núcleos. Con movimiento reducido, estático.
+- **Chip de IA en el hero** (rehecho el 05-11 como nube de partículas, ver «Hero definitivo»): vista explosionada con disipador y aletas, die con 8 núcleos, interposer con pistas, sustrato y bolas BGA.
 - **Fragmentos de interfaz flotantes** (HTML/CSS) en cada proyecto, con flotación lenta y parallax al hover:
   - job-hunt-copilot: oferta con barra de puntuación, lista ordenada y mini terminal con cifras reales (6.400+, 29, 116).
   - Correo en piloto automático: «Resumen de hoy» y nodos Gmail → Claude.
@@ -105,6 +97,27 @@ Grupo (a) completo, del 1 al 16, y el reveal del grupo (b). Capturas antes/despu
 - **Color del texto:** bullets, descripciones, intros de sección y el resumen del hero en #1D1D1F (#F5F5F7 en oscuro). El gris #6E6E73 queda solo para metadatos.
 - **Grafo en oscuro:** discos oscuros para los nodos sin logo (los logos siguen sobre blanco). Los nodos apagados se atenúan a 0,65 (antes 0,5).
 
+### Hero definitivo: mezcla de A y B (rama `claude/hero-asymmetric`, PR #2; pendiente de tu OK)
+- **Escritorio (desde 1024 px):**
+  - El nombre en una sola línea, centrado sobre todo el ancho y grande, como en A.
+  - Debajo y centrada, la disponibilidad: punto verde que late + «Busco prácticas 2027» en #1D1D1F con peso 500 + «· Tiempo completo desde ene 2028» en gris.
+  - Luego, dos columnas: a la izquierda (alineado a la izquierda) tagline, resumen, barra del agente y botones; a la derecha, el chip, centrado en vertical con esa columna. El chip ocupa exactamente el alto de la columna, así que no añade altura.
+  - El hero entero cabe en la primera pantalla: termina a 621 px en 1280 × 800 y a 656 px en 1440 × 900.
+- **Móvil:** todo centrado; el nombre en dos líneas equilibradas; el chip debajo de los botones, en una caja de como mucho el 40 % del alto de la pantalla.
+- **Tagline** en negro sólido, con «automatizados» / «automated» en azul plano. Sin disco gris detrás del chip.
+- **Imagen OG** con el mismo estilo: disponibilidad en línea, tagline en negro con la palabra en azul y el chip como nube de puntos.
+- **Chip de partículas** (inspirado en la esfera de evolve.es):
+  - Unos 8.000 puntos en escritorio y 2.500 en móvil, monocromos (#1D1D1F en claro, #F5F5F7 en oscuro) y de varios tamaños.
+  - Al cargar, los puntos aparecen como una esfera y se condensan en el chip en ~1,5 s.
+  - Siempre vivo: se balancea despacio sobre su vista de ¾, los puntos titilan, los paquetes de datos (azul, morado, rosa y naranja) recorren las pistas y los núcleos se encienden en secuencia. Es el único color.
+  - Cursor (escritorio): los puntos cercanos se apartan con una onda y vuelven; el chip hace un leve parallax.
+  - Scroll: al bajar, primero se separan las capas, luego los puntos se dispersan y se desvanecen cuando «Cifras» llega a un tercio de la pantalla. Al volver, se recompone. En el móvil empieza a contar cuando el chip ya se ve entero (está bajo los botones).
+  - Cuando el agente responde, núcleos y paquetes se aceleran.
+  - Técnica: three.js con `Points` y shaders propios (morph, repulsión y dispersión en el vertex shader).
+  - Un botón pequeño en la esquina del chip pausa y reanuda las animaciones de la página (WCAG 2.2.2): activa el movimiento reducido durante la sesión.
+- **Proyectos en el móvil (< 768 px):** cada proyecto muestra solo su fragmento principal, a 1,3×, con el texto entre 11,1 y 12,4 px; los demás se ocultan. En escritorio, igual que antes.
+  - Fragmentos principales: el terminal de job-hunt-copilot (cifras reales), el «Resumen de hoy» del correo, la gráfica de generaciones con su etiqueta «Ilustrativo» y la clasificación de señales de CS50.
+
 ## 2. Decidido por mí (revisar)
 
 ### Contenido
@@ -128,13 +141,12 @@ Grupo (a) completo, del 1 al 16, y el reveal del grupo (b). Capturas antes/despu
 - **Liderazgo:**
   - Las entradas con foto van primero y ocupan los huecos anchos.
   - Si hay más de una foto, la tarjeta lleva un botón «Fotos y vídeos · n» que abre el visor.
-- **El chip 3D** usa exactamente la misma vista isométrica que el SVG, así que el cambio de 2D a 3D no se nota.
 - **Herramienta `focus_part` del agente:** eliminada, porque solo servía para la reductora. Ahora el chip reacciona solo cuando el agente responde.
 - **Página `/lab`:** eliminada, junto con sus componentes. Era el laboratorio de motion del principio y no encajaba en la nueva dirección. Sigue en el historial de git.
-- **Imagen para compartir (OG):** en claro, con nombre, tagline en degradado, resumen y el chip.
+- **Imagen para compartir (OG):** usa las fuentes del sitio (Plus Jakarta Sans e Inter). Están en `assets/og` en TrueType (licencia OFL), porque el generador no lee los WOFF2 de la página.
 
-### Pulido estético
-- **Fragmentos de proyecto:** se dibujan en un lienzo fijo del tamaño de la tarjeta de escritorio (540 px) y se escalan. En el móvil el texto de los fragmentos queda pequeño (unos 6,5 px), pero nítido y con la misma composición que en escritorio. Es ilustración: no lleva información que no esté en la tarjeta.
+### Pulido estético (aprobadas el 05-11)
+- **Fragmentos de proyecto:** en escritorio se dibujan en un lienzo del tamaño de la tarjeta (540 px) y se escalan con ella. En el móvil (< 768 px) se ve solo el fragmento principal de cada proyecto, legible (ver «Hero definitivo»).
 - **Fondo de la ilustración:** solo el tinte del dominio sobre el gris de la tarjeta; antes era un panel blanco.
 - **Erasmus en el móvil:** las fechas van en su propia línea bajo «Erasmus», para que no se partan.
 - **Cifras:** la flecha que aparece al pasar el ratón sube junto al icono; así la fila que ocupaba abajo desaparece.
@@ -142,14 +154,25 @@ Grupo (a) completo, del 1 al 16, y el reveal del grupo (b). Capturas antes/despu
 - **Grafo:** se anuncia como barra de herramientas (`toolbar`), que es lo que hace que los lectores de pantalla indiquen que se navega con flechas. No añade texto nuevo.
 - **Arreglo que no estaba en la lista:** la línea del timeline iba 20-32 px a la izquierda del centro de los logos en todos los tamaños. Ahora pasa por el centro.
 
+### Hero definitivo (revisar)
+- **Chip en el móvil:** three.js se carga 4 s después de que la página termine de cargar, y solo si el chip está cerca de la pantalla. Hasta entonces se ve la esfera (el póster). No arranca al primer toque: en un móvil medio el montaje bloquea unos cientos de milisegundos y retrasaba la primera tecla en el agente.
+- **Vaivén en vez de giro completo:** el chip se balancea ±18° sobre su vista de ¾. Al girar entero pasaba por ángulos en que las aletas quedaban de frente y dejaba de leerse como chip.
+- **Botón de pausa:** arriba a la derecha del chip, con un aro fino. Pausa también el punto que late y el resto de animaciones (es la preferencia de movimiento reducido de la web).
+- **Disponibilidad en el móvil:** no cabe en una línea, así que «Tiempo completo desde ene 2028» baja a la segunda línea sin el «·».
+- **Tablets (768–1023 px):** hero centrado con el chip debajo, como en el móvil. Los fragmentos de proyecto mantienen la composición escalada de escritorio, porque pediste el cambio por debajo de 768 px; ahí su texto queda pequeño (5–6 px).
+- **Escenario de los fragmentos en el móvil:** 4:3, y cuadrado por debajo de 400 px para que el «Resumen de hoy» quepa a 320 px.
+- **Scroll del chip:** termina cuando el título de «Cifras» llega a un tercio de la pantalla (unos 340 px de scroll en 1440 × 900).
+
 ### Técnicas
 - **Secciones fuera de pantalla con `content-visibility`,** que acelera el primer render en el móvil.
   - Como sus alturas son estimadas hasta que se pintan, el scroll a una sección hace una segunda pasada de corrección.
   - Comprobado: todas las navegaciones aterrizan bajo la píldora.
 - **Cada sección es un límite `Suspense`:** React hidrata por partes y el móvil gana margen.
 - **La caché de build de Turbopack está desactivada.** Una vez sirvió un `globals.css` antiguo, y Vercel restaura esa caché entre despliegues. El build tarda segundos, así que no compensa el riesgo.
-- **En móvil no se carga three.js** ni se construye el grafo SVG.
-- **El chip 2D empieza a animarse** cuando la página está ociosa.
+- **En móvil no se construye el grafo SVG.** three.js sí se carga para el chip, pero tarde (ver «Hero definitivo»).
+- **Pósters del chip:** `lib/chip-cloud.ts` genera la nube de forma determinista. El mismo código prerenderiza en el build unos SVG del primer frame (`app/chip/[file]`), que la página pinta como máscaras CSS: no mueven el layout ni cuentan como LCP. El primer frame de WebGL coincide con el póster (comprobado píxel a píxel), así que el cambio no se nota. Sin JavaScript, sin WebGL o con movimiento reducido se ve un póster del chip montado.
+- **Reveals:** pueden marcar un elemento antes de que React hidrate su sección (con el hero más corto, «Cifras» ya está en la primera pantalla). Cada `.reveal` lleva `suppressHydrationWarning`, así que React lo espera y no avisa.
+- **Grafo de skills:** los textos visibles de cada nodo son `aria-hidden` y su nombre accesible es el `aria-label` (axe marcaba «pilotoautomático» al juntar las líneas).
 - **El tamaño de los logos** (`LogoMark`) se puede fijar desde CSS con `--logo`. El timeline lo usa para tener 32 px en el móvil.
 - **Desarrollo local:** a veces `next dev` deja de recoger los cambios de `globals.css`. Se arregla parando el servidor y borrando `.next/dev`.
 
@@ -190,11 +213,6 @@ Grupo (a) completo, del 1 al 16, y el reveal del grupo (b). Capturas antes/despu
 - `NEXT_PUBLIC_CALCOM_LINK`.
 - `NEXT_PUBLIC_SITE_URL`.
 
-**Propuestas de diseño pendientes (grupo b del pulido; se quedaron fuera de este PR)**
-- **Tagline en degradado:** pasarla a negro sólido, como mucho con una palabra en un color plano.
-- **Patrón de secciones:** etiqueta + título + intro + tarjetas se repite en todas. Romperlo en una o dos (por ejemplo, Cifras o Contacto) daría ritmo.
-- **Hero centrado:** composición asimétrica (texto a la izquierda, chip a la derecha).
-- **Resplandor del chip:** más contenido o un único color plano.
-- La tagline, el hero y el resplandor se prueban en un PR aparte (variante del hero). El patrón de secciones sigue como propuesta.
+**Propuestas de diseño:** no queda ninguna abierta. El patrón de secciones se queda como está (Contacto ya lo rompe con su banda oscura).
 
 **Lanzamiento:** cuando digas «lanzamiento», poner `LAUNCHED = true` en `lib/site.ts`.

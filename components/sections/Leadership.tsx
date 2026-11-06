@@ -51,7 +51,7 @@ export async function Leadership({ lang }: { lang: Locale }) {
               id={`lead-${c.id}`}
               data-target-id={c.id}
               data-accent={c.accent}
-              className={`photo-card reveal scroll-mt-nav flex min-h-[420px] flex-col justify-end ${span}`}
+              suppressHydrationWarning className={`photo-card reveal scroll-mt-nav flex min-h-[420px] flex-col justify-end ${span}`}
               style={{ ["--rd" as string]: `${(i % 3) * 80}ms` }}
             >
               <Image src={c.photo.src} alt={c.photo.caption ?? c.title[lang]} fill sizes="(min-width: 768px) 50vw, 100vw" className="object-cover" />
@@ -69,7 +69,7 @@ export async function Leadership({ lang }: { lang: Locale }) {
               id={`lead-${c.id}`}
               data-target-id={c.id}
               data-accent={c.accent}
-              className={`card reveal scroll-mt-nav flex flex-col p-6 md:p-8 ${span}`}
+              suppressHydrationWarning className={`card reveal scroll-mt-nav flex flex-col p-6 md:p-8 ${span}`}
               style={{ ["--rd" as string]: `${(i % 3) * 80}ms` }}
             >
               {c.when ? <p className="mb-1.5 text-[13px] font-semibold text-muted">{c.when}</p> : null}

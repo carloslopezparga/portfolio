@@ -35,7 +35,7 @@ export async function Experience({ lang, now }: { lang: Locale; now: Date }) {
                 <p className="text-[15px] font-semibold text-fg">{range}</p>
                 {where ? <p className="mt-1 text-[14px] text-muted">{where}</p> : null}
               </div>
-              <article id={`exp-${e.id}`} data-target-id={e.id} className={`card reveal scroll-mt-nav p-5 sm:p-6 md:p-9 ${e.featured ? "card-tint" : ""}`}>
+              <article id={`exp-${e.id}`} data-target-id={e.id} suppressHydrationWarning className={`card reveal scroll-mt-nav p-5 sm:p-6 md:p-9 ${e.featured ? "card-tint" : ""}`}>
                 <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
                   <h3 className={`${e.featured ? "text-[clamp(1.5rem,2.6vw,2rem)]" : "text-[clamp(1.25rem,2vw,1.5rem)]"} leading-tight text-fg`}>{e.role[lang]}</h3>
                   {status === "current" ? (

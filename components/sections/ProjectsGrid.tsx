@@ -98,7 +98,7 @@ export function ProjectsGrid({ items, labels, lang }: { items: ProjectItem[]; la
             key={it.id}
             data-target-id={it.id}
             data-domain={it.domain}
-            className={`card card-hover reveal flex flex-col ${on ? "shadow-[var(--shadow)]" : ""}`}
+            suppressHydrationWarning className={`card card-hover reveal flex flex-col ${on ? "shadow-[var(--shadow)]" : ""}`}
             style={{ order: i * 2 + 1, ["--rd" as string]: `${(i % 2) * 90}ms` } as CSSProperties}
           >
             <ProjectArt id={it.id} lang={lang} />

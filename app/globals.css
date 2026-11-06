@@ -71,7 +71,6 @@
   --cyan-rgb: 50 173 230;
 
   /* Apple Intelligence: blue → purple → pink → orange (AA-dark stops for text) */
-  --ai-text: linear-gradient(90deg, #0066cc 0%, #8944ab 36%, #d30f45 68%, #c93400 100%);
   --ai-fill: linear-gradient(90deg, #0a84ff, #bf5af2 40%, #ff375f 70%, #ff9f0a);
 
   --glow-a: 0.16;
@@ -131,7 +130,6 @@
   --cyan-text: #64d2ff;
   --cyan-rgb: 100 210 255;
 
-  --ai-text: linear-gradient(90deg, #2997ff 0%, #bf5af2 36%, #ff375f 68%, #ff9f0a 100%);
 
   --glow-a: 0.3;
   --glow-base: 0.05;
@@ -342,13 +340,6 @@ html.lenis body {
   .tabular {
     font-variant-numeric: tabular-nums;
   }
-  /* Apple Intelligence gradient text (tagline) */
-  .text-ai {
-    background: var(--ai-text);
-    -webkit-background-clip: text;
-    background-clip: text;
-    color: transparent;
-  }
 }
 
 /* ------------------------------------------------------------------ */
@@ -549,23 +540,6 @@ html.js .reveal-rise:not([data-in]) {
 .ai-tile {
   background: var(--btn);
   color: var(--btn-fg);
-}
-/* The coloured haze behind the hero chip */
-.ai-haze {
-  position: absolute;
-  inset: 8% 14%;
-  border-radius: 50%;
-  background:
-    radial-gradient(closest-side at 30% 50%, rgb(10 132 255 / 0.55), transparent),
-    radial-gradient(closest-side at 50% 40%, rgb(191 90 242 / 0.5), transparent),
-    radial-gradient(closest-side at 68% 55%, rgb(255 55 95 / 0.45), transparent),
-    radial-gradient(closest-side at 82% 45%, rgb(255 159 10 / 0.45), transparent);
-  filter: blur(48px);
-  opacity: 0.45;
-  pointer-events: none;
-}
-[data-theme="dark"] .ai-haze {
-  opacity: 0.5;
 }
 
 .type-caret {
@@ -1328,135 +1302,106 @@ main[data-focusing] > section:not(:has([data-hl])) {
 }
 
 /* ------------------------------------------------------------------ */
-/* Hero chip (ChipArt): fine line art, grey on white / light on black   */
+/* Hero chip: a point cloud (WebGL), over SVG posters of the same cloud */
 /* ------------------------------------------------------------------ */
-.chip-art {
-  --chip-line: rgb(29 29 31 / 0.72);
-  --chip-top: #ffffff;
-  --chip-left: #f5f5f7;
-  --chip-right: #e8e8ed;
-  --pulse-0: #0a84ff;
-  --pulse-1: #bf5af2;
-  --pulse-2: #ff375f;
-  --pulse-3: #ff9f0a;
-  overflow: visible;
+/* The cell is the chip's column (desktop) or a box under the buttons
+   (phones). The chip lives in the largest square that fits it; posters and
+   canvas cover that square plus 15 % on every side (BLEED in
+   lib/chip-cloud.ts) so scattered points have room. */
+.chip-cell {
+  position: absolute;
+  inset: 0;
+  container-type: size;
+  pointer-events: none;
 }
-[data-theme="dark"] .chip-art {
-  --chip-line: rgb(245 245 247 / 0.7);
-  --chip-top: #000000;
-  --chip-left: #0e0e10;
-  --chip-right: #18181b;
+.chip-square {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: min(100cqw, 100cqh);
+  aspect-ratio: 1;
+  translate: -50% -50%;
 }
-.chip-art :is(.chip-t, .chip-l, .chip-r, .chip-ball, .chip-core, .chip-pad) {
-  stroke: var(--chip-line);
-  stroke-width: 1;
-  stroke-linejoin: round;
-  vector-effect: non-scaling-stroke;
+.chip-stage {
+  position: absolute;
+  inset: 0;
 }
-.chip-t {
-  fill: var(--chip-top);
+.chip-poster,
+.chip-canvas {
+  position: absolute;
+  inset: -15%;
+  width: 130%;
+  height: 130%;
 }
-.chip-l {
-  fill: var(--chip-left);
+/* the pause control (WCAG 2.2.2), in the square's corner, clear of the chip */
+.chip-pause {
+  position: absolute;
+  top: 2%;
+  right: 2%;
+  z-index: 2;
+  pointer-events: auto;
 }
-.chip-r {
-  fill: var(--chip-right);
+/* light dots on black read bolder: dark mode draws the ink a little lighter (the scene does the same) */
+[data-theme="dark"] :is(.chip-poster-live, .chip-poster-still) {
+  opacity: 0.85;
 }
-.chip-ball {
-  fill: var(--chip-top);
+/* posters are masks: the page paints the dots in its own ink */
+.chip-poster {
+  background: var(--fg);
+  -webkit-mask: var(--poster) center / 100% 100% no-repeat;
+  mask: var(--poster) center / 100% 100% no-repeat;
 }
-.chip-pad {
-  fill: none;
-  stroke-dasharray: 3 3;
-  opacity: 0.6;
+.chip-poster-live {
+  --poster: url(/chip/sphere-m.svg);
 }
-.chip-trace {
-  fill: none;
-  stroke: var(--chip-line);
-  stroke-width: 1;
-  opacity: 0.45;
-  vector-effect: non-scaling-stroke;
-}
-.chip-core {
-  fill: rgb(var(--fg-rgb) / 0.05);
-}
-/* data packets running along the traces */
-.chip-pulse {
-  fill: none;
-  stroke: var(--pc);
-  stroke-width: 2.6;
-  stroke-linecap: round;
-  stroke-dasharray: 8 300;
-  stroke-dashoffset: 8;
-  vector-effect: non-scaling-stroke;
-  animation: chip-pulse 2.8s linear infinite;
-  animation-delay: var(--pd);
-}
-@keyframes chip-pulse {
-  to {
-    stroke-dashoffset: -100;
-  }
-}
-/* cores light up one after another */
-.chip-core {
-  animation: chip-core 4.4s ease-in-out infinite;
-  animation-delay: calc(var(--ci) * 0.55s);
-}
-@keyframes chip-core {
-  0%,
-  30%,
-  100% {
-    fill: rgb(var(--fg-rgb) / 0.05);
-  }
-  12% {
-    fill: color-mix(in srgb, var(--core-c) 70%, transparent);
-  }
-}
-html[data-agent-busy] .chip-core {
-  animation-duration: 1.4s;
-  animation-delay: calc(var(--ci) * 0.17s);
-}
-html[data-agent-busy] .chip-pulse {
-  animation-duration: 1.3s;
-}
-/* layers spread a little on hover (the 3D chip does the same) */
-.chip-layer {
-  transition: transform 700ms var(--ease-out);
-}
-@media (hover: hover) {
-  .chip-stage:hover .chip-layer[data-layer="sink"] {
-    transform: translateY(-16px);
-  }
-  .chip-stage:hover .chip-layer[data-layer="die"] {
-    transform: translateY(-9px);
-  }
-  .chip-stage:hover .chip-layer[data-layer="interposer"] {
-    transform: translateY(-4px);
-  }
-}
-html.js .chip-stage:not([data-play]) .chip-art *,
-.chip-stage[data-paused] .chip-art *,
-.chip-stage[data-3d] .chip-art * {
-  animation-play-state: paused;
-}
-.chip-stage .chip-art {
-  transition: opacity 600ms var(--ease-out);
-}
-.chip-stage canvas {
-  opacity: 0;
-  transition: opacity 600ms var(--ease-out);
-}
-.chip-stage[data-3d] canvas {
-  opacity: 1;
-}
-.chip-stage[data-3d] .chip-art {
-  opacity: 0;
-}
-[data-motion="reduce"] .chip-pulse {
+.chip-poster-still {
+  --poster: url(/chip/still-m.svg);
   display: none;
 }
-[data-motion="reduce"] .chip-core {
-  animation: none;
+/* the cores, in their own colours: a plain image, not a mask */
+.chip-poster-cores {
+  background: url(/chip/cores-m.svg) center / 100% 100% no-repeat;
+  -webkit-mask: none;
+  mask: none;
+  display: none;
+}
+@media (min-width: 1024px) {
+  .chip-poster-live {
+    --poster: url(/chip/sphere-d.svg);
+  }
+  .chip-poster-still {
+    --poster: url(/chip/still-d.svg);
+  }
+  .chip-poster-cores {
+    background-image: url(/chip/cores-d.svg);
+  }
+}
+/* the WebGL scene drew its first frame (identical to the sphere poster) */
+.chip-stage[data-live] .chip-poster-live {
+  visibility: hidden;
+}
+/* no JavaScript, reduced motion or no WebGL: the assembled chip, still */
+html:not(.js) .chip-poster-live,
+[data-motion="reduce"] .chip-poster-live,
+.chip-stage[data-fallback] .chip-poster-live,
+[data-motion="reduce"] .chip-canvas,
+.chip-stage[data-fallback] .chip-canvas {
+  display: none;
+}
+html:not(.js) :is(.chip-poster-still, .chip-poster-cores),
+[data-motion="reduce"] :is(.chip-poster-still, .chip-poster-cores),
+.chip-stage[data-fallback] :is(.chip-poster-still, .chip-poster-cores) {
+  display: block;
+}
+/* high contrast: the dots in the system's text colour */
+@media (forced-colors: active) {
+  .chip-poster {
+    forced-color-adjust: none;
+    background-color: CanvasText;
+  }
+  .chip-poster-cores {
+    background-color: transparent;
+  }
 }
 
 /* ------------------------------------------------------------------ */
@@ -1522,6 +1467,36 @@ html.js .chip-stage:not([data-play]) .chip-art *,
 [data-motion="reduce"] .frag {
   animation: none;
   transition: none;
+}
+/* Phones (< 768 px): the scaled composition would be unreadable (5-7 px
+   text), so each project keeps only its main fragment, centred and at 1.3×:
+   its smallest text (8.5 px) becomes 11 px. */
+@media (max-width: 767.98px) {
+  .frag-stage {
+    aspect-ratio: 4 / 3;
+  }
+  .frag-canvas {
+    width: 100%;
+    height: 100%;
+    aspect-ratio: auto;
+    scale: none;
+  }
+  .frag:not(.frag-main) {
+    display: none;
+  }
+  .frag-main {
+    left: 50%;
+    top: 50%;
+    right: auto;
+    bottom: auto;
+    width: min(69%, 300px);
+    transform: translate(-50%, -50%) rotate(var(--rot)) scale(1.3);
+  }
+}
+@media (max-width: 399.98px) {
+  .frag-stage {
+    aspect-ratio: 1;
+  }
 }
 
 /* ------------------------------------------------------------------ */
