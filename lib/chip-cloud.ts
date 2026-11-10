@@ -2,7 +2,7 @@
  * The hero chip as a cloud of points (exploded view: heat sink with fins, die
  * with its cores, interposer with traces, substrate with BGA balls), plus the
  * sphere the points start from. Pure and deterministic (seeded), shared by
- * the WebGL scene (components/hero/chip-scene.ts), the SVG posters that stand
+ * the WebGL scene (components/figures/scene.ts), the SVG posters that stand
  * in for its first frame (app/chip/[file]/route.ts) and the social card.
  *
  * World units: the chip's "mm" / 100, y up. The chip's own y axis (depth)
@@ -14,8 +14,8 @@ export { CLOUD_SIZE, DESKTOP_QUERY } from "./chip-config";
 
 /**
  * Camera: perspective, at (0, 0, dist) looking at the origin. The chip is
- * turned (yaw, about y) and then tipped towards the viewer (tilt, about x),
- * exactly like three.js applies rotation.set(tilt, yaw, 0) in "XYZ" order.
+ * turned (yaw, about y) and then tipped towards the viewer (tilt, about x):
+ * v' = Rx(tilt) · Ry(yaw) · v.
  */
 export const CAM = { fov: 30, dist: 7.9, tilt: 0.55, yaw: -1.05 };
 
@@ -24,19 +24,35 @@ export const CAM = { fov: 30, dist: 7.9, tilt: 0.55, yaw: -1.05 };
  * turn passes angles where the fins face the camera and the chip stops
  * reading). yaw(t) = CAM.yaw + amp · sin(speed · t), so at t = 0 it is CAM.yaw.
  */
-export const SWAY = { amp: 0.32, speed: 0.15 };
+export const SWAY = { amp: 0.16, speed: 0.17 };
 
 /**
- * The canvas and the posters cover the chip's square plus this margin on
- * each side (as a fraction of the square), so scattered points have room.
+ * The chip's frame (what the posters cover, and where the scene maps ±1) is
+ * its square plus this margin on each side, as a fraction of the square.
  */
 export const BLEED = 0.15;
 
 /** Apple accent colours for the data packets and the cores. */
 export const AI = ["#0a84ff", "#bf5af2", "#ff375f", "#ff9f0a"];
 
-const SIZES = [0.017, 0.026, 0.038];
-const ALPHAS = [0.22, 0.45, 0.8];
+/**
+ * Dot diameters in world units: many tiny ones, some medium, a few large
+ * (the hierarchy of evolve.es's sphere). At the desktop size one unit is
+ * about 157 px, so these are roughly 1.7, 2.6, 4.2, 6.6 and 9 px.
+ */
+export const DOT = { xs: 0.0108, s: 0.0166, m: 0.027, l: 0.042, xl: 0.058 };
+
+/** How a part is drawn: its mix of dot sizes and of opacities, as [value, weight] pairs. */
+export interface Look {
+  sizes: [number, number][];
+  alphas: [number, number][];
+}
+export const look = (sizes: [number, number][], alphas: [number, number][] = [[1, 1]]): Look => ({ sizes, alphas });
+export function pick(rnd: () => number, pairs: [number, number][]) {
+  let r = rnd() * pairs.reduce((s, p) => s + p[1], 0);
+  for (const [v, w] of pairs) if ((r -= w) < 0) return v;
+  return pairs[pairs.length - 1][0];
+}
 
 export interface Cloud {
   n: number;
@@ -47,12 +63,14 @@ export interface Cloud {
   /** world-space diameter */
   size: Float32Array;
   alpha: Float32Array;
-  /** 0..1, for staggering, twinkle and scatter */
+  /** four random numbers per point (stagger, headings, twinkle) */
   seed: Float32Array;
-  /** layer index for the extra spread on scroll: 0 substrate, 1 interposer, 2 die, 3 heat sink, -1 dust */
+  /** layer: 0 substrate, 1 interposer, 2 die, 3 heat sink, -1 dust */
   layer: Float32Array;
-  /** core index 0..7, or -1 */
+  /** core index 0..7, or -1 (the cores are the last points, so they draw on top) */
   core: Float32Array;
+  /** die and traces: distance from the chip's axis, for the wave of light that crosses them; -1 elsewhere */
+  ring: Float32Array;
 }
 
 export interface Packets {
@@ -61,12 +79,12 @@ export interface Packets {
   path: Float32Array;
   /** cumulative length fractions at the 2nd and 3rd control points */
   marks: Float32Array;
-  /** speed (laps per clock unit), phase offset, tail index (0 head, 1-2 tail) */
+  /** speed (laps per clock unit), phase offset, tail index (0 head, then the tail) */
   motion: Float32Array;
   color: Float32Array;
 }
 
-function mulberry32(seed: number) {
+export function mulberry32(seed: number) {
   let a = seed >>> 0;
   return () => {
     a = (a + 0x6d2b79f5) >>> 0;
@@ -86,159 +104,152 @@ const LIFT = 0.16;
 /** chip "mm" (x right, y depth, z up) → world */
 export const toWorld = (x: number, y: number, z: number): [number, number, number] => [x / 100, (z - ZC) / 100 + LIFT, y / 100];
 
-type Weights = [number, number, number];
-// edges dark and crisp, faces light: the hierarchy that makes the shape read
-const EDGE: [Weights, Weights] = [[0.4, 0.45, 0.15], [0.1, 0.45, 0.45]];
-const FACE: [Weights, Weights] = [[0.75, 0.22, 0.03], [0.7, 0.27, 0.03]];
-const FINS: [Weights, Weights] = [[0.6, 0.35, 0.05], [0.65, 0.3, 0.05]];
-const LINE: [Weights, Weights] = [[0.8, 0.2, 0], [0.75, 0.25, 0]];
-const CORE: [Weights, Weights] = [[0.45, 0.45, 0.1], [0.3, 0.5, 0.2]];
-const BALL: [Weights, Weights] = [[0.5, 0.5, 0], [0.5, 0.5, 0]];
+// Edges crisp and opaque, faces a fine grain, a few large dots where the eye
+// should land (corners, cores, solder balls): the hierarchy that makes it read.
+const EDGE = look([[DOT.s, 0.56], [DOT.m, 0.38], [DOT.l, 0.06]]);
+/** a slab's lower rim and the fins' ends: finer, so thin slabs do not turn into one thick line */
+const EDGE_LOW = look([[DOT.xs, 0.45], [DOT.s, 0.55]]);
+const CORNER = look([[DOT.l, 1]]);
+const FACE = look([[DOT.xs, 0.74], [DOT.s, 0.22], [DOT.m, 0.04]], [[0.6, 0.22], [1, 0.78]]);
+const FIN_TOP = look([[DOT.s, 0.6], [DOT.m, 0.35], [DOT.l, 0.05]]);
+const FIN_FACE = look([[DOT.xs, 0.82], [DOT.s, 0.18]], [[0.6, 0.25], [1, 0.75]]);
+const LINE = look([[DOT.s, 0.82], [DOT.m, 0.18]]);
+const PAD = look([[DOT.m, 1]]);
+const CORE = look([[DOT.m, 1]]);
+const BALL = look([[DOT.l, 0.3], [DOT.xl, 0.7]]);
+/** phones: the chip is smaller, so its solder balls are a size down */
+const BALL_PHONE = look([[DOT.l, 0.75], [DOT.xl, 0.25]]);
+const DUST = look([[DOT.xs, 0.6], [DOT.s, 0.27], [DOT.m, 0.11], [DOT.l, 0.02]], [[0.6, 0.4], [1, 0.6]]);
+
+interface Pt {
+  p: [number, number, number];
+  s: number;
+  a: number;
+  layer: number;
+  core: number;
+  ring: number;
+}
 
 /**
- * Share of the points per part. Phones have fewer points, so the edges get
- * a larger share there (they carry the shape) and the fills and dust less.
- * Dust takes whatever is left.
+ * The chip's parts as dots `pitch` mm apart along the edges (faces are
+ * sparser). Returns the ink points and, apart, the cores.
  */
-const BUDGET = {
-  desktop: { sEdge: 0.055, sTop: 0.08, sSide: 0.03, balls: 0.06, iEdge: 0.05, iTop: 0.07, traces: 0.035, dEdge: 0.045, dSide: 0.03, dTop: 0.03, cores: 0.06, hEdge: 0.055, hTop: 0.07, fins: 0.26, finTop: 0.3 },
-  mobile: { sEdge: 0.1, sTop: 0.035, sSide: 0.015, balls: 0.07, iEdge: 0.09, iTop: 0.03, traces: 0.035, dEdge: 0.08, dSide: 0.02, dTop: 0.02, cores: 0.07, hEdge: 0.1, hTop: 0.03, fins: 0.26, finTop: 0.45 },
-};
-const DUST: [Weights, Weights] = [[0.75, 0.22, 0.03], [0.8, 0.2, 0]];
+function sample(rnd: () => number, pitch: number, k: number, phone: boolean): [Pt[], Pt[]] {
+  const coreSide = phone ? 3 : 4;
+  const ink: Pt[] = [];
+  const cores: Pt[] = [];
+  const add = (x: number, y: number, z: number, lk: Look, layer: number, ring = false, core = -1) =>
+    (core >= 0 ? cores : ink).push({ p: toWorld(x, y, z), s: pick(rnd, lk.sizes) * k, a: pick(rnd, lk.alphas), layer, core, ring: ring ? Math.max(Math.abs(x), Math.abs(y)) / 100 : -1 });
 
-/** The point cloud for n points (same n → same cloud, always). */
-export function buildCloud(n: number): Cloud {
-  const rnd = mulberry32(20261105 + n);
-  const k = n < 4000 ? 1.15 : 1; // fewer points on phones: a little larger
-  const b = n < 4000 ? BUDGET.mobile : BUDGET.desktop;
-  const pts: { p: [number, number, number]; s: number; a: number; layer: number; core: number }[] = [];
-  const choose = (w: Weights) => {
-    const r = rnd();
-    return r < w[0] ? 0 : r < w[0] + w[1] ? 1 : 2;
-  };
-  const add = (x: number, y: number, z: number, look: [Weights, Weights], layer: number, core = -1) =>
-    pts.push({ p: toWorld(x, y, z), s: SIZES[choose(look[0])] * k, a: ALPHAS[choose(look[1])], layer, core });
-
-  // Budget: each part gets a share of n; dust takes the remainder.
-  const share = (f: number) => Math.max(1, Math.round(n * f));
-
-  const segment = (a: number[], b: number[], count: number, look: [Weights, Weights], layer: number) => {
+  type V = [number, number, number];
+  const line = (a: V, b: V, lk: Look, layer: number, gap = pitch, ring = false) => {
+    const count = Math.max(1, Math.round(Math.hypot(b[0] - a[0], b[1] - a[1], b[2] - a[2]) / gap));
     for (let i = 0; i < count; i++) {
-      const t = (i + 0.2 + rnd() * 0.6) / count;
-      add(a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t, a[2] + (b[2] - a[2]) * t, look, layer);
+      const t = (i + 0.5 + (rnd() - 0.5) * 0.3) / count;
+      add(a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t, a[2] + (b[2] - a[2]) * t, lk, layer, ring);
     }
   };
-  const polyline = (pl: number[][], count: number, look: [Weights, Weights], layer: number) => {
-    const lens = pl.slice(1).map((p, i) => Math.hypot(p[0] - pl[i][0], p[1] - pl[i][1], p[2] - pl[i][2]));
-    const total = lens.reduce((s, l) => s + l, 0);
-    let left = count;
-    lens.forEach((l, i) => {
-      const c = i === lens.length - 1 ? left : Math.round((count * l) / total);
-      left -= c;
-      segment(pl[i], pl[i + 1], c, look, layer);
-    });
-  };
-  const boxEdges = (x0: number, x1: number, y0: number, y1: number, z0: number, z1: number, count: number, layer: number) => {
-    const e: [number[], number[]][] = [];
+  /** a slab's twelve edges, with a large dot on each corner */
+  const box = (s: { w: number; d: number; z: number; h: number }, layer: number, ring = false) => {
+    const z0 = s.z;
+    const z1 = s.z + s.h;
     for (const z of [z0, z1]) {
-      e.push([[x0, y0, z], [x1, y0, z]], [[x1, y0, z], [x1, y1, z]], [[x1, y1, z], [x0, y1, z]], [[x0, y1, z], [x0, y0, z]]);
+      const lk = z === z1 ? EDGE : EDGE_LOW;
+      const gap = z === z1 ? pitch : pitch * 1.25;
+      line([-s.w, -s.d, z], [s.w, -s.d, z], lk, layer, gap, ring);
+      line([s.w, -s.d, z], [s.w, s.d, z], lk, layer, gap, ring);
+      line([s.w, s.d, z], [-s.w, s.d, z], lk, layer, gap, ring);
+      line([-s.w, s.d, z], [-s.w, -s.d, z], lk, layer, gap, ring);
     }
-    for (const [x, y] of [[x0, y0], [x1, y0], [x1, y1], [x0, y1]]) e.push([[x, y, z0], [x, y, z1]]);
-    const lens = e.map(([a, b]) => Math.hypot(b[0] - a[0], b[1] - a[1], b[2] - a[2]));
-    const total = lens.reduce((s, l) => s + l, 0);
-    e.forEach(([a, b], i) => segment(a, b, Math.max(1, Math.round((count * lens[i]) / total)), EDGE, layer));
+    for (const x of [-s.w, s.w])
+      for (const y of [-s.d, s.d]) {
+        add(x, y, z1, CORNER, layer, ring);
+        add(x, y, z0, EDGE, layer, ring);
+      }
   };
-  const top = (x0: number, x1: number, y0: number, y1: number, z: number, count: number, layer: number, skip?: (x: number, y: number) => boolean) => {
-    let made = 0;
-    let guard = count * 20;
-    while (made < count && guard-- > 0) {
-      const x = x0 + (x1 - x0) * rnd();
-      const y = y0 + (y1 - y0) * rnd();
-      if (skip?.(x, y)) continue;
-      add(x, y, z, FACE, layer);
-      made++;
-    }
+  /** a face as a loose grid: regular enough to read as a plane, never ruled */
+  const grid = (x0: number, x1: number, y0: number, y1: number, z: number, gap: number, lk: Look, layer: number, skip?: (x: number, y: number) => boolean) => {
+    const nx = Math.max(1, Math.round((x1 - x0) / gap));
+    const ny = Math.max(1, Math.round((y1 - y0) / gap));
+    for (let i = 0; i < nx; i++)
+      for (let j = 0; j < ny; j++) {
+        const x = x0 + ((i + 0.5 + (rnd() - 0.5) * 0.7) / nx) * (x1 - x0);
+        const y = y0 + ((j + 0.5 + (rnd() - 0.5) * 0.7) / ny) * (y1 - y0);
+        if (!skip?.(x, y)) add(x, y, z, lk, layer);
+      }
   };
-  const sides = (s: { w: number; d: number; z: number; h: number }, count: number, layer: number) => {
-    const per = 2 * (s.w + s.d);
-    for (let i = 0; i < count; i++) {
-      let u = rnd() * per * 2;
-      const z = s.z + s.h * rnd();
-      let x: number;
-      let y: number;
-      if (u < 2 * s.w) [x, y] = [-s.w + u, -s.d];
-      else if ((u -= 2 * s.w) < 2 * s.d) [x, y] = [s.w, -s.d + u];
-      else if ((u -= 2 * s.d) < 2 * s.w) [x, y] = [s.w - u, s.d];
-      else [x, y] = [-s.w, s.d - (u - 2 * s.w)];
-      add(x, y, z, FACE, layer);
-    }
-  };
-  const slab = (s: { w: number; d: number; z: number; h: number }) => [-s.w, s.w, -s.d, s.d, s.z, s.z + s.h] as const;
 
-  // substrate (layer 0) and its BGA balls
-  boxEdges(...slab(S), share(b.sEdge), 0);
-  top(-S.w, S.w, -S.d, S.d, S.z + S.h, share(b.sTop), 0);
-  sides(S, share(b.sSide), 0);
-  // each ball as a small ring at its equator: reads as a sphere, not a smudge
-  const perBall = Math.max(3, Math.round((n * b.balls) / BALLS.length));
-  for (const [bx, by] of BALLS) {
-    const turn = rnd() * Math.PI * 2;
-    for (let i = 0; i < perBall; i++) {
-      const th = turn + (i / perBall) * Math.PI * 2;
-      add(bx + 3.6 * Math.cos(th), by + 3.6 * Math.sin(th), S.z - 5, BALL, 0);
-    }
+  // substrate (layer 0): slab, grain on top, and one fat dot per solder ball underneath
+  box(S, 0);
+  grid(-S.w + 5, S.w - 5, -S.d + 5, S.d - 5, S.z + S.h, pitch * 2.5, FACE, 0);
+  for (const [bx, by] of BALLS) add(bx, by, S.z - 5, phone ? BALL_PHONE : BALL, 0);
+
+  // interposer (layer 1): slab, grain around the die's footprint, and the traces fanning out to their pads
+  box(I, 1);
+  grid(-I.w + 4, I.w - 4, -I.d + 4, I.d - 4, I.z + I.h, pitch * 3.4, FACE, 1, (x, y) => Math.abs(x) < D.w + 3 && Math.abs(y) < D.d + 3);
+  const zt = I.z + I.h + 0.4;
+  for (const t of TRACES) {
+    for (let i = 0; i < t.length - 1; i++) line([t[i][0], t[i][1], zt], [t[i + 1][0], t[i + 1][1], zt], LINE, 1, pitch * 0.95, true);
+    const end = t[t.length - 1];
+    add(end[0], end[1], zt, PAD, 1, true);
   }
 
-  // interposer (layer 1) and its traces
-  boxEdges(...slab(I), share(b.iEdge), 1);
-  top(-I.w, I.w, -I.d, I.d, I.z + I.h, share(b.iTop), 1, (x, y) => Math.abs(x) < D.w && Math.abs(y) < D.d);
-  const perTrace = Math.max(6, Math.round((n * b.traces) / TRACES.length));
-  for (const t of TRACES) polyline(t.map(([x, y]) => [x, y, I.z + I.h + 0.4]), perTrace, LINE, 1);
-
-  // die (layer 2) and its cores
-  boxEdges(...slab(D), share(b.dEdge), 2);
-  sides(D, share(b.dSide), 2);
-  const inCore = (x: number, y: number) => CORES.some((c) => x > c.x0 - 1 && x < c.x1 + 1 && y > c.y0 - 1 && y < c.y1 + 1);
-  top(-D.w, D.w, -D.d, D.d, D.z + D.h, share(b.dTop), 2, inCore);
-  const perCore = Math.max(4, Math.round((n * b.cores) / CORES.length));
-  const side = Math.max(2, Math.round(Math.sqrt(perCore)));
+  // die (layer 2): a crisp slab and its eight cores, each a small block of dots
+  box(D, 2, true);
   CORES.forEach((c, ci) => {
-    for (let i = 0; i < side; i++)
-      for (let j = 0; j < side; j++) {
-        const x = c.x0 + ((i + 0.5) / side) * (c.x1 - c.x0) + (rnd() - 0.5) * 0.8;
-        const y = c.y0 + ((j + 0.5) / side) * (c.y1 - c.y0) + (rnd() - 0.5) * 0.8;
-        add(x, y, D.z + D.h + 0.3, CORE, 2, ci);
+    for (let i = 0; i < coreSide; i++)
+      for (let j = 0; j < coreSide; j++) {
+        const x = c.x0 + ((i + 0.5) / coreSide) * (c.x1 - c.x0) + (rnd() - 0.5) * 0.3;
+        const y = c.y0 + ((j + 0.5) / coreSide) * (c.y1 - c.y0) + (rnd() - 0.5) * 0.3;
+        add(x, y, D.z + D.h + 0.3, CORE, 2, true, ci);
       }
   });
 
-  // heat sink (layer 3): plate and fins
-  boxEdges(...slab(H), share(b.hEdge), 3);
-  top(-H.w, H.w, -H.d, H.d, H.z + H.h, share(b.hTop), 3);
+  // heat sink (layer 3): plate and fins. Each fin is its top edge (dense), its two ends, and a light face.
+  box(H, 3);
   const finStep = (H.d * 2 - FIN.t) / (FIN.count - 1);
-  const perFin = Math.max(6, Math.round((n * b.fins) / FIN.count));
-  const finTop = Math.round(perFin * b.finTop);
-  const finEnd = Math.round(perFin * 0.06);
   const fz0 = H.z + H.h;
+  const fz1 = fz0 + FIN.h;
+  const x0 = -H.w + 4;
+  const x1 = H.w - 4;
   for (let f = 0; f < FIN.count; f++) {
-    const y0 = -H.d + f * finStep;
-    const x0 = -H.w + 4;
-    const x1 = H.w - 4;
-    // top edge (dense), the two vertical ends, then the face (sparse)
-    segment([x0, y0, fz0 + FIN.h], [x1, y0, fz0 + FIN.h], finTop, EDGE, 3);
-    segment([x0, y0, fz0], [x0, y0, fz0 + FIN.h], finEnd, EDGE, 3);
-    segment([x1, y0, fz0], [x1, y0, fz0 + FIN.h], finEnd, EDGE, 3);
-    for (let i = 0, m = perFin - 2 * finEnd - finTop; i < m; i++)
-      add(x0 + (x1 - x0) * rnd(), y0 + (rnd() < 0.5 ? 0 : FIN.t), fz0 + FIN.h * rnd(), FINS, 3);
+    const y = -H.d + f * finStep + FIN.t / 2;
+    line([x0, y, fz1], [x1, y, fz1], FIN_TOP, 3, pitch * 0.9);
+    line([x0, y, fz0], [x0, y, fz1], EDGE_LOW, 3);
+    line([x1, y, fz0], [x1, y, fz1], EDGE_LOW, 3);
+    const nx = Math.max(2, Math.round((x1 - x0) / (pitch * 3)));
+    const nz = Math.max(2, Math.round(FIN.h / (pitch * 3.2)));
+    for (let i = 0; i < nx; i++)
+      for (let j = 0; j < nz; j++) add(x0 + ((i + 0.5 + (rnd() - 0.5) * 0.7) / nx) * (x1 - x0), y, fz0 + ((j + 0.5 + (rnd() - 0.5) * 0.6) / nz) * FIN.h, FIN_FACE, 3);
   }
+  return [ink, cores];
+}
 
-  // dust: a faint halo around the chip, the rest of the budget
-  while (pts.length < n) {
-    const u = rnd() * 2 - 1;
-    const th = rnd() * Math.PI * 2;
-    const r = 1.3 + rnd() * 0.32;
-    const q = Math.sqrt(1 - u * u);
-    pts.push({ p: [r * q * Math.cos(th), r * u * 0.8, r * q * Math.sin(th)], s: SIZES[choose(DUST[0])] * k, a: ALPHAS[choose(DUST[1])] * 0.7, layer: -1, core: -1 });
+/** The point cloud for n points (same n → same cloud, always). */
+export function buildCloud(n: number): Cloud {
+  const phone = n < 4000;
+  const k = phone ? 1.3 : 1; // fewer points on phones: a little larger
+  const dustShare = phone ? 0.03 : 0.035;
+  // Dots as close along the edges as the budget allows (phones: a wider pitch), leaving a share for the dust.
+  // The search starts just under where it ends for today's sizes, so it takes a couple of passes.
+  let pitch = phone ? 4.56 : 2.3;
+  let ink: Pt[] = [];
+  let cores: Pt[] = [];
+  for (let guard = 0; guard < 60; guard++) {
+    [ink, cores] = sample(mulberry32(20261110 + n), pitch, k, phone);
+    if (ink.length + cores.length <= n * (1 - dustShare)) break;
+    pitch *= 1.02;
   }
+  const rnd = mulberry32(977 + n);
+
+  // dust: a loose belt around the chip (the scene makes it orbit), the rest of the budget
+  const dust: Pt[] = [];
+  for (let left = n - ink.length - cores.length; left > 0; left--) {
+    const th = rnd() * Math.PI * 2;
+    const r = 1.2 + 0.3 * rnd();
+    dust.push({ p: [r * Math.cos(th), LIFT + (rnd() + rnd() - 1) * 0.6, r * Math.sin(th)], s: pick(rnd, DUST.sizes) * k, a: pick(rnd, DUST.alphas), layer: -1, core: -1, ring: -1 });
+  }
+  const pts = [...dust, ...ink, ...cores];
   pts.length = n;
 
   // Sphere: a Fibonacci sphere with a little depth, shuffled so each point flies to a random place.
@@ -255,9 +266,10 @@ export function buildCloud(n: number): Cloud {
     sphere: new Float32Array(n * 3),
     size: new Float32Array(n),
     alpha: new Float32Array(n),
-    seed: new Float32Array(n),
+    seed: new Float32Array(n * 4),
     layer: new Float32Array(n),
     core: new Float32Array(n),
+    ring: new Float32Array(n),
   };
   pts.forEach((pt, i) => {
     const j = order[i];
@@ -268,17 +280,19 @@ export function buildCloud(n: number): Cloud {
     cloud.chip.set(pt.p, i * 3);
     cloud.size[i] = pt.s;
     cloud.alpha[i] = pt.a;
-    cloud.seed[i] = rnd();
+    cloud.seed.set([rnd(), rnd(), rnd(), rnd()], i * 4);
     cloud.layer[i] = pt.layer;
     cloud.core[i] = pt.core;
+    cloud.ring[i] = pt.ring;
   });
   return cloud;
 }
 
-/** Data packets: one head and two tail points per trace, each trace with its own pace and colour. */
+/** Data packets: a head and a tail of four points per trace, each trace with its own pace and colour. */
+export const PACKET_TAIL = 5;
 export function buildPackets(): Packets {
   const rnd = mulberry32(7);
-  const per = 3;
+  const per = PACKET_TAIL;
   const n = TRACES.length * per;
   const out: Packets = { n, path: new Float32Array(n * 12), marks: new Float32Array(n * 2), motion: new Float32Array(n * 3), color: new Float32Array(n * 3) };
   TRACES.forEach((t, ti) => {
@@ -302,7 +316,10 @@ export function buildPackets(): Packets {
 
 /* ---------------- projection (posters and social card) ---------------- */
 
-/** Project a world point the way the WebGL scene does at rest (no extra spread): returns 0..1 coordinates over the canvas box and the view depth. */
+/** 1 / tan(fov / 2): a point at distance d from the camera lands at focal · x / d, in frame units. */
+export const FOCAL = 1 / Math.tan(((CAM.fov / 2) * Math.PI) / 180);
+
+/** Project a world point the way the WebGL scene does at rest: returns 0..1 coordinates over the chip's frame and the view depth. */
 export function project(v: ArrayLike<number>, yaw = CAM.yaw, tilt = CAM.tilt): [number, number, number] {
   const x = v[0];
   const y = v[1];
@@ -317,36 +334,29 @@ export function project(v: ArrayLike<number>, yaw = CAM.yaw, tilt = CAM.tilt): [
   const y2 = ct * y - st * z1;
   const z2 = st * y + ct * z1;
   const depth = CAM.dist - z2; // distance in front of the camera
-  const f = 1 / Math.tan(((CAM.fov / 2) * Math.PI) / 180);
-  return [(1 + (f * x1) / depth) / 2, (1 - (f * y2) / depth) / 2, depth];
+  return [(1 + (FOCAL * x1) / depth) / 2, (1 - (FOCAL * y2) / depth) / 2, depth];
 }
 
-/** Diameter, as a fraction of the canvas box, of a point of world size s at a given depth. */
-export const projectedSize = (s: number, depth: number) => (s / depth / Math.tan(((CAM.fov / 2) * Math.PI) / 180)) / 2;
+/** Diameter, as a fraction of the frame, of a point of world size s at a given depth. */
+export const projectedSize = (s: number, depth: number) => (s * FOCAL) / depth / 2;
 
-/**
- * An SVG of the cloud's first frame (the sphere) or of the assembled chip
- * without its cores (for reduced motion and no JavaScript): black dots on
- * transparent, used as a CSS mask so the page paints them in its own ink. Or
- * the cores alone, in their accent colours, used as a plain image. Dots are
- * round-capped zero-length strokes, grouped by diameter, opacity and colour,
- * on integer coordinates (finer than the poster is ever drawn).
- */
-export function posterSVG(n: number, mode: "sphere" | "still" | "cores"): string {
-  const c = buildCloud(n);
-  const V = 1000;
+export interface SvgDot {
+  /** centre and diameter, in viewBox units */
+  x: number;
+  y: number;
+  d: number;
+  alpha: number;
+  colour: string;
+}
+
+/** Dots as round-capped zero-length strokes, grouped by diameter, opacity and colour, on integer coordinates (finer than a poster is ever drawn). */
+export function dotsSVG(dots: SvgDot[], width: number, height: number): string {
   const groups = new Map<string, string[]>();
-  for (let i = 0; i < c.n; i++) {
-    const isCore = c.core[i] >= 0;
-    if ((mode === "still" && isCore) || (mode === "cores" && !isCore)) continue;
-    const src = mode === "sphere" ? c.sphere : c.chip;
-    const [u, v, depth] = project(src.subarray(i * 3, i * 3 + 3));
-    const d = Math.max(0.5, Math.round(projectedSize(c.size[i], depth) * V * 4) / 4);
-    const colour = mode === "cores" ? AI[c.core[i] % AI.length] : "#000";
-    const alpha = mode === "cores" ? 0.9 : c.alpha[i];
-    const key = `${d}|${alpha}|${colour}`;
+  for (const dot of dots) {
+    if (dot.alpha <= 0) continue;
+    const key = `${Math.max(0.5, Math.round(dot.d * 4) / 4)}|${Math.round(dot.alpha * 100) / 100}|${dot.colour}`;
     const list = groups.get(key) ?? [];
-    list.push(`M${Math.round(u * V)} ${Math.round(v * V)}h0`);
+    list.push(`M${Math.round(dot.x)} ${Math.round(dot.y)}h0`);
     groups.set(key, list);
   }
   const paths = [...groups.entries()]
@@ -355,5 +365,25 @@ export function posterSVG(n: number, mode: "sphere" | "still" | "cores"): string
       return `<path stroke="${colour}" stroke-width="${d}"${a === "1" ? "" : ` stroke-opacity="${a}"`} d="${list.join("")}"/>`;
     })
     .join("");
-  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${V} ${V}"><g fill="none" stroke-linecap="round">${paths}</g></svg>`;
+  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${width} ${height}"><g fill="none" stroke-linecap="round">${paths}</g></svg>`;
+}
+
+/**
+ * An SVG of the cloud's first frame (the sphere) or of the assembled chip
+ * without its cores (for reduced motion and no JavaScript): black dots on
+ * transparent, used as a CSS mask so the page paints them in its own ink. Or
+ * the cores alone, in their accent colours, used as a plain image.
+ */
+export function posterSVG(n: number, mode: "sphere" | "still" | "cores"): string {
+  const c = buildCloud(n);
+  const V = 1000;
+  const dots: SvgDot[] = [];
+  for (let i = 0; i < c.n; i++) {
+    const isCore = c.core[i] >= 0;
+    if ((mode === "still" && isCore) || (mode === "cores" && !isCore)) continue;
+    const src = mode === "sphere" ? c.sphere : c.chip;
+    const [u, v, depth] = project(src.subarray(i * 3, i * 3 + 3));
+    dots.push({ x: u * V, y: v * V, d: projectedSize(c.size[i], depth) * V, alpha: mode === "cores" ? 1 : c.alpha[i], colour: mode === "cores" ? AI[c.core[i] % AI.length] : "#000" });
+  }
+  return dotsSVG(dots, V, V);
 }

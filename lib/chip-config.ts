@@ -5,6 +5,6 @@
  */
 
 /** Points per device class: desktop (≥ 1024 px wide) and everything else. */
-export const CLOUD_SIZE = { desktop: 8000, mobile: 2500 } as const;
+export const CLOUD_SIZE = { desktop: 6000, mobile: 2500 } as const;
 /** Width from which the desktop cloud (and its poster) is used. */
 export const DESKTOP_QUERY = "(min-width: 1024px)";

@@ -28,7 +28,7 @@ export async function Stats({ lang }: { lang: Locale }) {
   const items = await Promise.all(profile.impact.map(async (s) => ({ s, src: await source(s.target) })));
   return (
     <section id="numbers" className="section [--pad-top:80px] md:[--pad-top:112px]">
-      <SectionHeader eyebrow={t.eyebrow[lang]} title={t.title[lang]} />
+      <SectionHeader eyebrow={t.eyebrow[lang]} title={t.title[lang]} figure="bars" />
       <ul className="wrap mt-12 grid grid-cols-2 gap-3 md:gap-5 lg:grid-cols-4">
         {items.map(({ s, src }, i) => (
           <li key={s.id} suppressHydrationWarning className="reveal" style={{ ["--rd" as string]: `${i * 80}ms` }}>
