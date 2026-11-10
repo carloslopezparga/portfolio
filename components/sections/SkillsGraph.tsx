@@ -247,7 +247,7 @@ export function SkillsGraph({ skills, refs, layout, labels }: { skills: GraphSki
   return (
     <>
       {/* desktop: the graph and its inspector */}
-      <div ref={graphRef} className="hidden lg:block">
+      <div ref={graphRef} className="skills-desktop hidden lg:block">
         {show ? (
           <svg viewBox={`0 0 ${layout.w} ${layout.h}`} className="skills-graph block h-auto w-full" role="toolbar" aria-label={labels.tour}>
             <g aria-hidden>
@@ -365,7 +365,7 @@ export function SkillsGraph({ skills, refs, layout, labels }: { skills: GraphSki
       </div>
 
       {/* phones and tablets: a list by domain, details in a bottom sheet */}
-      <div className="space-y-8 lg:hidden">
+      <div className="skills-list space-y-8 lg:hidden">
         {[...new Set(skills.map((s) => s.domain))].map((d) => (
           <div key={d} data-domain={d}>
             <p className="text-[14px] font-semibold text-[var(--d)]">{skills.find((s) => s.domain === d)?.domainLabel}</p>

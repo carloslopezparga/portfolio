@@ -4,7 +4,6 @@ import { copy } from "@/lib/copy";
 import { CV_URL } from "@/lib/site";
 import { PromptBar } from "@/components/agent/PromptBar";
 import { Figures } from "@/components/figures/Figures";
-import { MotionToggle } from "./MotionToggle";
 
 const icon = (d: string) => (
   <svg viewBox="0 0 16 16" className="size-4" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
@@ -79,7 +78,6 @@ export function Hero({ lang }: { lang: Locale }) {
                   {/* what the pointer touches: hover, drag and click (the canvas itself takes no events) */}
                   <span className="fig-zone chip-zone" data-figure-zone aria-hidden />
                 </div>
-                <MotionToggle label={copy.hero.pause[lang]} className="chip-pause" />
               </div>
             </div>
           </div>

@@ -93,6 +93,12 @@ export function setMotionOverride(v: MotionPref) {
   write("pref:motion", v === "auto" ? null : v);
   update();
 }
+/** Pause or resume the page's motion (WCAG 2.2.2): flips the reduced motion preference for the session. */
+export function toggleMotion() {
+  start();
+  if (!state.reduced) setMotionOverride("reduce");
+  else setMotionOverride(mqReduce().matches ? "full" : "auto");
+}
 export function setInputOverride(v: InputPref) {
   write("pref:input", v === "auto" ? null : v);
   update();

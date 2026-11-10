@@ -6,18 +6,15 @@ import { CLOUD_SIZE, DESKTOP_QUERY } from "@/lib/chip-config";
 import { usePrefs } from "@/lib/prefs";
 import type { SceneHandle } from "./scene";
 
-type IdleWindow = Window & { requestIdleCallback?: (cb: () => void, o?: { timeout: number }) => number; cancelIdleCallback?: (id: number) => void };
-
-/** Phones wait this long after the page has loaded before loading the scene. */
-const PHONE_DELAY = 4000;
-
 /**
  * Loads the page's point cloud (one WebGL context) over the chip's sphere
- * poster, after first paint and only once a figure's gap is near the screen:
- * on desktop as soon as the page is idle; on phones 4 s after the page has
- * loaded (three.js is a large script for a mid-range phone, and a tap or the
- * first keystroke in the agent must never wait for it). The scene's first
- * frame is the poster, so the swap is invisible.
+ * poster. Nothing here waits for the browser to be idle (the agent's bar
+ * types all the time, so it may never be) or for a first touch: on desktop
+ * the scene starts loading as soon as this mounts; on phones, as soon as the
+ * page has loaded (three.js is a large script: the content goes first). Until
+ * it draws, nothing reacts to the pointer, so sooner is better. The scene's
+ * first frame is the poster, so the swap is invisible, and it sets itself up
+ * in small steps, so no tap or keystroke waits long for it.
  *
  * Desktop (≥ 1024 px): a fixed, full-screen canvas that takes no clicks, on
  * which the cloud travels from figure to figure. Phones and tablets: only
@@ -39,32 +36,11 @@ export function Figures() {
     const inline = ref.current!;
     const stage = inline.parentElement!;
     const gaps = () => document.querySelectorAll<HTMLElement>("[data-figure]");
-    const w = window as IdleWindow;
     const mq = matchMedia(DESKTOP_QUERY);
     let cancelled = false;
     let run = 0;
     let layer: HTMLCanvasElement | null = null;
     const pending: (() => void)[] = [];
-    const later = (fn: () => void, ms: number) => {
-      const id = window.setTimeout(fn, ms);
-      pending.push(() => window.clearTimeout(id));
-    };
-    const whenIdle = (fn: () => void, timeout: number) => {
-      if (!w.requestIdleCallback) return later(fn, 200);
-      const id = w.requestIdleCallback(fn, { timeout });
-      pending.push(() => w.cancelIdleCallback?.(id));
-    };
-    const whenNear = (fn: () => void) => {
-      const io = new IntersectionObserver((entries) => {
-        if (!entries.some((e) => e.isIntersecting)) return;
-        io.disconnect();
-        fn();
-      }, { rootMargin: "200px 0px" });
-      // phones only ever show the chip
-      if (mq.matches) gaps().forEach((el) => io.observe(el));
-      else io.observe(stage);
-      pending.push(() => io.disconnect());
-    };
     const clear = () => pending.splice(0).forEach((c) => c());
     const stop = () => {
       run++;
@@ -104,14 +80,10 @@ export function Figures() {
         .catch(fail);
     };
     const boot = () => {
-      if (mq.matches) requestAnimationFrame(() => whenIdle(() => whenNear(start), 1500));
+      if (mq.matches || document.readyState === "complete") start();
       else {
-        const afterLoad = () => later(() => whenIdle(() => whenNear(start), 2000), PHONE_DELAY);
-        if (document.readyState === "complete") afterLoad();
-        else {
-          window.addEventListener("load", afterLoad, { once: true });
-          pending.push(() => window.removeEventListener("load", afterLoad));
-        }
+        window.addEventListener("load", start, { once: true });
+        pending.push(() => window.removeEventListener("load", start));
       }
     };
     // crossing the breakpoint (a tablet turned, a window resized) changes canvas and cloud: start over

@@ -3,7 +3,7 @@
 import { useRouter } from "next/navigation";
 import type { Locale, SectionId } from "@/content/types";
 import { askAgent } from "@/lib/agent/store";
-import { getPrefs } from "@/lib/prefs";
+import { getPrefs, toggleMotion, usePrefs } from "@/lib/prefs";
 import { switchTheme } from "@/lib/theme";
 import { dispatchUI } from "@/lib/ui-bus";
 import type { PaletteGroup } from "@/components/ui/CommandPalette";
@@ -24,6 +24,8 @@ export interface SiteActionLabels {
   copied: string;
   lang: string;
   theme: string;
+  pauseMotion: string;
+  resumeMotion: string;
   close: string;
 }
 
@@ -39,6 +41,7 @@ export interface SiteActionProps {
 /** Everything the ⌘K palette (desktop) and the full-screen menu (mobile) offer. */
 export function useSiteGroups({ lang, sections, email, booking, labels: t }: SiteActionProps): PaletteGroup[] {
   const router = useRouter();
+  const { reduced } = usePrefs();
   const otherHref = lang === "en" ? "/es" : "/";
   return [
     {
@@ -85,6 +88,8 @@ export function useSiteGroups({ lang, sections, email, booking, labels: t }: Sit
             switchTheme(next, window.innerWidth / 2, window.innerHeight / 2, getPrefs().reduced);
           },
         },
+        // WCAG 2.2.2: the pause control the page no longer shows over the chip
+        { id: "motion", label: reduced ? t.resumeMotion : t.pauseMotion, icon: "replay", keywords: ["motion", "animation", "animations", "animaciones", "movimiento", "pause", "pausar", "resume", "reanudar", "play", "stop"], run: toggleMotion },
       ],
     },
   ];
