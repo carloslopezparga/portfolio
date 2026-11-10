@@ -196,7 +196,7 @@ Dot globeDot(mat3 rot, vec3 box) {
   // the far side smaller and fainter (lib/figure-cloud.ts globeShade)
   float front = smoothstep(-0.75, 0.55, facing);
   d.size = aSize.w * (0.6 + 0.4 * front) * (1.0 + 0.5 * max(wv, 0.0));
-  d.alpha = aAlpha.w * (0.2 + 0.8 * front);
+  d.alpha = aAlpha.w * (0.14 + 0.86 * front);
   return d;
 }
 
@@ -224,7 +224,7 @@ void main() {
     vec2 way = uBoxB.xy - uBoxA.xy;
     vec2 side = normalize(vec2(-way.y, way.x) + vec2(1e-3));
     float arc = sin(e * PI);
-    s = mix(sa.xy, sb.xy, e) + side * arc * (aSeed.z - 0.35) * 0.42 * length(way) + arc * 9.0 * vec2(sin(uTime * 2.1 + aSeed.w * 6.2832), cos(uTime * 1.7 + aSeed.y * 6.2832));
+    s = mix(sa.xy, sb.xy, e) + side * arc * (aSeed.z - 0.35) * 0.3 * length(way) + arc * 7.0 * vec2(sin(uTime * 2.1 + aSeed.w * 6.2832), cos(uTime * 1.7 + aSeed.y * 6.2832));
     size = mix(size, b.size * sb.z, e);
     alpha = mix(alpha, b.alpha * mix(uInkB.a, 1.0, b.lit), e);
     col = mix(col, mix(uInkB.rgb, b.tint, b.lit), e);

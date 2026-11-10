@@ -1376,6 +1376,85 @@ main[data-focusing] > section:not(:has([data-hl])) {
 .fig-zone[data-live] {
   cursor: grab;
 }
+/* The other figures' gaps (desktop only). Beside a section's title: on the
+   header's baseline, reaching up into the section's top padding, and the
+   text keeps 32 px clear of it (the chart's is larger: its title is short).
+   In Contact: the right half of the band. */
+.fig-gap {
+  display: none;
+}
+@media (min-width: 1024px) {
+  .fig-row {
+    --fig-w: 320px;
+    --fig-h: 210px;
+  }
+  .fig-row-bars {
+    --fig-w: 400px;
+    --fig-h: 250px;
+  }
+  .fig-gap {
+    display: block;
+    position: absolute;
+    right: var(--gutter);
+  }
+  .fig-gap-head {
+    bottom: 0;
+    width: var(--fig-w);
+    height: var(--fig-h);
+  }
+  .fig-beside {
+    max-width: calc(100% - var(--fig-w) - 32px);
+  }
+  .fig-gap-globe {
+    top: 50%;
+    width: min(400px, 34vw);
+    aspect-ratio: 1;
+    translate: 0 -50%;
+    border-radius: 50%;
+  }
+  /* (the grid's gap already keeps 48 px between the text and the globe) */
+  .fig-beside-globe {
+    max-width: calc(100% - min(400px, 34vw));
+  }
+}
+@media (min-width: 1280px) {
+  .fig-row {
+    --fig-w: 380px;
+    --fig-h: 240px;
+  }
+  .fig-row-bars {
+    --fig-w: 440px;
+    --fig-h: 264px;
+  }
+}
+/* their still posters (masks painted in the page's ink, like the chip's): reduced motion, no JavaScript, no WebGL */
+.fig-poster {
+  display: none;
+  position: absolute;
+  inset: 0;
+  background: var(--fg);
+  -webkit-mask: var(--poster) center / contain no-repeat;
+  mask: var(--poster) center / contain no-repeat;
+}
+.fig-poster-colour {
+  background: center / contain no-repeat;
+  -webkit-mask: none;
+  mask: none;
+}
+html:not(.js) .fig-poster,
+[data-motion="reduce"] .fig-poster,
+.fig-gap[data-fallback] .fig-poster {
+  display: block;
+}
+[data-theme="dark"] .fig-poster:not(.fig-poster-colour) {
+  opacity: 0.85;
+}
+@media (forced-colors: active) {
+  .fig-poster:not(.fig-poster-colour) {
+    forced-color-adjust: none;
+    background-color: CanvasText;
+  }
+}
 html[data-grabbing],
 html[data-grabbing] * {
   cursor: grabbing !important;

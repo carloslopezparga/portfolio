@@ -1,20 +1,26 @@
 import { CLOUD_SIZE, posterSVG } from "@/lib/chip-cloud";
+import { figureSVG } from "@/lib/figure-cloud";
 
 /**
- * SVG posters of the hero chip's point cloud, prerendered at build time from
- * the same generator as the WebGL scene, so the poster is its first frame:
- * the sphere (shown until the scene takes over), and the assembled chip and
- * its cores (reduced motion, no JavaScript, no WebGL). -d is the desktop
- * cloud, -m the phone one.
+ * SVG posters of the point cloud, prerendered at build time from the same
+ * generators as the WebGL scene. The chip: the sphere (the scene's first
+ * frame, shown until it takes over), and the assembled chip and its cores
+ * (reduced motion, no JavaScript, no WebGL); -d is the desktop cloud, -m the
+ * phone one. The other figures (desktop only): each at rest, plus the bar
+ * chart's coloured dots (-c).
  */
-const FILES = {
-  "sphere-d.svg": [CLOUD_SIZE.desktop, "sphere"],
-  "sphere-m.svg": [CLOUD_SIZE.mobile, "sphere"],
-  "still-d.svg": [CLOUD_SIZE.desktop, "still"],
-  "still-m.svg": [CLOUD_SIZE.mobile, "still"],
-  "cores-d.svg": [CLOUD_SIZE.desktop, "cores"],
-  "cores-m.svg": [CLOUD_SIZE.mobile, "cores"],
-} as const;
+const FILES: Record<string, () => string> = {
+  "sphere-d.svg": () => posterSVG(CLOUD_SIZE.desktop, "sphere"),
+  "sphere-m.svg": () => posterSVG(CLOUD_SIZE.mobile, "sphere"),
+  "still-d.svg": () => posterSVG(CLOUD_SIZE.desktop, "still"),
+  "still-m.svg": () => posterSVG(CLOUD_SIZE.mobile, "still"),
+  "cores-d.svg": () => posterSVG(CLOUD_SIZE.desktop, "cores"),
+  "cores-m.svg": () => posterSVG(CLOUD_SIZE.mobile, "cores"),
+  "bars-d.svg": () => figureSVG("bars", CLOUD_SIZE.desktop, "ink"),
+  "bars-c.svg": () => figureSVG("bars", CLOUD_SIZE.desktop, "colour"),
+  "gears-d.svg": () => figureSVG("gears", CLOUD_SIZE.desktop, "ink"),
+  "globe-d.svg": () => figureSVG("globe", CLOUD_SIZE.desktop, "ink"),
+};
 
 export function generateStaticParams() {
   return Object.keys(FILES).map((file) => ({ file }));
@@ -22,9 +28,9 @@ export function generateStaticParams() {
 
 export async function GET(_req: Request, ctx: { params: Promise<{ file: string }> }) {
   const { file } = await ctx.params;
-  const entry = Object.hasOwn(FILES, file) ? FILES[file as keyof typeof FILES] : undefined;
-  if (!entry) return new Response("Not found", { status: 404 });
-  return new Response(posterSVG(entry[0], entry[1]), {
+  const make = Object.hasOwn(FILES, file) ? FILES[file] : undefined;
+  if (!make) return new Response("Not found", { status: 404 });
+  return new Response(make(), {
     headers: { "content-type": "image/svg+xml; charset=utf-8", "cache-control": "public, max-age=86400, s-maxage=31536000" },
   });
 }

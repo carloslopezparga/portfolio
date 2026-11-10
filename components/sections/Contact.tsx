@@ -5,6 +5,7 @@ import { photoSrc } from "@/lib/assets";
 import { bookingEnabled } from "@/lib/booking";
 import { copy } from "@/lib/copy";
 import { CV_URL } from "@/lib/site";
+import { FigureGap } from "@/components/figures/FigureGap";
 import { BookButton, CopyEmail } from "./ContactActions";
 
 const ext = (
@@ -13,15 +14,15 @@ const ext = (
   </svg>
 );
 
-/** A dark band across the full width: the question, the email (click to copy) and the ways to follow up. */
+/** A dark band across the full width: the question, the email (click to copy) and the ways to follow up; on desktop, the cloud forms a globe in its right half. */
 export function Contact({ lang }: { lang: Locale }) {
   const t = copy.contact;
   const portrait = photoSrc("carlos");
   const booking = bookingEnabled();
   return (
     <section id="contact" className="band-dark section">
-      <div className="wrap grid gap-12 md:grid-cols-[minmax(0,1fr)_auto] md:items-end">
-        <div suppressHydrationWarning className="reveal reveal-rise">
+      <div className="wrap relative grid gap-12 md:grid-cols-[minmax(0,1fr)_auto] md:items-end">
+        <div suppressHydrationWarning className={`reveal reveal-rise ${portrait ? "" : "fig-beside-globe"}`}>
           <p className="eyebrow">{t.eyebrow[lang]}</p>
           <h2 className="mt-3 text-[clamp(2.75rem,7vw,5rem)] leading-[1] text-fg">{t.title[lang]}</h2>
           <p className="mt-5 max-w-[56ch] text-[17px] leading-relaxed text-fg md:text-[19px]">{t.intro[lang]}</p>
@@ -50,7 +51,10 @@ export function Contact({ lang }: { lang: Locale }) {
               <Image src={portrait} alt={profile.name} fill sizes="260px" className="object-cover" />
             </div>
           </figure>
-        ) : null}
+        ) : (
+          // no portrait yet: the right half of the band is the globe's
+          <FigureGap figure="globe" className="fig-gap-globe" />
+        )}
       </div>
     </section>
   );

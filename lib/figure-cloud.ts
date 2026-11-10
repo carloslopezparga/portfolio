@@ -23,15 +23,15 @@ const dots = (px: number) => ({ xs: 1.7 / px, s: 2.6 / px, m: 4.2 / px, l: 6.6 /
 export const BARS = {
   count: 6,
   /** distance between bar centres, and half a bar's footprint */
-  pitch: 0.52,
-  half: 0.15,
-  plate: { x: 0.36, z: 1.68, h: 0.07 },
+  pitch: 0.56,
+  half: 0.19,
+  plate: { x: 0.4, z: 1.78, h: 0.07 },
   /** heights at rest (the posters draw these) */
-  rest: [0.38, 0.58, 0.5, 0.82, 0.72, 1.1],
+  rest: [0.36, 0.56, 0.48, 0.78, 0.7, 1.02],
   /** the tallest a bar gets, the cursor's lift included */
-  max: 1.5,
+  max: 1.45,
   /** how far over the bars the trend line runs */
-  lift: 0.24,
+  lift: 0.22,
 };
 export const barZ = (i: number) => ((BARS.count - 1) / 2 - i) * BARS.pitch;
 /** The trend line's nodes: a smoothed copy of the bars' heights, lifted over them. */
@@ -57,13 +57,16 @@ interface Slot {
 }
 
 function barsSlots(rnd: () => number): Slot[] {
-  const d = dots(94);
-  const EDGE = look([[d.s, 0.5], [d.m, 0.42], [d.l, 0.08]]);
-  const CAP = look([[d.m, 0.72], [d.l, 0.28]]);
-  const FACE = look([[d.xs, 0.76], [d.s, 0.24]], [[0.55, 0.35], [1, 0.65]]);
+  const d = dots(104);
+  const EDGE = look([[d.s, 0.64], [d.m, 0.36]]);
+  const RIM = look([[d.s, 0.5], [d.m, 0.5]]);
+  const LOW = look([[d.xs, 0.5], [d.s, 0.5]]);
+  const CAP = look([[d.m, 1]]);
+  const CORNER = look([[d.l, 1]]);
+  const FACE = look([[d.xs, 0.86], [d.s, 0.14]], [[0.6, 0.25], [1, 0.75]]);
   const LINE = look([[d.s, 1]]);
-  const DUST = look([[d.xs, 0.75], [d.s, 0.2], [d.m, 0.05]], [[0.45, 0.5], [0.8, 0.5]]);
-  const gap = 0.034;
+  const DUST = look([[d.xs, 0.7], [d.s, 0.24], [d.m, 0.06]], [[0.6, 0.5], [1, 0.5]]);
+  const gap = 0.044;
   const out: Slot[] = [];
   const add = (x: number, t: number, z: number, code: number, lk: Look, tint = -1) => out.push({ v: [x, t, z, code], s: pick(rnd, lk.sizes), a: pick(rnd, lk.alphas), tint });
   const jit = (span: number) => (rnd() - 0.5) * span;
@@ -75,54 +78,57 @@ function barsSlots(rnd: () => number): Slot[] {
     const across = Math.round((half * 2) / gap);
     for (const sx of [-1, 1])
       for (const sz of [-1, 1]) {
-        // the four uprights
+        // the four uprights, and a large dot on each top corner
         for (let j = 0; j < rise; j++) add(sx * half, (j + 0.5 + jit(0.3)) / rise, z + sz * half, i, EDGE);
+        add(sx * half, 1, z + sz * half, i, CORNER);
       }
-    // the rim of the top, and its cap: the part that reads as «a bar»
+    // the rim of the top and a few dots on it: the part that reads as «a bar»
     for (let j = 0; j < across; j++) {
       const u = -half + ((j + 0.5 + jit(0.3)) / across) * half * 2;
-      add(u, 1, z - half, i, EDGE);
-      add(u, 1, z + half, i, EDGE);
-      add(-half, 1, z + u, i, EDGE);
-      add(half, 1, z + u, i, EDGE);
+      add(u, 1, z - half, i, RIM);
+      add(u, 1, z + half, i, RIM);
+      add(-half, 1, z + u, i, RIM);
+      add(half, 1, z + u, i, RIM);
     }
-    for (let a = 0; a < 4; a++) for (let b = 0; b < 4; b++) add(-half + ((a + 0.5) / 4) * half * 2 + jit(0.02), 1, z - half + ((b + 0.5) / 4) * half * 2 + jit(0.02), i, CAP);
-    // the two faces that look at the camera, as a fine grain
-    const rows = Math.max(2, Math.round(rest[i] / (gap * 2.3)));
-    for (let a = 0; a < 4; a++)
+    for (let a = 0; a < 3; a++) for (let b = 0; b < 3; b++) add(-half + ((a + 0.5) / 3) * half * 2 + jit(0.02), 1, z - half + ((b + 0.5) / 3) * half * 2 + jit(0.02), i, CAP);
+    // the two faces that look at the camera, as a fine, even grain
+    const rows = Math.max(2, Math.round(rest[i] / (gap * 1.45)));
+    for (let a = 0; a < 5; a++)
       for (let b = 0; b < rows; b++) {
-        add(half, (b + 0.5 + jit(0.6)) / rows, z - half + ((a + 0.5 + jit(0.6)) / 4) * half * 2, i, FACE);
-        add(-half + ((a + 0.5 + jit(0.6)) / 4) * half * 2, (b + 0.5 + jit(0.6)) / rows, z + half, i, FACE);
+        add(half, (b + 0.5 + jit(0.35)) / rows, z - half + ((a + 0.5 + jit(0.35)) / 5) * half * 2, i, FACE);
+        add(-half + ((a + 0.5 + jit(0.35)) / 5) * half * 2, (b + 0.5 + jit(0.35)) / rows, z + half, i, FACE);
       }
   }
 
-  // the base plate: both rims, the corners, and a grain on top around the bars
+  // the base plate: its upper rim crisp, the lower one finer, the corners, and a grain on top around the bars
   const px = Math.round((plate.x * 2) / gap);
   const pz = Math.round((plate.z * 2) / gap);
   for (const y of [0, -plate.h]) {
-    for (let j = 0; j < px; j++) for (const sz of [-1, 1]) add(-plate.x + ((j + 0.5) / px) * plate.x * 2, y, sz * plate.z, -1, EDGE);
-    for (let j = 0; j < pz; j++) for (const sx of [-1, 1]) add(sx * plate.x, y, -plate.z + ((j + 0.5) / pz) * plate.z * 2, -1, EDGE);
+    const lk = y === 0 ? RIM : LOW;
+    for (let j = 0; j < px; j++) for (const sz of [-1, 1]) add(-plate.x + ((j + 0.5) / px) * plate.x * 2, y, sz * plate.z, -1, lk);
+    for (let j = 0; j < pz; j++) for (const sx of [-1, 1]) add(sx * plate.x, y, -plate.z + ((j + 0.5) / pz) * plate.z * 2, -1, lk);
   }
-  for (let a = 0; a < 5; a++)
-    for (let b = 0; b < 26; b++) {
-      const x = -plate.x + ((a + 0.5 + jit(0.7)) / 5) * plate.x * 2;
-      const z = -plate.z + ((b + 0.5 + jit(0.7)) / 26) * plate.z * 2;
+  for (const sx of [-1, 1]) for (const sz of [-1, 1]) add(sx * plate.x, 0, sz * plate.z, -1, CORNER);
+  for (let a = 0; a < 6; a++)
+    for (let b = 0; b < 30; b++) {
+      const x = -plate.x + ((a + 0.5 + jit(0.7)) / 6) * plate.x * 2;
+      const z = -plate.z + ((b + 0.5 + jit(0.7)) / 30) * plate.z * 2;
       const under = Math.abs(x) < half && Array.from({ length: BARS.count }, (_, i) => Math.abs(z - barZ(i)) < half).some(Boolean);
       if (!under) add(x, 0, z, -1, FACE);
     }
 
   // the trend line: small dots between the nodes, and one large coloured dot per node
   for (let i = 0; i < BARS.count - 1; i++) {
-    const steps = 13;
+    const steps = 11;
     for (let j = 0; j < steps; j++) {
-      const f = 0.14 + ((j + 0.5) / steps) * 0.72;
+      const f = 0.15 + ((j + 0.5) / steps) * 0.7;
       add(0, f, barZ(i) + (barZ(i + 1) - barZ(i)) * f, 10 + i, LINE);
     }
   }
-  for (let i = 0; i < BARS.count; i++) out.push({ v: [0, 0, barZ(i), 20 + i], s: d.xl * 1.2, a: 1, tint: i % AI.length });
+  for (let i = 0; i < BARS.count; i++) out.push({ v: [0, 0, barZ(i), 20 + i], s: d.xl * 1.15, a: 1, tint: i % AI.length });
 
-  // a little dust in the air around the chart (code -2: the scene lets it drift)
-  for (let i = 0; i < 240; i++) add(jit(2.2), 0.1 + rnd() * 1.7, jit(4.2), -2, DUST);
+  // a little dust in the air over the chart (code -2: the scene lets it drift)
+  for (let i = 0; i < 90; i++) add(jit(1.5), 0.25 + rnd() * 1.3, jit(3.6), -2, DUST);
   return out;
 }
 
@@ -215,7 +221,7 @@ function gearsSlots(rnd: () => number): Slot[] {
   });
 
   // dust around the train (fixed points)
-  for (let i = 0; i < 220; i++) out.push({ v: [(rnd() - 0.5) * 4.4, (rnd() - 0.5) * 2.6, (rnd() - 0.5) * 0.9, -1], s: pick(rnd, DUST.sizes), a: pick(rnd, DUST.alphas), tint: -1 });
+  for (let i = 0; i < 110; i++) out.push({ v: [(rnd() - 0.5) * 4.0, (rnd() - 0.5) * 2.3, (rnd() - 0.5) * 0.9, -1], s: pick(rnd, DUST.sizes), a: pick(rnd, DUST.alphas), tint: -1 });
   return out;
 }
 
@@ -228,7 +234,7 @@ export const GLOBE_R = 1.02;
 export const globeShade = (facing: number): [number, number] => {
   const t = Math.min(1, Math.max(0, (facing + 0.75) / 1.3));
   const front = t * t * (3 - 2 * t);
-  return [0.6 + 0.4 * front, 0.2 + 0.8 * front];
+  return [0.6 + 0.4 * front, 0.14 + 0.86 * front];
 };
 
 /* --------------------------------- frames ------------------------------- */
@@ -268,7 +274,7 @@ const barsBounds = () => {
   const pts: number[][] = [];
   for (const sx of [-1, 1]) for (const sz of [-1, 1]) for (const y of [0, -plate.h]) pts.push([sx * plate.x, y, sz * plate.z]);
   // room for the bars to grow a good way past their rest heights, and for the trend line over them
-  for (let i = 0; i < BARS.count; i++) for (const sx of [-1, 1]) for (const sz of [-1, 1]) pts.push([sx * half, BARS.rest[i] * 1.18 + BARS.lift + 0.08, barZ(i) + sz * half]);
+  for (let i = 0; i < BARS.count; i++) for (const sx of [-1, 1]) for (const sz of [-1, 1]) pts.push([sx * half, BARS.rest[i] * 1.12 + BARS.lift + 0.06, barZ(i) + sz * half]);
   return pts;
 };
 const gearsBounds = () => {
@@ -332,13 +338,13 @@ export function buildParticles(n: number, all: boolean): Particles {
   // the globe: a few strong dots of very different sizes over a fine grain; the rest of the points rest
   const g = dots(178);
   const STRONG = look([[g.s, 0.5], [g.m, 0.3], [g.l, 0.14], [g.xl, 0.06]]);
-  const GRAIN = look([[g.xs, 1]], [[0.5, 0.5], [0.85, 0.5]]);
+  const GRAIN = look([[g.xs, 1]], [[0.45, 0.5], [0.8, 0.5]]);
   for (let i = 0; i < n; i++) {
     p.bars.set(bars[i].v, i * 4);
     p.gears.set(gears[i].v, i * 4);
     p.tint[i] = bars[i].tint;
     const u = rnd();
-    const lk = u < 0.15 ? STRONG : u < 0.6 ? GRAIN : null;
+    const lk = u < 0.15 ? STRONG : u < 0.5 ? GRAIN : null;
     p.sizes.set([bars[i].s, gears[i].s, lk ? pick(rnd, lk.sizes) : g.xs], i * 4 + 1);
     p.alphas.set([bars[i].a, gears[i].a, lk ? pick(rnd, lk.alphas) : 0], i * 4 + 1);
   }

@@ -8,9 +8,9 @@ const INK = { light: "#1d1d1f", dark: "#f5f5f7" };
 const INK_ALPHA = { light: 1, dark: 0.85 };
 /** Seconds: the sphere condensing into the chip; a figure condensing out of mist, dissolving into it, and flying to its neighbour. */
 const INTRO = 1.5;
-const FORM_IN = 0.8;
-const FORM_OUT = 0.5;
-const FLIGHT = 1.05;
+const FORM_IN = 0.65;
+const FORM_OUT = 0.45;
+const FLIGHT = 0.9;
 /** A figure stays while more than this much of its gap is on screen (and takes a little less to hold on to it than to win it). */
 const SEEN = 0.6;
 const HELD = 0.5;

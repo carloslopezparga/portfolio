@@ -19,7 +19,7 @@ export async function Experience({ lang, now }: { lang: Locale; now: Date }) {
 
   return (
     <section id="experience" className="section">
-      <SectionHeader eyebrow={t.eyebrow[lang]} title={t.title[lang]} intro={t.intro[lang]} />
+      <SectionHeader eyebrow={t.eyebrow[lang]} title={t.title[lang]} intro={t.intro[lang]} figure="gears" />
       <TimelineRail className="wrap mt-14 space-y-6 md:mt-16">
         {profile.experience.map((e, i) => {
           const status = timeStatus(e.start, e.end, now);
