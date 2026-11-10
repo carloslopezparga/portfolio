@@ -3,7 +3,7 @@ import type { Locale } from "@/content/types";
 import { copy } from "@/lib/copy";
 import { CV_URL } from "@/lib/site";
 import { PromptBar } from "@/components/agent/PromptBar";
-import { ChipCloud } from "./ChipCloud";
+import { Figures } from "@/components/figures/Figures";
 import { MotionToggle } from "./MotionToggle";
 
 const icon = (d: string) => (
@@ -21,10 +21,10 @@ function Tagline({ text, className }: { text: string; className: string }) {
 /**
  * Hero. Desktop: the name on one line, centred over the full width, the
  * availability right under it, then two columns: tagline, summary, the agent
- * and the actions on the left, and the chip (a point cloud) on the right,
- * centred on that column and adding no height of its own. The whole hero
- * fits the first screen. Phones: everything centred and the chip, compact,
- * under the buttons.
+ * and the actions on the left, and the chip (a point cloud, ~500 px) on the
+ * right, centred on the text column and reaching a little above and below
+ * it. The whole hero fits the first screen. Phones: everything centred and
+ * the chip, compact, under the buttons.
  */
 export function Hero({ lang }: { lang: Locale }) {
   // «Open to internships 2027 · Full-time from Jan 2028»: the first part in ink, the rest grey
@@ -45,8 +45,8 @@ export function Hero({ lang }: { lang: Locale }) {
           ) : null}
         </p>
 
-        <div className="mt-7 grid gap-y-8 md:mt-9 lg:mt-[clamp(20px,4vh,40px)] lg:grid-cols-[minmax(0,1fr)_minmax(0,0.78fr)] lg:gap-x-12">
-          <div className="relative z-[1] text-center lg:text-left">
+        <div className="hero-grid mt-7 grid gap-y-8 md:mt-9 lg:mt-[clamp(20px,4vh,40px)] lg:grid-cols-[minmax(0,1fr)_minmax(0,0.78fr)] lg:gap-x-12">
+          <div className="relative z-[1] text-center lg:self-center lg:text-left">
             <Tagline text={profile.tagline[lang]} className="mx-auto max-w-[24ch] text-balance font-display text-[clamp(1.5rem,min(3vw,4.4vh),2.4rem)] font-semibold leading-[1.12] tracking-[-0.03em] text-fg lg:mx-0" />
             <p className="mx-auto mt-4 max-w-[62ch] text-[16px] leading-relaxed text-fg md:text-[17px] lg:mx-0">{profile.summary[lang]}</p>
 
@@ -67,15 +67,17 @@ export function Hero({ lang }: { lang: Locale }) {
             </div>
           </div>
 
-          {/* The chip: a box of its own on phones (≤ 40 % of the screen height); on desktop it fills the column's height without adding to it. */}
+          {/* The chip: a box of its own on phones (≤ 40 % of the screen height); on desktop a square centred on the row (globals.css, .hero-grid). */}
           <div className="relative h-[min(40svh,340px)] lg:h-auto">
             <div className="chip-cell">
               <div className="chip-square">
-                <div className="chip-stage" role="img" aria-label={copy.hero.chip[lang]}>
+                <div className="chip-stage" data-figure="chip" role="img" aria-label={copy.hero.chip[lang]}>
                   <span className="chip-poster chip-poster-live" aria-hidden />
                   <span className="chip-poster chip-poster-still" aria-hidden />
                   <span className="chip-poster chip-poster-cores" aria-hidden />
-                  <ChipCloud />
+                  <Figures />
+                  {/* what the pointer touches: hover, drag and click (the canvas itself takes no events) */}
+                  <span className="fig-zone chip-zone" data-figure-zone aria-hidden />
                 </div>
                 <MotionToggle label={copy.hero.pause[lang]} className="chip-pause" />
               </div>

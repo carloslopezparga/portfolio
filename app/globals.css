@@ -1305,9 +1305,12 @@ main[data-focusing] > section:not(:has([data-hl])) {
 /* Hero chip: a point cloud (WebGL), over SVG posters of the same cloud */
 /* ------------------------------------------------------------------ */
 /* The cell is the chip's column (desktop) or a box under the buttons
-   (phones). The chip lives in the largest square that fits it; posters and
-   canvas cover that square plus 15 % on every side (BLEED in
-   lib/chip-cloud.ts) so scattered points have room. */
+   (phones). On phones the chip lives in the largest square that fits it. On
+   desktop the square is as large as the screen allows (--chip, up to 512 px),
+   centred on the row; the row only grows to within 72 px of it, so the chip
+   reaches a little above and below the text and the hero stays in the first
+   screen. Posters cover the square plus 15 % on every side (BLEED in
+   lib/chip-cloud.ts): the cloud's frame. */
 .chip-cell {
   position: absolute;
   inset: 0;
@@ -1322,6 +1325,15 @@ main[data-focusing] > section:not(:has([data-hl])) {
   aspect-ratio: 1;
   translate: -50% -50%;
 }
+@media (min-width: 1024px) {
+  .hero-grid {
+    --chip: min(62svh, 43vw, 512px);
+    min-height: calc(var(--chip) - 72px);
+  }
+  .chip-square {
+    width: var(--chip);
+  }
+}
 .chip-stage {
   position: absolute;
   inset: 0;
@@ -1332,6 +1344,43 @@ main[data-focusing] > section:not(:has([data-hl])) {
   inset: -15%;
   width: 130%;
   height: 130%;
+}
+/* Desktop draws every figure on one fixed, full-screen canvas (added by
+   components/figures/Figures.tsx) that takes no clicks and sits under the
+   navigation and the dialogs; the canvas in the chip's stage is the phones'. */
+.fig-layer {
+  position: fixed;
+  inset: 0;
+  z-index: 40;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+@media (min-width: 1024px) {
+  .chip-canvas {
+    display: none;
+  }
+}
+/* What the pointer touches on a figure (hover, drag, click): an invisible
+   zone over its gap, round for the chip so its square's empty corners stay
+   out of the way. */
+.fig-zone {
+  pointer-events: auto;
+  -webkit-tap-highlight-color: transparent;
+}
+.chip-zone {
+  position: absolute;
+  inset: 5%;
+  border-radius: 50%;
+}
+.fig-zone[data-live] {
+  cursor: grab;
+}
+html[data-grabbing],
+html[data-grabbing] * {
+  cursor: grabbing !important;
+  -webkit-user-select: none;
+  user-select: none;
 }
 /* the pause control (WCAG 2.2.2), in the square's corner, clear of the chip */
 .chip-pause {
