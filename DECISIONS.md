@@ -205,7 +205,11 @@ Grupo (a) completo, del 1 al 16, y el reveal del grupo (b). Capturas antes/despu
   - Las interacciones se capturan en zonas invisibles sobre cada hueco; el lienzo no recibe clics y queda bajo la navegación y los diálogos.
   - Barras, engranajes y esfera tienen también su póster SVG (movimiento reducido, sin JavaScript o sin WebGL).
 - **Reveals:** pueden marcar un elemento antes de que React hidrate su sección (con el hero más corto, «Cifras» ya está en la primera pantalla). Cada `.reveal` lleva `suppressHydrationWarning`, así que React lo espera y no avisa.
-- **Grafo de skills:** los textos visibles de cada nodo son `aria-hidden` y su nombre accesible es el `aria-label` (axe marcaba «pilotoautomático» al juntar las líneas).
+- **Grafo de skills:** el nombre accesible de cada nodo es su `aria-label`, y tiene que contener el texto que se ve en el nodo (WCAG 2.5.3).
+  - Las etiquetas de dos líneas llevan en el DOM el espacio que separa una línea de la otra. SVG no lo pinta, pero así el nodo se lee «piloto automático» y no «pilotoautomático».
+  - El monograma «IF» se dibuja con `<use>`, como un logo: es una imagen del nodo, no parte de su texto (se leía «IF Induforum 2027»).
+  - Los textos visibles siguen siendo `aria-hidden`, pero eso ya no basta: desde la versión 4.12, axe no lo tiene en cuenta en esta regla, y la 4.14 la pasa por defecto.
+  - Comprobado en Chromium que no cambia nada a la vista: las capturas del grafo de antes y de después son idénticas píxel a píxel (en reposo y con cada nodo con foco y con el ratón encima; en claro y oscuro; en `/` y `/es`; a 1× y a 2×). El teclado y el árbol de accesibilidad (lo que recibe un lector de pantalla) tampoco cambian.
 - **El tamaño de los logos** (`LogoMark`) se puede fijar desde CSS con `--logo`. El timeline lo usa para tener 32 px en el móvil.
 - **Desarrollo local:** a veces `next dev` deja de recoger los cambios de `globals.css`. Se arregla parando el servidor y borrando `.next/dev`.
 
@@ -224,7 +228,9 @@ Grupo (a) completo, del 1 al 16, y el reveal del grupo (b). Capturas antes/despu
 - **Sobre el móvil:** desde el 03-11 la máquina de pruebas es más lenta. La versión de la fase 2 da 86–87 en esta misma máquina (en la anterior daba 92–94), así que la fase 3 no empeora el rendimiento.
 - **Nube de partículas (10-11, una pasada):** LCP 2,8 s, TBT 290 ms, CLS 0.
 - **axe:** 0 incidencias en claro y oscuro, escritorio y móvil (04-11).
-- **axe en `/es` (10-11, versión 4.14):** nada en las figuras nuevas. Marca una regla en 7 nodos del grafo de skills, que esta rama no toca: en las etiquetas de dos líneas lee las líneas pegadas («pilotoautomático») y no le coinciden con el nombre accesible. Queda pendiente.
+- **axe 4.14 (10-11):** 0 incidencias en `/` y `/es`, en claro y oscuro, en escritorio (1440 × 900, tras recorrer toda la página) y en móvil (390 × 844).
+  - Esta versión pasa por defecto una regla más, `label-content-name-mismatch`, que marcaba 7 nodos del grafo de skills en `/es` y 4 en `/`: leía pegadas las dos líneas de una etiqueta («pilotoautomático») y el monograma «IF» junto al nombre. Arreglado: ver «Grafo de skills» en «Técnicas».
+  - En esa regla queda un aviso «por revisar», que no es una incidencia: el nodo «C». axe no sabe valorar una etiqueta de una sola letra; su nombre accesible, «C · Software», la contiene.
 
 ## 4. Pendiente
 
