@@ -53,9 +53,9 @@ vec2 push(vec2 s, vec2 c, float amp) {
 // The cursor parts the points (they come back late, on the slow follower, and wobble with it);
 // a click sends a shock front out: each point is thrown as the front passes and falls back.
 vec2 disturb(vec2 s, vec4 seed) {
-  // (gentler while the cursor is over the figure: there it opens instead)
-  float w = uHover.x * (1.0 - 0.6 * uHover.y) * (0.7 + 0.6 * seed.w);
-  s += push(s, uMouse.xy, 17.0 * w) + push(s, uMouse.zw, 15.0 * w);
+  // (a little gentler while the cursor is over the figure: there it opens as well)
+  float w = uHover.x * (1.0 - 0.45 * uHover.y) * (0.7 + 0.6 * seed.w);
+  s += push(s, uMouse.xy, 34.0 * w) + push(s, uMouse.zw, 30.0 * w);
   float t = uClick.z;
   if (t < 2.0) {
     vec2 d = s - uClick.xy;

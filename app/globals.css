@@ -399,6 +399,55 @@ main > .section:not(:first-child) {
   }
 }
 
+/* Without JavaScript. Each section is a Suspense boundary (page.tsx), and
+   React sends those after the footer, hidden, for a script to move into
+   place. With no script, show them where they are and let flex put the page
+   in order: hero, sections, footer. (The reveals below never hide anything
+   without JS: they only apply under html.js.) */
+@layer base {
+  html:not(.js) body > div[hidden]:has(> section) {
+    display: block !important; /* over the preflight's [hidden] rule, in its own layer */
+  }
+}
+html:not(.js) body {
+  display: flex;
+  flex-direction: column;
+}
+html:not(.js) body > div[hidden]:has(> #numbers) {
+  order: 1;
+}
+html:not(.js) body > div[hidden]:has(> #now) {
+  order: 2;
+}
+html:not(.js) body > div[hidden]:has(> #experience) {
+  order: 3;
+}
+html:not(.js) body > div[hidden]:has(> #education) {
+  order: 4;
+}
+html:not(.js) body > div[hidden]:has(> #projects) {
+  order: 5;
+}
+html:not(.js) body > div[hidden]:has(> #skills) {
+  order: 6;
+}
+html:not(.js) body > div[hidden]:has(> #leadership) {
+  order: 7;
+}
+html:not(.js) body > div[hidden]:has(> #contact) {
+  order: 8;
+}
+html:not(.js) body > footer {
+  order: 9;
+}
+/* the skills graph is built by a script: without one, the list by domain (the phones') */
+html:not(.js) .skills-desktop {
+  display: none;
+}
+html:not(.js) .skills-list {
+  display: block;
+}
+
 /* Reveals (RevealObserver adds data-in): section titles fade in and rise
    24 px (.reveal-rise); cards and everything else only fade in. Hidden only
    once JS runs; the JS shows anything in view as soon as a scroll settles,
@@ -1376,6 +1425,9 @@ main[data-focusing] > section:not(:has([data-hl])) {
 .fig-zone[data-live] {
   cursor: grab;
 }
+.fig-zone[data-live]:active {
+  cursor: grabbing;
+}
 /* The other figures' gaps (desktop only). Beside a section's title: on the
    header's baseline, reaching up into the section's top padding, and the
    text keeps 32 px clear of it (the chart's is larger: its title is short).
@@ -1460,14 +1512,6 @@ html[data-grabbing] * {
   cursor: grabbing !important;
   -webkit-user-select: none;
   user-select: none;
-}
-/* the pause control (WCAG 2.2.2), in the square's corner, clear of the chip */
-.chip-pause {
-  position: absolute;
-  top: 2%;
-  right: 2%;
-  z-index: 2;
-  pointer-events: auto;
 }
 /* light dots on black read bolder: dark mode draws the ink a little lighter (the scene does the same) */
 [data-theme="dark"] :is(.chip-poster-live, .chip-poster-still) {

@@ -8,23 +8,30 @@ const INK = { light: "#1d1d1f", dark: "#f5f5f7" };
 const INK_ALPHA = { light: 1, dark: 0.85 };
 /** Seconds: the sphere condensing into the chip; a figure condensing out of mist, dissolving into it, and flying to its neighbour. */
 const INTRO = 1.5;
-const FORM_IN = 0.65;
-const FORM_OUT = 0.45;
-const FLIGHT = 0.9;
-/** A figure stays while more than this much of its gap is on screen (and takes a little less to hold on to it than to win it). */
-const SEEN = 0.6;
-const HELD = 0.5;
+const FORM_IN = 0.5;
+const FORM_OUT = 0.3;
+const FLIGHT = 0.6;
+/** A figure starts to form as soon as this much of its gap is on screen, and stays until less than this is left. */
+const SEEN = 0.25;
+const HELD = 0.15;
+/** Phones: the chip condenses the first time this much of it is on screen. */
+const ENTER = 0.35;
+/** A slow frame is caught up in slices of this many seconds (up to MAX_LAG), so a figure takes the time it says to form at any frame rate. */
+const STEP = 0.05;
+const MAX_LAG = 0.25;
 /** Full-screen canvas: the strip of screen under the navigation does not count as seen. */
 const NAV = 64;
 /** Buffer cap: DPR 2 at most, and about four megapixels. */
 const MAX_DPR = 2;
 const MAX_PIXELS = 4e6;
 /** How far the figure leans towards the cursor (radians, about the screen's y and x axes). */
-const GAZE = { yaw: 0.3, pitch: 0.25 };
+const GAZE = { yaw: 0.6, pitch: 0.5 };
+/** How far hovering pulls the chip's layers apart (world units between neighbours). */
+const OPEN = 0.2;
 /** Radians a figure turns per pixel dragged. */
 const TURN = 0.0055;
 /** How hard a click throws the points (px). */
-const CLICK: Record<FigureId, number> = { chip: 70, bars: 60, gears: 60, globe: 170 };
+const CLICK: Record<FigureId, number> = { chip: 110, bars: 90, gears: 90, globe: 200 };
 
 export interface SceneOptions {
   /** number of points (CLOUD_SIZE.desktop or .mobile; must match the poster shown) */
@@ -281,7 +288,7 @@ export function mountFigures(canvas: HTMLCanvasElement, opts: SceneOptions): Sce
     const wanted = (sy: number) => {
       const top = opts.layer ? NAV : 0;
       let best = -1;
-      let bestScore = 0;
+      let bestScore = -Infinity;
       for (let i = 0; i < spots.length; i++) {
         const s = spots[i];
         if (!s.known) {
@@ -293,7 +300,9 @@ export function mountFigures(canvas: HTMLCanvasElement, opts: SceneOptions): Sce
         // phones: the chip stays assembled for as long as any of it is on screen
         if (s.v < (opts.layer ? (i === held ? HELD : SEEN) : 0.02)) continue;
         const mid = (top + vh) / 2;
-        const score = s.v + 0.5 * (1 - Math.min(1, Math.abs(y0 + s.h / 2 - mid) / (vh - mid))) + (i === held ? 0.1 : 0);
+        // The chip is the hero's figure: once the page scrolls it gives way early, so the chart forms as soon as its gap is fully on screen.
+        const givesWay = opts.layer && i === CHIP ? 0.8 * clamp(sy / (0.5 * vh), 0, 1) : 0;
+        const score = s.v + 0.5 * (1 - Math.min(1, Math.abs(y0 + s.h / 2 - mid) / (vh - mid))) + (i === held ? 0.1 : 0) - givesWay;
         if (score > bestScore) {
           bestScore = score;
           best = i;
@@ -366,10 +375,15 @@ export function mountFigures(canvas: HTMLCanvasElement, opts: SceneOptions): Sce
     let waveT = 2.3;
     let raf = 0;
     let last = 0;
+    let dpr = 1;
     let lastSy = window.scrollY;
     let scrollVel = 0;
     let started = false;
     let parked = false;
+    let slow = 0;
+    let dprCap = MAX_DPR;
+    /** phones: hold the intro (the sphere) until the chip is on screen */
+    let introWaits = false;
     const barH = cu.uBarH.value;
     const barV = new Float32Array(BARS.count);
     const barGoal = Float32Array.from(BARS.rest);
@@ -419,8 +433,8 @@ export function mountFigures(canvas: HTMLCanvasElement, opts: SceneOptions): Sce
     };
     const inkOf = (i: number) => (i >= 0 && spots[i].id === "globe" ? ink.light : ink.auto);
 
-    /** One frame: advance everything by dt and draw. */
-    const render = (dt: number) => {
+    /** Advance everything by dt and, unless this is a catch-up slice, draw. */
+    const render = (dt: number, draw = true) => {
       if (dirty) measure();
       const sx = window.scrollX;
       const sy = window.scrollY;
@@ -434,7 +448,7 @@ export function mountFigures(canvas: HTMLCanvasElement, opts: SceneOptions): Sce
       advance(want, dt);
       const at = present();
       if (figA < 0) {
-        gl.clear();
+        if (draw) gl.clear();
         return;
       }
       const A = spots[figA];
@@ -459,8 +473,9 @@ export function mountFigures(canvas: HTMLCanvasElement, opts: SceneOptions): Sce
       ptr.sy += ptr.svy * dt;
       boxOf(here, u.uBoxA.value, sx, sy);
       const lean = ptr.on && !press?.moved ? 1 : 0;
-      ptr.gx = damp(ptr.gx, lean * GAZE.yaw * clamp((cx - u.uBoxA.value[0]) / (vw * 0.5), -1, 1), 3.5, dt);
-      ptr.gy = damp(ptr.gy, lean * GAZE.pitch * clamp((cy - u.uBoxA.value[1]) / (vh * 0.5), -1, 1), 3.5, dt);
+      ptr.gx = damp(ptr.gx, lean * GAZE.yaw * clamp((cx - u.uBoxA.value[0]) / (vw * 0.5), -1, 1), 5, dt);
+      // (less when the cursor is above: tipped any further back, the figure would be seen edge-on)
+      ptr.gy = damp(ptr.gy, lean * GAZE.pitch * clamp((cy - u.uBoxA.value[1]) / (vh * 0.5), -0.6, 1), 5, dt);
       ptr.open = damp(ptr.open, settled && ptr.over === at ? 1 : 0, 6, dt);
       if (liveZone.index !== (settled ? at : -1)) {
         liveZone.index = settled ? at : -1;
@@ -484,13 +499,15 @@ export function mountFigures(canvas: HTMLCanvasElement, opts: SceneOptions): Sce
       }
 
       // the chip: cores in sequence, packets on the traces, and every four seconds a wave of light out from the die
-      if (introT < INTRO) introT += dt;
+      // (phones: the sphere waits until enough of the chip is on screen, then condenses by itself)
+      if (introWaits && here.v >= ENTER) introWaits = false;
+      if (introT < INTRO && !introWaits) introT += dt;
       pulse += dt * rate;
       cores += dt * 0.55 * (busy ? 3 : 1);
       waveT += dt * (busy ? 2 : 1);
       const wave = waveT % 4;
       cu.uWave.value = waveT > 4 && wave < 1.5 ? wave * 0.62 - 0.08 : -1;
-      u.uSpread.value = ptr.open * 0.095;
+      u.uSpread.value = ptr.open * OPEN;
 
       // the gears: a steady turn, faster under the cursor, with the scroll and after a drag
       if (!(press?.moved && press.spot.id === "gears")) gear.vel *= Math.exp(-1.5 * dt);
@@ -544,15 +561,23 @@ export function mountFigures(canvas: HTMLCanvasElement, opts: SceneOptions): Sce
       cu.uInkB.value = inkOf(figB);
       pu.uPulseClock.value = pulse;
       pu.uChip.value = figA === CHIP ? (1 - smooth(0, 0.3, figA === figB ? 0 : flight)) * smooth(0.6, 1, form) : 0;
-      gl.render(scene, camera);
+      if (draw) gl.render(scene, camera);
     };
 
     const frame = (now: number) => {
       raf = 0;
       if (!alive) return;
-      const dt = clamp((now - last) / 1000, 0, 0.05);
+      // A machine that keeps missing frames at a high pixel ratio gets the plain one (once): fewer pixels to fill.
+      slow = now - last > 40 ? slow + 1 : Math.max(0, slow - 1);
+      if (slow > 40 && dpr > 1 && dprCap > 1) {
+        dprCap = 1;
+        slow = 0;
+        resize();
+      }
+      let lag = clamp((now - last) / 1000, 0, MAX_LAG);
       last = now;
-      render(dt);
+      for (; lag > STEP; lag -= STEP) render(STEP, false);
+      render(lag);
       if (figA < 0) {
         // nothing on screen and nothing wanted: the canvas is clear, stop until the scroll brings a gap back
         parked = true;
@@ -643,13 +668,13 @@ export function mountFigures(canvas: HTMLCanvasElement, opts: SceneOptions): Sce
         if (drag) {
           e.preventDefault(); // no text selection while turning the figure
           z.setPointerCapture(e.pointerId);
+          html.dataset.grabbing = "";
         }
       };
       const move = (e: PointerEvent) => {
         if (!press || press.spot !== s) return;
         if (!press.moved && Math.hypot(e.clientX - press.x, e.clientY - press.y) > 5) {
           press.moved = true;
-          if (press.drag) html.dataset.grabbing = "";
         }
         if (!press.moved || !press.drag) return;
         const dx = e.clientX - press.lastX;
@@ -704,12 +729,11 @@ export function mountFigures(canvas: HTMLCanvasElement, opts: SceneOptions): Sce
 
     /* -------------------------- size, theme, observers ------------------------ */
 
-    let dpr = 1;
     // a resize clears the canvas: redraw at once
     const resize = () => {
       const w = canvas.clientWidth || 1;
       const h = canvas.clientHeight || 1;
-      dpr = Math.min(window.devicePixelRatio || 1, MAX_DPR, Math.sqrt(MAX_PIXELS / (w * h)));
+      dpr = Math.min(window.devicePixelRatio || 1, dprCap, Math.sqrt(MAX_PIXELS / (w * h)));
       gl.setPixelRatio(dpr);
       gl.setSize(w, h, false);
       u.uView.value = [w, h];
@@ -771,7 +795,10 @@ export function mountFigures(canvas: HTMLCanvasElement, opts: SceneOptions): Sce
     if (!alive) return;
     measure();
     wanted(window.scrollY);
-    if (CHIP >= 0 && spots[CHIP].v > 0) {
+    if (!opts.layer) {
+      // phones: the scene is ready before the chip is reached; it stays a sphere (its poster) until it comes on screen
+      introWaits = true;
+    } else if (CHIP >= 0 && spots[CHIP].v > 0) {
       // the chip is on screen: start as its poster, the sphere, and condense
       figA = figB = CHIP;
       form = 1;

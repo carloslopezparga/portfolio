@@ -3,6 +3,7 @@ import { Suspense } from "react";
 import { profile, SECTIONS, sectionLabels } from "@/content/profile";
 import { AgentHost } from "@/components/agent/AgentHost";
 import { Hero } from "@/components/hero/Hero";
+import { MotionToggle } from "@/components/hero/MotionToggle";
 import { Contact } from "@/components/sections/Contact";
 import { Education } from "@/components/sections/Education";
 import { Experience } from "@/components/sections/Experience";
@@ -36,6 +37,8 @@ export default async function Home({ params }: PageProps<"/[lang]">) {
       <a href="#numbers" className="skip-link">
         {copy.nav.skip[lang]}
       </a>
+      {/* WCAG 2.2.2: hidden like the skip link, until the keyboard reaches it */}
+      <MotionToggle pause={copy.hero.pause[lang]} resume={copy.hero.resume[lang]} />
       <Header
         lang={lang}
         initials={profile.initials}
@@ -104,6 +107,8 @@ export default async function Home({ params }: PageProps<"/[lang]">) {
           copied: copy.contact.copied[lang],
           lang: p.lang[lang],
           theme: p.theme[lang],
+          pauseMotion: copy.hero.pause[lang],
+          resumeMotion: copy.hero.resume[lang],
           close: copy.nav.close[lang],
         }}
       />
