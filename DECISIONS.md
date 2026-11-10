@@ -1,6 +1,6 @@
 # Decisiones
 
-Lo aprobado, lo que he decidido yo al construir (para que lo revises) y lo que falta. Última actualización: 10-11-2026. Incluye las tres fases (contenido y CV, dirección visual Apple × Evolve, piezas visuales), el pulido estético (rama `claude/design-polish`), el hero definitivo con el chip de partículas (rama `claude/hero-asymmetric`) y la nube de partículas con presencia y figuras (rama `claude/particle-figures`).
+Lo aprobado, lo que he decidido yo al construir (para que lo revises) y lo que falta. Última actualización: 10-11-2026. Incluye las tres fases (contenido y CV, dirección visual Apple × Evolve, piezas visuales), el pulido estético (rama `claude/design-polish`), el hero definitivo con el chip de partículas (rama `claude/hero-asymmetric`), la nube de partículas con presencia y figuras (rama `claude/particle-figures`) y la carga, la interacción y la pausa del chip (rama `claude/chip-interaction`).
 
 ## 1. Aprobado (hecho)
 
@@ -110,7 +110,7 @@ Grupo (a) completo, del 1 al 16, y el reveal del grupo (b). Capturas antes/despu
   - Monocromo (#1D1D1F en claro, #F5F5F7 en oscuro); el color va solo en los núcleos y los paquetes de datos.
   - Al cargar, los puntos aparecen como una esfera y se condensan en el chip en ~1,5 s.
   - Cuando el agente responde, núcleos y paquetes se aceleran.
-  - Un botón pequeño en la esquina del chip pausa y reanuda las animaciones de la página (WCAG 2.2.2): activa el movimiento reducido durante la sesión.
+  - Las animaciones de la página se pueden pausar y reanudar (WCAG 2.2.2): activa el movimiento reducido durante la sesión. Dónde está el control ahora, en «Pausa de las animaciones» (sección 2).
 - **Proyectos en el móvil (< 768 px):** cada proyecto muestra solo su fragmento principal, a 1,3×, con el texto entre 11,1 y 12,4 px; los demás se ocultan. En escritorio, igual que antes.
   - Fragmentos principales: el terminal de job-hunt-copilot (cifras reales), el «Resumen de hoy» del correo, la gráfica de generaciones con su etiqueta «Ilustrativo» y la clasificación de señales de CS50.
 
@@ -120,19 +120,19 @@ Grupo (a) completo, del 1 al 16, y el reveal del grupo (b). Capturas antes/despu
   - Puntos opacos y con jerarquía de tamaños, como en evolve.es: grano fino en las caras, aristas nítidas y puntos grandes en esquinas, núcleos y bolas (una por bola).
   - Núcleos y paquetes de datos más grandes; siguen siendo el único color.
 - **Cursor (escritorio; igual en todas las figuras):**
-  - La figura se inclina hacia el cursor, esté donde esté (hasta ~17°).
-  - Los puntos a menos de ~140 px se apartan y vuelven con retardo.
-  - Al pasar por encima se abre: en el chip se separan las capas y se encienden todos los núcleos.
+  - La figura se inclina hacia el cursor, esté donde esté (hasta ~34° hacia los lados, el doble que antes; hacia arriba menos, para que no se vea de canto).
+  - Los puntos a menos de ~140 px se apartan (el doble que antes) y vuelven con retardo.
+  - Al pasar por encima se abre: en el chip se separan las capas (algo más del doble que antes) y se encienden todos los núcleos. El cursor es una mano abierta, y cerrada mientras se pulsa.
   - Arrastrar la gira con inercia y vuelve a su sitio; un clic lanza una onda que la dispersa y se recompone en ~1 s.
 - **Vida en reposo:** las capas flotan cada una a su ritmo, cada 4 s una onda de luz cruza el die y sigue por las pistas, el polvo orbita despacio y los paquetes se ven más.
-- **Scroll:** la figura sigue montada mientras se vea más del ~60 % de su hueco; depende de dónde están los huecos en pantalla, no de píxeles de scroll, y nunca se queda a medias.
+- **Scroll:** la figura empieza a formarse cuando se ve el 25 % de su hueco, sin esperar a que pare el scroll, y sigue montada hasta que queda menos del 15 %; depende de dónde están los huecos en pantalla, no de píxeles de scroll, y nunca se queda a medias.
 - **La misma nube forma más figuras (solo desde 1024 px), en el hueco a la derecha del título:**
   - **Cifras:** gráfica de 6 barras en la vista isométrica del chip. Cambian de altura como datos en vivo, llevan una línea de tendencia con puntos de color y las cercanas al cursor suben como un ecualizador.
   - **Experiencia:** tres engranajes engranados que giran con sus relaciones reales; se aceleran con el scroll y con el cursor, y al arrastrar giran con inercia.
   - **Contacto:** esfera de puntos claros (370 px) en la mitad derecha de la banda. Gira despacio, el cursor levanta ondas, se puede girar y un clic la hace estallar.
   - Formación, Proyectos, Skills y Liderazgo no llevan figura.
 - **Transiciones:** del chip a las barras la nube vuela directa (los dos huecos se ven a la vez); en el resto se deshace en bruma y se condensa en el siguiente hueco. Al subir, igual al revés.
-- **Móvil y tablet (< 1024 px):** solo el chip, siempre montado mientras esté en pantalla, con la misma vida en reposo. Tocarlo lanza la onda; no se arrastra, para no frenar el scroll.
+- **Móvil y tablet (< 1024 px):** solo el chip, siempre montado mientras esté en pantalla, con la misma vida en reposo. La primera vez que entra en pantalla (con el 35 % a la vista) se forma solo desde la esfera, sin tocarlo. Tocarlo lanza la onda; no se arrastra, para no frenar el scroll.
 - **Separación:** ninguna figura queda a menos de 39 px de un texto o un control a 1024, 1280, 1440 y 1920 px. Los huecos son decorativos (`aria-hidden`) y el lienzo no recibe clics.
 
 ## 2. Decidido por mí (revisar)
@@ -172,9 +172,9 @@ Grupo (a) completo, del 1 al 16, y el reveal del grupo (b). Capturas antes/despu
 - **Arreglo que no estaba en la lista:** la línea del timeline iba 20-32 px a la izquierda del centro de los logos en todos los tamaños. Ahora pasa por el centro.
 
 ### Hero definitivo (revisar)
-- **Chip en el móvil:** three.js se carga 4 s después de que la página termine de cargar, y solo si el chip está cerca de la pantalla. Hasta entonces se ve la esfera (el póster). No arranca al primer toque: en un móvil medio el montaje bloquea unos cientos de milisegundos y retrasaba la primera tecla en el agente.
+- **Carga de la escena:** no espera a que el navegador quede ocioso (la barra del agente escribe sin parar y podía no llegar nunca), ni a que el chip esté cerca, ni a un primer toque. En escritorio empieza a cargarse en cuanto se monta el hero; en el móvil, al terminar el load (antes, 4 s después). Hasta entonces se ve la esfera (el póster) y nada reacciona al cursor. El montaje va en pasos cortos, para no retrasar una tecla en el agente. Tiempos medidos en «Resultados».
 - **Vaivén en vez de giro completo:** el chip se balancea sobre su vista de ¾ (ahora ±9°, porque se suma la inclinación hacia el cursor). Al girar entero pasaba por ángulos en que las aletas quedaban de frente y dejaba de leerse como chip.
-- **Botón de pausa:** arriba a la derecha del chip, con un aro fino. Pausa también el punto que late y el resto de animaciones (es la preferencia de movimiento reducido de la web). Con la pausa, cada hueco muestra su figura quieta.
+- **Pausa de las animaciones:** ya no hay botón sobre el chip. El control está oculto y aparece al recibir el foco del teclado, como el enlace «Saltar al contenido» (es la segunda parada de la página). La misma acción está en ⌘K y en el menú del móvil: «Pausar animaciones» / «Reanudar animaciones». Pausa también el punto que late y el resto de animaciones (es la preferencia de movimiento reducido de la web). Con la pausa, o con `prefers-reduced-motion`, cada hueco muestra su figura quieta.
 - **Disponibilidad en el móvil:** no cabe en una línea, así que «Tiempo completo desde ene 2028» baja a la segunda línea sin el «·».
 - **Tablets (768–1023 px):** hero centrado con el chip debajo, como en el móvil. Los fragmentos de proyecto mantienen la composición escalada de escritorio, porque pediste el cambio por debajo de 768 px; ahí su texto queda pequeño (5–6 px).
 - **Escenario de los fragmentos en el móvil:** 4:3, y cuadrado por debajo de 400 px para que el «Resumen de hoy» quepa a 320 px.
@@ -183,8 +183,8 @@ Grupo (a) completo, del 1 al 16, y el reveal del grupo (b). Capturas antes/despu
 - **El hero crece un poco:** para que el chip quede centrado con el texto y a más de 32 px del nombre, la fila mide el alto del chip menos 72 px. El texto baja unos 30 px y el hero termina a 721 px en 1440 × 900 (el chip, a 757) y a 679 px en 1280 × 800 (el chip, a 715).
 - **6.000 puntos en escritorio (antes 8.000):** con el chip nítido sobraban; así el póster pesa menos.
 - **En el móvil el lienzo va dentro del chip, no a pantalla completa:** así se mueve con la página sin retraso al hacer scroll con el dedo. En escritorio sí es un único lienzo fijo a pantalla completa. En los dos casos hay un solo contexto WebGL.
-- **Cuándo cambia de figura:** gana el hueco más visible (60 % para entrar, 50 % para mantenerse) y, si hay empate, el más centrado. La franja de la navegación no cuenta como visible.
-- **Las transiciones duran un tiempo fijo** (bruma 0,45 s, condensar 0,65 s, vuelo 0,9 s) en vez de seguir al scroll: así nunca se quedan a medias.
+- **Cuándo cambia de figura:** gana el hueco más visible (25 % para entrar, 15 % para mantenerse) y, si hay empate, el más centrado. El chip cede pronto al bajar: el gráfico de Cifras se forma en cuanto su hueco se ve entero. La franja de la navegación no cuenta como visible.
+- **Las transiciones duran un tiempo fijo** (bruma 0,3 s, condensar 0,5 s, vuelo 0,6 s) en vez de seguir al scroll: así nunca se quedan a medias. Si el equipo va lento, el tiempo perdido se recupera por tramos (la figura tarda lo mismo con pocos fotogramas) y, si sigue lento en una pantalla de alta densidad, el lienzo baja a densidad 1.
 - **Hueco de las barras más grande** (440 × 264 px; 400 × 250 entre 1024 y 1279) que el de los engranajes (380 × 240; 320 × 210), porque el título de Cifras es corto y deja más sitio.
 - **Experiencia entre 1024 y 1279 px:** la frase de introducción pasa de dos líneas a tres para dejar sitio a los engranajes. El texto no cambia.
 - **La esfera solo sale si no hay retrato en Contacto.** Cuando subas `public/photos/carlos`, el retrato ocupa ese hueco y habrá que decidir dónde va la esfera.
@@ -195,6 +195,7 @@ Grupo (a) completo, del 1 al 16, y el reveal del grupo (b). Capturas antes/despu
   - Como sus alturas son estimadas hasta que se pintan, el scroll a una sección hace una segunda pasada de corrección.
   - Comprobado: todas las navegaciones aterrizan bajo la píldora.
 - **Cada sección es un límite `Suspense`:** React hidrata por partes y el móvil gana margen.
+- **Sin JavaScript:** React envía esas secciones después del pie, ocultas, para que un script las coloque; sin script solo se veían el hero y el pie (no era el reveal, que ya solo oculta bajo `html.js`). Ahora el CSS las muestra y las ordena con flex (hero, secciones, pie), y Skills enseña la lista por dominio en vez del grafo, que lo construye un script.
 - **La caché de build de Turbopack está desactivada.** Una vez sirvió un `globals.css` antiguo, y Vercel restaura esa caché entre despliegues. El build tarda segundos, así que no compensa el riesgo.
 - **En móvil no se construye el grafo SVG.** three.js sí se carga para el chip, pero tarde (ver «Hero definitivo»).
 - **Pósters del chip:** `lib/chip-cloud.ts` genera la nube de forma determinista. El mismo código prerenderiza en el build unos SVG del primer frame (`app/chip/[file]`), que la página pinta como máscaras CSS: no mueven el layout ni cuentan como LCP. El primer frame de WebGL coincide con el póster, así que el cambio no se nota. Sin JavaScript, sin WebGL o con movimiento reducido se ve un póster del chip montado.
@@ -227,6 +228,7 @@ Grupo (a) completo, del 1 al 16, y el reveal del grupo (b). Capturas antes/despu
 - **El pulido no empeora el rendimiento:** con `main` medido en la misma sesión, la mediana de rendimiento es igual (87,5) y el LCP mejora (2,64 s frente a 2,89 s de mediana). El TBT sube 40 ms de mediana (386 frente a 346 ms), dentro de la variación de ambas versiones (253–427 y 287–423 ms). CLS 0 en las dos.
 - **Sobre el móvil:** desde el 03-11 la máquina de pruebas es más lenta. La versión de la fase 2 da 86–87 en esta misma máquina (en la anterior daba 92–94), así que la fase 3 no empeora el rendimiento.
 - **Nube de partículas (10-11, una pasada):** LCP 2,8 s, TBT 290 ms, CLS 0.
+- **Carga e interacción del chip (10-11, build local, Chromium):** la escena sustituye al póster 0,3–0,4 s después del load en escritorio (dos pasadas: 298 y 372 ms) y 0,3 s en el móvil (255 y 329 ms; antes 4,2 s), sin tocar la pantalla. Bajando con la rueda sin parar, el gráfico de Cifras queda formado 0,7 s después de verse entero su hueco (antes 1,2 s) y los engranajes 0,5 s después de verse el 25 % del suyo (antes 0,8 s). En local no hay red: en producción hay que sumar la descarga de three.js. No he vuelto a pasar Lighthouse: en el móvil three.js se carga ahora dentro de la ventana que mide, así que el rendimiento móvil puede bajar.
 - **axe:** 0 incidencias en claro y oscuro, escritorio y móvil (04-11).
 - **axe 4.14 (10-11):** 0 incidencias en `/` y `/es`, en claro y oscuro, en escritorio (1440 × 900, tras recorrer toda la página) y en móvil (390 × 844).
   - Esta versión pasa por defecto una regla más, `label-content-name-mismatch`, que marcaba 7 nodos del grafo de skills en `/es` y 4 en `/`: leía pegadas las dos líneas de una etiqueta («pilotoautomático») y el monograma «IF» junto al nombre. Arreglado: ver «Grafo de skills» en «Técnicas».
