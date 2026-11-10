@@ -134,7 +134,7 @@ export function MonteCarlo({ from, to }: { from: string; to: string }) {
 
   return (
     <div className="relative">
-      <svg viewBox={`0 0 ${W} ${H + 24}`} className="block h-auto w-full" aria-hidden>
+      <svg viewBox={`0 0 ${W} ${H}`} className="block h-auto w-full" aria-hidden>
         <defs>
           <linearGradient id="mc-grad" x1="0" x2="1" y1="0" y2="0">
             {COLORS.map((c, i) => (
@@ -149,14 +149,13 @@ export function MonteCarlo({ from, to }: { from: string; to: string }) {
         </g>
         <circle cx={PAD} cy={MID} r="4" className="fill-[var(--subtle)]" />
         <circle cx={W - PAD} cy={MID} r="5.5" fill="#ff375f" style={{ filter: "drop-shadow(0 0 6px #ff375f)" }} />
-        <text x={PAD} y={H + 18} className="fill-muted text-[12.5px] font-semibold">
-          {from}
-        </text>
-        <text x={W - PAD} y={H + 18} textAnchor="end" className="fill-fg text-[13px] font-semibold">
-          {to}
-        </text>
       </svg>
       <canvas ref={canvasRef} className="pointer-events-none absolute inset-x-0 top-0 w-full" style={{ aspectRatio: `${W} / ${H}` }} aria-hidden />
+      {/* HTML labels: they keep their size on phones, where the drawing shrinks */}
+      <div className="mt-2 flex items-start justify-between gap-4 text-[13px] font-semibold leading-snug">
+        <span className="text-muted">{from}</span>
+        <span className="text-balance text-right text-fg">{to}</span>
+      </div>
     </div>
   );
 }

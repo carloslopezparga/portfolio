@@ -51,7 +51,7 @@ export async function Leadership({ lang }: { lang: Locale }) {
               id={`lead-${c.id}`}
               data-target-id={c.id}
               data-accent={c.accent}
-              className={`photo-card reveal scroll-mt-28 flex min-h-[420px] flex-col justify-end ${span}`}
+              suppressHydrationWarning className={`photo-card reveal scroll-mt-nav flex min-h-[420px] flex-col justify-end ${span}`}
               style={{ ["--rd" as string]: `${(i % 3) * 80}ms` }}
             >
               <Image src={c.photo.src} alt={c.photo.caption ?? c.title[lang]} fill sizes="(min-width: 768px) 50vw, 100vw" className="object-cover" />
@@ -69,15 +69,12 @@ export async function Leadership({ lang }: { lang: Locale }) {
               id={`lead-${c.id}`}
               data-target-id={c.id}
               data-accent={c.accent}
-              className={`card reveal scroll-mt-28 flex flex-col p-6 md:p-8 ${span}`}
+              suppressHydrationWarning className={`card reveal scroll-mt-nav flex flex-col p-6 md:p-8 ${span}`}
               style={{ ["--rd" as string]: `${(i % 3) * 80}ms` }}
             >
-              <span className="grid size-10 place-items-center rounded-full bg-[var(--bg)] dark:bg-[rgb(255_255_255/0.06)]" aria-hidden>
-                <span className="size-2.5 rounded-full bg-[rgb(var(--d-rgb))]" />
-              </span>
-              {c.when ? <p className="mt-6 text-[13px] font-semibold text-muted">{c.when}</p> : <span className="mt-6" />}
-              <h3 className="mt-1.5 text-[clamp(1.2rem,1.9vw,1.45rem)] leading-snug text-fg">{c.title[lang]}</h3>
-              <p className="mt-2 text-[15.5px] leading-relaxed text-muted">{c.description[lang]}</p>
+              {c.when ? <p className="mb-1.5 text-[13px] font-semibold text-muted">{c.when}</p> : null}
+              <h3 className="text-[clamp(1.2rem,1.9vw,1.45rem)] leading-snug text-fg">{c.title[lang]}</h3>
+              <p className="mt-2 text-[15.5px] leading-relaxed text-fg">{c.description[lang]}</p>
               {metric ? <div className="mt-auto text-muted">{metric}</div> : null}
             </article>
           );

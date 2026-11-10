@@ -11,16 +11,18 @@ export function LogoMark({ brand, size = 44, className }: { brand: Brand; size?:
   const src = logoSrc(brand.logo);
   const fill = src && brand.tile === "fill";
   const inner = Math.round(size * 0.74);
+  // The size can be overridden from CSS with --logo (the timeline uses smaller tiles on phones).
+  const box = `var(--logo, ${size}px)`;
   return (
-    <span className={`logo-mark grid shrink-0 place-items-center overflow-hidden ${className ?? ""}`} style={{ width: size, height: size, borderRadius: Math.round(size * 0.26) }} aria-hidden>
+    <span className={`logo-mark grid shrink-0 place-items-center overflow-hidden ${className ?? ""}`} style={{ width: box, height: box, borderRadius: `calc(${box} * 0.26)` }} aria-hidden>
       {src ? (
         fill ? (
           <Image src={src} alt="" width={size} height={size} sizes={`${size * 2}px`} className="size-full object-cover" />
         ) : (
-          <Image src={src} alt="" width={inner} height={inner} sizes={`${inner * 2}px`} className="object-contain" />
+          <Image src={src} alt="" width={inner} height={inner} sizes={`${inner * 2}px`} className="object-contain" style={{ width: `calc(${box} * 0.74)`, height: "auto" }} />
         )
       ) : (
-        <span className="font-semibold tracking-[-0.02em] text-[var(--brand-l,var(--d))]" style={{ fontSize: Math.max(10, size * (brand.monogram.length > 3 ? 0.24 : brand.monogram.length > 2 ? 0.28 : 0.34)) }}>
+        <span className="font-semibold tracking-[-0.02em] text-[var(--brand-l,var(--d))]" style={{ fontSize: `max(10px, calc(${box} * ${brand.monogram.length > 3 ? 0.24 : brand.monogram.length > 2 ? 0.28 : 0.34}))` }}>
           {brand.monogram}
         </span>
       )}

@@ -3,8 +3,8 @@ import type { Locale } from "@/content/types";
 import { copy } from "@/lib/copy";
 import { CV_URL } from "@/lib/site";
 import { PromptBar } from "@/components/agent/PromptBar";
-import { ChipArt } from "./ChipArt";
-import { ChipStage } from "./ChipStage";
+import { ChipCloud } from "./ChipCloud";
+import { MotionToggle } from "./MotionToggle";
 
 const icon = (d: string) => (
   <svg viewBox="0 0 16 16" className="size-4" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
@@ -12,45 +12,76 @@ const icon = (d: string) => (
   </svg>
 );
 
+/** The tagline in solid ink; only the word «automated / automatizados» takes the accent colour. */
+function Tagline({ text, className }: { text: string; className: string }) {
+  const parts = text.split(/(automat\p{L}*)/iu);
+  return <p className={className}>{parts.map((p, i) => (i % 2 ? <span key={i} className="text-[var(--accent)]">{p}</span> : p))}</p>;
+}
+
 /**
- * Centred hero, Apple style: availability, the name, the tagline in the Apple
- * Intelligence gradient, two lines of summary, the agent and three actions.
- * Underneath, like a product shot, the AI chip.
+ * Hero. Desktop: the name on one line, centred over the full width, the
+ * availability right under it, then two columns: tagline, summary, the agent
+ * and the actions on the left, and the chip (a point cloud) on the right,
+ * centred on that column and adding no height of its own. The whole hero
+ * fits the first screen. Phones: everything centred and the chip, compact,
+ * under the buttons.
  */
 export function Hero({ lang }: { lang: Locale }) {
+  // «Open to internships 2027 · Full-time from Jan 2028»: the first part in ink, the rest grey
+  const [now, ...rest] = profile.availability[lang].split(" · ");
+  const later = rest.join(" · ");
   return (
-    <section id="top" className="relative overflow-hidden pt-28 sm:pt-36">
-      <div className="wrap flex flex-col items-center text-center">
-        <p className="inline-flex items-center gap-2.5 rounded-full bg-[var(--card)] py-2 pl-3.5 pr-4 text-[13.5px] font-medium text-fg">
-          <span className="pulse-dot" data-accent="green" aria-hidden />
-          {profile.availability[lang]}
+    <section id="top" className="relative overflow-x-clip pt-24 sm:pt-[clamp(96px,12vh,124px)]">
+      <div className="wrap">
+        <h1 className="text-center text-[clamp(2.75rem,min(10.5vw,10.5vh),6rem)] leading-[0.98] tracking-[-0.045em] text-fg lg:whitespace-nowrap">{profile.name}</h1>
+        <p className="mt-4 text-center text-[14px] leading-snug md:text-[15px] lg:mt-6">
+          <span className="pulse-dot mr-2" data-accent="green" aria-hidden />
+          <span className="font-medium text-fg">{now}</span>
+          {later ? (
+            <>
+              <span className="text-muted max-sm:hidden"> · </span>
+              <span className="text-muted max-sm:mt-0.5 max-sm:block">{later}</span>
+            </>
+          ) : null}
         </p>
-        <h1 className="mt-7 text-[clamp(3rem,10.5vw,6rem)] leading-[0.98] tracking-[-0.045em] text-fg">{profile.name}</h1>
-        <p className="text-ai mt-5 max-w-[22ch] pb-1 font-display text-[clamp(1.55rem,3.6vw,2.6rem)] font-semibold leading-[1.12] tracking-[-0.03em]">{profile.tagline[lang]}</p>
-        <p className="mt-5 max-w-[640px] text-[17px] leading-relaxed text-muted md:text-[19px]">{profile.summary[lang]}</p>
 
-        <div className="mt-9 w-full max-w-[600px] text-left">
-          <PromptBar label={copy.agent.name[lang]} examples={copy.agent.examples[lang]} sendLabel={copy.agent.send[lang]} />
+        <div className="mt-7 grid gap-y-8 md:mt-9 lg:mt-[clamp(20px,4vh,40px)] lg:grid-cols-[minmax(0,1fr)_minmax(0,0.78fr)] lg:gap-x-12">
+          <div className="relative z-[1] text-center lg:text-left">
+            <Tagline text={profile.tagline[lang]} className="mx-auto max-w-[24ch] text-balance font-display text-[clamp(1.5rem,min(3vw,4.4vh),2.4rem)] font-semibold leading-[1.12] tracking-[-0.03em] text-fg lg:mx-0" />
+            <p className="mx-auto mt-4 max-w-[62ch] text-[16px] leading-relaxed text-fg md:text-[17px] lg:mx-0">{profile.summary[lang]}</p>
+
+            <div className="mx-auto mt-7 w-full max-w-[600px] text-left md:mt-8 lg:mx-0">
+              <PromptBar label={copy.agent.name[lang]} examples={copy.agent.examples[lang]} sendLabel={copy.agent.send[lang]} />
+            </div>
+
+            <div className="mt-5 flex flex-wrap justify-center gap-2 lg:justify-start">
+              <a href="#experience" className="btn btn-primary max-sm:!h-11">
+                {copy.hero.experience[lang]} {icon("M8 3v9M4.5 8.5 8 12l3.5-3.5")}
+              </a>
+              <a href={CV_URL} download className="btn btn-secondary max-sm:!h-11">
+                {copy.hero.cv[lang]} {icon("M8 3v9M4.5 8.5 8 12l3.5-3.5M3.5 13.5h9")}
+              </a>
+              <a href={profile.links.linkedin} target="_blank" rel="noreferrer noopener" className="btn btn-secondary max-sm:!h-11">
+                LinkedIn {icon("M5 11 11 5M6 5h5v5")}
+              </a>
+            </div>
+          </div>
+
+          {/* The chip: a box of its own on phones (≤ 40 % of the screen height); on desktop it fills the column's height without adding to it. */}
+          <div className="relative h-[min(40svh,340px)] lg:h-auto">
+            <div className="chip-cell">
+              <div className="chip-square">
+                <div className="chip-stage" role="img" aria-label={copy.hero.chip[lang]}>
+                  <span className="chip-poster chip-poster-live" aria-hidden />
+                  <span className="chip-poster chip-poster-still" aria-hidden />
+                  <span className="chip-poster chip-poster-cores" aria-hidden />
+                  <ChipCloud />
+                </div>
+                <MotionToggle label={copy.hero.pause[lang]} className="chip-pause" />
+              </div>
+            </div>
+          </div>
         </div>
-
-        <div className="mt-6 flex flex-wrap justify-center gap-2.5">
-          <a href="#experience" className="btn btn-primary">
-            {copy.hero.experience[lang]} {icon("M8 3v9M4.5 8.5 8 12l3.5-3.5")}
-          </a>
-          <a href={CV_URL} download className="btn btn-secondary">
-            {copy.hero.cv[lang]} {icon("M8 3v9M4.5 8.5 8 12l3.5-3.5M3.5 13.5h9")}
-          </a>
-          <a href={profile.links.linkedin} target="_blank" rel="noreferrer noopener" className="btn btn-secondary">
-            LinkedIn {icon("M5 11 11 5M6 5h5v5")}
-          </a>
-        </div>
-      </div>
-
-      <div className="relative mx-auto mt-14 w-full max-w-[560px] px-6 pb-10 md:mt-20">
-        <div className="ai-haze" aria-hidden />
-        <ChipStage>
-          <ChipArt title={copy.hero.chip[lang]} className="relative block w-full" />
-        </ChipStage>
       </div>
     </section>
   );

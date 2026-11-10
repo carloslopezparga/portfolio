@@ -28,7 +28,7 @@ export async function Now({ lang, now }: { lang: Locale; now: Date }) {
     <section id="now" className="section section-alt">
       <SectionHeader eyebrow={t.eyebrow[lang]} title={t.title[lang]} />
       <div className="wrap mt-12 grid gap-4 md:grid-cols-2 md:gap-5">
-        <TargetLink targetId={job.id} href={`#exp-${job.id}`} className={card} style={brandStyle(jobTone)}>
+        <TargetLink targetId={job.id} href={`#exp-${job.id}`} suppressHydrationWarning className={card} style={brandStyle(jobTone)}>
           <div className="flex items-center justify-between gap-3">
             <p className="mono-label">{t.work[lang]}</p>
             {jobStatus === "current" ? (
@@ -43,7 +43,7 @@ export async function Now({ lang, now }: { lang: Locale; now: Date }) {
           <LogoMark brand={job.brand} size={64} className="mt-8" />
           <h3 className="mt-5 text-[clamp(1.75rem,3vw,2.25rem)] leading-tight text-fg">{job.company}</h3>
           <p className="mt-1 text-[16px] font-semibold text-[var(--d)]">{job.role[lang]}</p>
-          {has(job.summary) ? <p className="mt-4 text-[16px] leading-relaxed text-muted">{job.summary[lang]}</p> : null}
+          {has(job.summary) ? <p className="mt-4 text-[16px] leading-relaxed text-fg">{job.summary[lang]}</p> : null}
           <div className="mt-auto flex flex-wrap items-center justify-between gap-3 pt-8 text-[14px] text-muted">
             <span>
               {formatRange(job.start, job.end, lang)}
@@ -55,7 +55,7 @@ export async function Now({ lang, now }: { lang: Locale; now: Date }) {
           </div>
         </TargetLink>
 
-        <TargetLink targetId={school.id} href={`#edu-${school.id}`} className={card} style={{ ...brandStyle(schoolTone), ["--rd" as string]: "90ms" }}>
+        <TargetLink targetId={school.id} href={`#edu-${school.id}`} suppressHydrationWarning className={card} style={{ ...brandStyle(schoolTone), ["--rd" as string]: "90ms" }}>
           <div className="flex items-center justify-between gap-3">
             <p className="mono-label">{t.study[lang]}</p>
             {year ? <span className="badge">{fill(t.year[lang], String(year))}</span> : null}

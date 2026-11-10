@@ -48,8 +48,11 @@ export function CommandPalette({
   const [query, setQuery] = useState("");
   const restoreRef = useRef<HTMLElement | null>(initialOpen && typeof document !== "undefined" ? (document.activeElement as HTMLElement | null) : null);
   const panelRef = useRef<HTMLDivElement>(null);
+  const openRef = useRef(open);
   const lenis = useLenis();
 
+  // Every opening starts from an empty search (⌘K used to keep the last one,
+  // so typing appended to it and found nothing).
   const show = useCallback(() => {
     restoreRef.current = document.activeElement as HTMLElement | null;
     setQuery("");
@@ -61,10 +64,8 @@ export function CommandPalette({
     const onKey = (e: KeyboardEvent) => {
       if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "k") {
         e.preventDefault();
-        setOpen((o) => {
-          if (!o) restoreRef.current = document.activeElement as HTMLElement | null;
-          return !o;
-        });
+        if (openRef.current) hide();
+        else show();
       }
     };
     window.addEventListener("keydown", onKey);
@@ -73,9 +74,10 @@ export function CommandPalette({
       window.removeEventListener("keydown", onKey);
       window.removeEventListener("palette:open", show);
     };
-  }, [show]);
+  }, [show, hide]);
 
   useEffect(() => {
+    openRef.current = open;
     if (open) {
       lenis?.stop();
       document.body.style.overflow = "hidden";

@@ -39,7 +39,7 @@ export async function Education({ lang, now }: { lang: Locale; now: Date }) {
             <LogoMark brand={upm.brand} size={44} />
           </span>
           {when(formatRange(upm.start, upm.end, lang), profile.location[lang])}
-          <article id={`edu-${upm.id}`} data-target-id={upm.id} className="card card-tint reveal scroll-mt-28 p-6 md:p-9">
+          <article id={`edu-${upm.id}`} data-target-id={upm.id} suppressHydrationWarning className="card card-tint reveal scroll-mt-nav p-5 sm:p-6 md:p-9">
             <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
               <h3 className="text-[clamp(1.5rem,2.6vw,2rem)] leading-tight text-fg">{upm.degree[lang]}</h3>
               {year ? <span className="badge">{fill(t.year[lang], String(year))}</span> : null}
@@ -68,13 +68,13 @@ export async function Education({ lang, now }: { lang: Locale; now: Date }) {
                 </li>
               ))}
             </ul>
-            <div data-target-id="erasmus" className="mt-5 flex items-center gap-3 rounded-[16px] bg-[var(--bg)] px-4 py-3 text-[15px] dark:bg-[rgb(255_255_255/0.05)]">
+            <div data-target-id="erasmus" className="mt-6 flex flex-wrap items-center gap-x-3 gap-y-0.5 border-t border-[var(--line)] pt-5 text-[15px]">
               <Glyph name="globe" className="size-[18px] shrink-0 text-[var(--d)]" />
               <span className="font-medium text-fg">
                 {t.erasmus[lang]}
                 {has(erasmus.destination) ? ` · ${erasmus.destination[lang]}` : ""}
               </span>
-              <span className="ml-auto text-[14px] text-muted">
+              <span className="whitespace-nowrap text-[14px] text-muted max-sm:basis-full max-sm:pl-[30px] sm:ml-auto">
                 {formatMonth(erasmus.start, lang)} – {formatMonth(erasmus.end, lang)}
               </span>
             </div>
@@ -88,7 +88,7 @@ export async function Education({ lang, now }: { lang: Locale; now: Date }) {
             <LogoMark brand={retamar.brand} size={44} />
           </span>
           {when(formatRange(retamar.start, retamar.end, lang), t.school[lang])}
-          <article id={`edu-${retamar.id}`} data-target-id={retamar.id} className="card reveal scroll-mt-28 p-6 md:p-9">
+          <article id={`edu-${retamar.id}`} data-target-id={retamar.id} suppressHydrationWarning className="card reveal scroll-mt-nav p-5 sm:p-6 md:p-9">
             <h3 className="text-[clamp(1.25rem,2vw,1.5rem)] leading-tight text-fg">{retamar.degree[lang]}</h3>
             <p className="mt-1.5 text-[16px] font-semibold text-[var(--d)]">{retamar.institution[lang]}</p>
             <p className="mt-1 text-[14px] text-muted lg:hidden">{formatRange(retamar.start, retamar.end, lang)}</p>
@@ -109,7 +109,7 @@ export async function Education({ lang, now }: { lang: Locale; now: Date }) {
             <LogoMark brand={cs50.brand} size={44} />
           </span>
           {when(formatMonth(cs50.date, lang), cs50.provider)}
-          <article id="edu-cs50" data-target-id="cs50" className="card reveal scroll-mt-28 p-6 md:p-9">
+          <article id="edu-cs50" data-target-id="cs50" suppressHydrationWarning className="card reveal scroll-mt-nav p-5 sm:p-6 md:p-9">
             <h3 className="text-[clamp(1.2rem,1.9vw,1.4rem)] leading-snug text-fg">{cs50.detail[lang]}</h3>
             <p className="mt-1.5 text-[16px]">
               <span className="font-semibold text-[var(--d)]">{cs50.provider}</span>
@@ -124,13 +124,13 @@ export async function Education({ lang, now }: { lang: Locale; now: Date }) {
         <div className="tl-row" data-accent="pink">
           <span className="tl-marker" data-tl-marker>
             <span className="tl-dot">
-              <Glyph name="cap" className="size-5" />
+              <Glyph name="cap" className="size-4 sm:size-5" />
             </span>
           </span>
           {when("2027 → 2028")}
-          <div data-target-id="full-time" className="card reveal p-6 md:p-9">
+          <div data-target-id="full-time" suppressHydrationWarning className="card reveal p-5 sm:p-6 md:p-9">
             <MonteCarlo from={lang === "en" ? "Now" : "Ahora"} to={t.cone[lang]} />
-            <p className="mt-3 text-[15px] text-muted">{t.coneNote[lang]}</p>
+            <p className="mt-3 text-[15px] leading-relaxed text-fg">{t.coneNote[lang]}</p>
           </div>
         </div>
       </TimelineRail>

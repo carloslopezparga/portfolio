@@ -27,24 +27,22 @@ export async function Stats({ lang }: { lang: Locale }) {
   const t = copy.stats;
   const items = await Promise.all(profile.impact.map(async (s) => ({ s, src: await source(s.target) })));
   return (
-    <section id="numbers" className="section !pt-20 md:!pt-28">
+    <section id="numbers" className="section [--pad-top:80px] md:[--pad-top:112px]">
       <SectionHeader eyebrow={t.eyebrow[lang]} title={t.title[lang]} />
       <ul className="wrap mt-12 grid grid-cols-2 gap-3 md:gap-5 lg:grid-cols-4">
         {items.map(({ s, src }, i) => (
-          <li key={s.id} className="reveal" style={{ ["--rd" as string]: `${i * 80}ms` }}>
+          <li key={s.id} suppressHydrationWarning className="reveal" style={{ ["--rd" as string]: `${i * 80}ms` }}>
             <TargetLink targetId={s.target} href={src.href} className={`card card-hover group flex h-full flex-col p-5 md:p-7 ${src.className}`} style={src.style} {...src.attrs}>
-              <span className="grid size-11 place-items-center rounded-full bg-[var(--bg)] text-[var(--d)] md:size-12">
-                <Glyph name={ICON[s.icon]} className="size-[22px]" strokeWidth={1.8} />
-              </span>
-              <span className="mt-8 block font-display text-[clamp(2.1rem,4.6vw,3.4rem)] font-bold leading-none tracking-[-0.04em] text-fg md:mt-12">
-                <CountUp value={s.value} prefix={s.prefix} suffix={metricSuffix(s, lang)} lang={lang} />
-              </span>
-              <span className="mt-3 block text-[15px] leading-snug text-muted md:text-[16px]">{s.label[lang]}</span>
-              <span className="mt-auto flex justify-end pt-5 text-[var(--d)] opacity-0 transition-opacity duration-300 group-hover:opacity-100 group-focus-visible:opacity-100" aria-hidden>
-                <svg viewBox="0 0 16 16" className="size-4" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
+              <span className="flex items-start justify-between text-[var(--d)]">
+                <Glyph name={ICON[s.icon]} className="size-6 md:size-7" strokeWidth={1.7} />
+                <svg viewBox="0 0 16 16" className="size-4 opacity-0 transition-opacity duration-300 group-hover:opacity-100 group-focus-visible:opacity-100" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
                   <path d="M5 11 11 5M6 5h5v5" />
                 </svg>
               </span>
+              <span className="mt-6 block font-display text-[clamp(2.1rem,4.6vw,3.4rem)] font-bold leading-none tracking-[-0.04em] text-fg md:mt-10">
+                <CountUp value={s.value} prefix={s.prefix} suffix={metricSuffix(s, lang)} lang={lang} />
+              </span>
+              <span className="mt-3 block text-[15px] leading-snug text-muted md:text-[16px]">{s.label[lang]}</span>
             </TargetLink>
           </li>
         ))}

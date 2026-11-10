@@ -23,6 +23,7 @@ export const copy = {
     cv: { en: "Download CV", es: "Descargar CV" },
     cvShort: { en: "CV", es: "CV" },
     chip: { en: "An AI chip, exploded: heat sink, die with cores, interposer and solder balls", es: "Un chip de IA en vista explosionada: disipador, die con núcleos, interposer y bolas de soldadura" },
+    pause: { en: "Pause animations", es: "Pausar animaciones" },
   },
   stats: {
     eyebrow: { en: "By the numbers", es: "En cifras" },
