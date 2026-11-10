@@ -1,10 +1,10 @@
 # carloslopezparga — personal site
 
-Next.js 16 (App Router, Cache Components) · TypeScript · Tailwind 4 · three.js (the hero chip, desktop only) · GSAP (one demo) · Motion (⌘K) · Lenis · Anthropic SDK · Cal.com embed · sharp. Fonts: Plus Jakarta Sans, Inter and Geist Mono (terminal only).
+Next.js 16 (App Router, Cache Components) · TypeScript · Tailwind 4 · three.js (the point cloud: the hero chip and, on desktop, the figures it forms further down) · GSAP (one demo) · Motion (⌘K) · Lenis · Anthropic SDK · Cal.com embed · sharp. Fonts: Plus Jakarta Sans, Inter and Geist Mono (terminal only).
 
 `/` (English) and `/es` (Spanish), light theme by default with a dark one on the toggle. Approved and pending decisions are in [`DECISIONS.md`](DECISIONS.md).
 
-Sections: hero (with the AI chip), figures, right now, experience, education (ending in a live Monte Carlo), projects (floating interface fragments, case study and demo), skills graph, leadership and contact.
+Sections: hero (with the AI chip, a point cloud that goes on to form a bar chart in figures, gears in experience and a globe in contact), figures, right now, experience, education (ending in a live Monte Carlo), projects (floating interface fragments, case study and demo), skills graph, leadership and contact.
 
 ## Run it
 

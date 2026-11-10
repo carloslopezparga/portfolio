@@ -306,6 +306,12 @@ export function mountFigures(canvas: HTMLCanvasElement, opts: SceneOptions): Sce
     const linked = (a: number, b: number) => ((a === CHIP && b === BARS_AT) || (a === BARS_AT && b === CHIP)) && spots[a].v > 0.2 && spots[b].v > 0.2;
 
     const advance = (want: number, dt: number) => {
+      if (!opts.layer) {
+        // phones: the chip is simply there, assembled, whenever any of it is on screen
+        figA = figB = want;
+        form = 1;
+        return;
+      }
       if (figA < 0) {
         if (want < 0) return;
         figA = figB = want;
@@ -592,6 +598,8 @@ export function mountFigures(canvas: HTMLCanvasElement, opts: SceneOptions): Sce
       ptr.x = e.clientX;
       ptr.y = e.clientY;
       ptr.on = true;
+      // a pointer that was already resting on a figure when it formed never «entered» it
+      if (ptr.over < 0 && e.target instanceof Element) ptr.over = spots.findIndex((s) => s.zone.contains(e.target as Element));
     };
     const onLeave = () => (ptr.on = false);
     if (opts.pointer) {

@@ -117,6 +117,8 @@ const LINE = look([[DOT.s, 0.82], [DOT.m, 0.18]]);
 const PAD = look([[DOT.m, 1]]);
 const CORE = look([[DOT.m, 1]]);
 const BALL = look([[DOT.l, 0.3], [DOT.xl, 0.7]]);
+/** phones: the chip is smaller, so its solder balls are a size down */
+const BALL_PHONE = look([[DOT.l, 0.75], [DOT.xl, 0.25]]);
 const DUST = look([[DOT.xs, 0.6], [DOT.s, 0.27], [DOT.m, 0.11], [DOT.l, 0.02]], [[0.6, 0.4], [1, 0.6]]);
 
 interface Pt {
@@ -132,7 +134,8 @@ interface Pt {
  * The chip's parts as dots `pitch` mm apart along the edges (faces are
  * sparser). Returns the ink points and, apart, the cores.
  */
-function sample(rnd: () => number, pitch: number, k: number, coreSide: number): [Pt[], Pt[]] {
+function sample(rnd: () => number, pitch: number, k: number, phone: boolean): [Pt[], Pt[]] {
+  const coreSide = phone ? 3 : 4;
   const ink: Pt[] = [];
   const cores: Pt[] = [];
   const add = (x: number, y: number, z: number, lk: Look, layer: number, ring = false, core = -1) =>
@@ -179,7 +182,7 @@ function sample(rnd: () => number, pitch: number, k: number, coreSide: number): 
   // substrate (layer 0): slab, grain on top, and one fat dot per solder ball underneath
   box(S, 0);
   grid(-S.w + 5, S.w - 5, -S.d + 5, S.d - 5, S.z + S.h, pitch * 2.5, FACE, 0);
-  for (const [bx, by] of BALLS) add(bx, by, S.z - 5, BALL, 0);
+  for (const [bx, by] of BALLS) add(bx, by, S.z - 5, phone ? BALL_PHONE : BALL, 0);
 
   // interposer (layer 1): slab, grain around the die's footprint, and the traces fanning out to their pads
   box(I, 1);
@@ -228,11 +231,12 @@ export function buildCloud(n: number): Cloud {
   const k = phone ? 1.3 : 1; // fewer points on phones: a little larger
   const dustShare = phone ? 0.03 : 0.035;
   // Dots as close along the edges as the budget allows (phones: a wider pitch), leaving a share for the dust.
-  let pitch = phone ? 3.6 : 2.0;
+  // The search starts just under where it ends for today's sizes, so it takes a couple of passes.
+  let pitch = phone ? 4.56 : 2.3;
   let ink: Pt[] = [];
   let cores: Pt[] = [];
   for (let guard = 0; guard < 60; guard++) {
-    [ink, cores] = sample(mulberry32(20261110 + n), pitch, k, phone ? 3 : 4);
+    [ink, cores] = sample(mulberry32(20261110 + n), pitch, k, phone);
     if (ink.length + cores.length <= n * (1 - dustShare)) break;
     pitch *= 1.02;
   }
