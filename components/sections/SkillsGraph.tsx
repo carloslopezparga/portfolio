@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import { createPortal } from "react-dom";
-import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties, type KeyboardEvent } from "react";
+import { Fragment, useCallback, useEffect, useMemo, useRef, useState, type CSSProperties, type KeyboardEvent } from "react";
 import type { DomainId, StackId } from "@/content/types";
 import { link, wrap, type GraphLayout } from "@/lib/graph";
 import { getPrefs } from "@/lib/prefs";
@@ -59,6 +59,26 @@ function nearest(pos: Map<string, { x: number; y: number }>, from: string, [dx, 
 }
 
 const tone = (r: GraphRef) => ({ className: r.brand ? "brand" : "", style: r.brand ?? undefined, domain: r.brand ? undefined : (r.domain ?? undefined) });
+/** The id of a ref's monogram drawing, when that is what its node shows (no logo file, no glyph). */
+const monoId = (r: GraphRef) => (!r.logo && !r.glyph && r.monogram ? `mono-${r.id}` : null);
+
+/**
+ * A node's visible label, one <text> per line. The space the label was
+ * wrapped at stays in the DOM between the lines (SVG draws nothing for it), so
+ * the node's text reads "piloto automático", not "pilotoautomático": what is
+ * visible has to be part of the node's accessible name, its aria-label
+ * (WCAG 2.5.3, axe's label-content-name-mismatch).
+ */
+function NodeLabel({ lines, x, y, leading, className }: { lines: string[]; x: number; y: number; leading: number; className: string }) {
+  return lines.map((line, i) => (
+    <Fragment key={i}>
+      {i > 0 ? " " : null}
+      <text x={x} y={y + i * leading} aria-hidden textAnchor="middle" className={`g-label ${className}`}>
+        {line}
+      </text>
+    </Fragment>
+  ));
+}
 
 /** What the inspector and the phone sheet show for the active node. */
 function Details({ active, skills, refs, labels, select }: { active: Active; skills: GraphSkill[]; refs: GraphRef[]; labels: GraphLabels; select: (a: Active) => void }) {
@@ -247,6 +267,21 @@ export function SkillsGraph({ skills, refs, layout, labels }: { skills: GraphSki
               </text>
             ))}
 
+            {/* A monogram stands in for a missing logo, so it is drawn like one: defined here, at its
+                node's centre, and painted from the node with <use>. As text inside the node it would
+                be part of its visible label ("IF Induforum 2027"), which its aria-label has to contain. */}
+            <defs>
+              {refs.map((r) => {
+                const id = monoId(r);
+                const p = pos.get(r.id)!;
+                return id ? (
+                  <text key={id} id={id} x={p.x} y={p.y + 5} aria-hidden textAnchor="middle" className="fill-[var(--d)] text-[14px] font-bold">
+                    {r.monogram}
+                  </text>
+                ) : null;
+              })}
+            </defs>
+
             {refs.map((r) => {
               const p = pos.get(r.id)!;
               const on = lit.has(r.id);
@@ -282,16 +317,10 @@ export function SkillsGraph({ skills, refs, layout, labels }: { skills: GraphSki
                     <g transform={`translate(${p.x - 11} ${p.y - 11})`} className="text-[var(--d)]">
                       <Glyph name={r.glyph} size={22} />
                     </g>
-                  ) : r.monogram ? (
-                    <text x={p.x} y={p.y + 5} aria-hidden textAnchor="middle" className="fill-[var(--d)] text-[14px] font-bold">
-                      {r.monogram}
-                    </text>
+                  ) : monoId(r) ? (
+                    <use href={`#${monoId(r)}`} aria-hidden />
                   ) : null}
-                  {wrap(r.label, 18).map((line, i) => (
-                    <text key={i} x={p.x} y={p.y + 46 + i * 15} aria-hidden textAnchor="middle" className="g-label text-[12.5px] font-semibold">
-                      {line}
-                    </text>
-                  ))}
+                  <NodeLabel lines={wrap(r.label, 18)} x={p.x} y={p.y + 46} leading={15} className="text-[12.5px] font-semibold" />
                 </g>
               );
             })}
@@ -321,11 +350,7 @@ export function SkillsGraph({ skills, refs, layout, labels }: { skills: GraphSki
                   <g transform={`translate(${p.x - 9} ${p.y - 9})`} className="text-[var(--d)]">
                     <StackIcon id={s.id} size={18} />
                   </g>
-                  {wrap(s.label).map((line, i) => (
-                    <text key={i} x={p.x} y={p.y + 38 + i * 14} aria-hidden textAnchor="middle" className="g-label text-[12px] font-medium">
-                      {line}
-                    </text>
-                  ))}
+                  <NodeLabel lines={wrap(s.label)} x={p.x} y={p.y + 38} leading={14} className="text-[12px] font-medium" />
                 </g>
               );
             })}
