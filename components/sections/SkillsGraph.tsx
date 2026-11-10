@@ -283,12 +283,12 @@ export function SkillsGraph({ skills, refs, layout, labels }: { skills: GraphSki
                       <Glyph name={r.glyph} size={22} />
                     </g>
                   ) : r.monogram ? (
-                    <text x={p.x} y={p.y + 5} textAnchor="middle" className="fill-[var(--d)] text-[14px] font-bold">
+                    <text x={p.x} y={p.y + 5} aria-hidden textAnchor="middle" className="fill-[var(--d)] text-[14px] font-bold">
                       {r.monogram}
                     </text>
                   ) : null}
                   {wrap(r.label, 18).map((line, i) => (
-                    <text key={i} x={p.x} y={p.y + 46 + i * 15} textAnchor="middle" className="g-label text-[12.5px] font-semibold">
+                    <text key={i} x={p.x} y={p.y + 46 + i * 15} aria-hidden textAnchor="middle" className="g-label text-[12.5px] font-semibold">
                       {line}
                     </text>
                   ))}
@@ -322,7 +322,7 @@ export function SkillsGraph({ skills, refs, layout, labels }: { skills: GraphSki
                     <StackIcon id={s.id} size={18} />
                   </g>
                   {wrap(s.label).map((line, i) => (
-                    <text key={i} x={p.x} y={p.y + 38 + i * 14} textAnchor="middle" className="g-label text-[12px] font-medium">
+                    <text key={i} x={p.x} y={p.y + 38 + i * 14} aria-hidden textAnchor="middle" className="g-label text-[12px] font-medium">
                       {line}
                     </text>
                   ))}

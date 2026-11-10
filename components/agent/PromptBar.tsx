@@ -96,7 +96,7 @@ export function PromptBar({ label, examples, sendLabel }: { label: string; examp
 
   return (
     <div>
-      <label htmlFor="agent-prompt" className="mb-2.5 flex items-center gap-2 text-[13px] font-medium text-muted">
+      <label htmlFor="agent-prompt" className="mb-2.5 flex items-center justify-center gap-2 text-[13px] font-medium text-muted lg:justify-start">
         <span className="ai-dot size-2 rounded-full" aria-hidden />
         {label}
       </label>

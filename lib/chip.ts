@@ -1,8 +1,8 @@
 /*
  * Geometry of the hero's AI chip, exploded into four layers (top to bottom):
  * heat sink, die with its cores, interposer with traces, and the substrate
- * with its BGA solder balls. Units are arbitrary "mm"; z is up. Shared by the
- * 2D drawing (isometric SVG) and the 3D scene.
+ * with its BGA solder balls. Units are arbitrary "mm"; z is up. The hero's
+ * point cloud (lib/chip-cloud.ts) is sampled from these shapes.
  */
 
 export interface Slab {
@@ -14,8 +14,8 @@ export interface Slab {
   h: number;
 }
 
-/** Gaps between layers when exploded (the 3D scene animates them from 0). The sink rides higher so the die and its cores show underneath. */
-export const GAPS = { interposer: 46, die: 40, sink: 100 };
+/** Gaps between layers in the exploded view. The sink rides higher so the die and its cores show underneath. */
+export const GAPS = { interposer: 34, die: 30, sink: 72 };
 
 export const LAYERS = {
   substrate: { w: 100, d: 100, z: 0, h: 7 },
@@ -55,8 +55,9 @@ export const BALLS = (() => {
  * edge, as polylines (each one is a path a data pulse runs along).
  */
 export const TRACES: [number, number][][] = (() => {
-  const e = LAYERS.interposer.w - 6;
-  const f = LAYERS.die.w + 4;
+  // from under the die out to the interposer's edge: a fan-out, not stubs
+  const e = LAYERS.interposer.w - 3;
+  const f = LAYERS.die.w - 10;
   const out: [number, number][][] = [];
   for (const k of [-36, -18, 0, 18, 36]) {
     out.push([[f, k], [f + 10, k], [f + 14, k + Math.sign(k || 1) * 6], [e, k + Math.sign(k || 1) * 6]]);
@@ -66,28 +67,3 @@ export const TRACES: [number, number][][] = (() => {
   }
   return out;
 })();
-
-/* ---------------- isometric projection (2D) ---------------- */
-
-const COS = Math.cos(Math.PI / 6);
-const SIN = Math.sin(Math.PI / 6);
-
-export const iso = (x: number, y: number, z: number): [number, number] => [(x - y) * COS, (x + y) * SIN - z];
-
-const pts = (p: [number, number][]) => p.map(([x, y]) => `${x.toFixed(1)},${y.toFixed(1)}`).join(" ");
-
-/** The three visible faces of a box, as SVG polygon point lists. */
-export function boxFaces(x0: number, y0: number, x1: number, y1: number, z: number, h: number) {
-  const t = z + h;
-  return {
-    top: pts([iso(x0, y0, t), iso(x1, y0, t), iso(x1, y1, t), iso(x0, y1, t)]),
-    right: pts([iso(x1, y0, t), iso(x1, y1, t), iso(x1, y1, z), iso(x1, y0, z)]),
-    left: pts([iso(x0, y1, t), iso(x1, y1, t), iso(x1, y1, z), iso(x0, y1, z)]),
-  };
-}
-
-export const slabFaces = (s: Slab) => boxFaces(-s.w, -s.d, s.w, s.d, s.z, s.h);
-
-/** A polyline on a plane at height z, as an SVG path. */
-export const tracePath = (line: [number, number][], z: number) =>
-  line.map(([x, y], i) => `${i ? "L" : "M"}${iso(x, y, z).map((v) => v.toFixed(1)).join(" ")}`).join(" ");

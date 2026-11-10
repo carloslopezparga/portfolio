@@ -21,10 +21,14 @@ const T = {
   aiTurn: { en: "AI's turn", es: "Turno de la IA" },
 };
 
-/** One floating card: tilted, at a depth (parallax strength), with its own float period. */
-function Frag({ children, className, rot, depth, float = 9, delay = 0, style }: { children: ReactNode; className: string; rot: number; depth: number; float?: number; delay?: number; style?: CSSProperties }) {
+/**
+ * One floating card: tilted, at a depth (parallax strength), with its own
+ * float period. `main` marks the one card each project keeps on phones, where
+ * it is shown alone and large enough to read (see .frag-main in globals.css).
+ */
+function Frag({ children, className, rot, depth, float = 9, delay = 0, style, main }: { children: ReactNode; className: string; rot: number; depth: number; float?: number; delay?: number; style?: CSSProperties; main?: boolean }) {
   return (
-    <div className={`frag ${className}`} style={{ ["--rot" as string]: `${rot}deg`, ["--depth" as string]: depth, ["--fd" as string]: `${float}s`, animationDelay: `${delay}s`, ...style }}>
+    <div className={`frag ${main ? "frag-main" : ""} ${className}`} style={{ ["--rot" as string]: `${rot}deg`, ["--depth" as string]: depth, ["--fd" as string]: `${float}s`, animationDelay: `${delay}s`, ...style }}>
       {children}
     </div>
   );
@@ -64,7 +68,7 @@ function JobHunt({ lang }: { lang: Locale }) {
           ))}
         </ul>
       </Frag>
-      <Frag className="frag-dark bottom-[9%] left-[20%] w-[60%] font-mono" rot={-2} depth={20} float={11} delay={-4}>
+      <Frag main className="frag-dark bottom-[9%] left-[20%] w-[60%] font-mono" rot={-2} depth={20} float={11} delay={-4}>
         <p className="text-[9.5px] leading-relaxed">
           <span className="text-[#2997ff]">$</span> jhc fetch
           <br />
@@ -83,7 +87,7 @@ function Mail({ lang }: { lang: Locale }) {
   const dots = ["var(--blue)", "var(--purple)", "var(--subtle)"];
   return (
     <>
-      <Frag className="left-[8%] top-[10%] w-[50%]" rot={-4} depth={10} float={10}>
+      <Frag main className="left-[8%] top-[10%] w-[50%]" rot={-4} depth={10} float={10}>
         <div className="flex items-center justify-between">
           <p className="text-[11px] font-semibold text-fg">{T.digest[lang]}</p>
           <span className="text-[9px] font-semibold text-muted">07:00</span>
@@ -129,7 +133,7 @@ function Cooling({ lang }: { lang: Locale }) {
   });
   return (
     <>
-      <Frag className="left-[7%] top-[11%] w-[60%]" rot={-3} depth={10} float={10}>
+      <Frag main className="left-[7%] top-[11%] w-[60%]" rot={-3} depth={10} float={10}>
         <div className="flex items-center justify-between">
           <p className="text-[10px] font-semibold text-fg">{T.generations[lang]}</p>
           <span className="rounded-full bg-[rgb(var(--cyan-rgb)/0.14)] px-1.5 py-0.5 text-[8.5px] font-semibold text-[var(--cyan-text)]">{T.illustrative[lang]}</span>
@@ -157,7 +161,7 @@ function Cooling({ lang }: { lang: Locale }) {
 function CS50({ lang }: { lang: Locale }) {
   return (
     <>
-      <Frag className="left-[7%] top-[10%] w-[50%]" rot={-4} depth={10} float={10}>
+      <Frag main className="left-[7%] top-[10%] w-[50%]" rot={-4} depth={10} float={10}>
         <div className="flex items-center gap-2">
           <svg viewBox="0 0 40 40" className="size-9 shrink-0" aria-hidden>
             <polygon points="12,2 28,2 38,12 38,28 28,38 12,38 2,28 2,12" fill="#d70015" stroke="#fff" strokeWidth="2" />

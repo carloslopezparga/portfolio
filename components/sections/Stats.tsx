@@ -31,7 +31,7 @@ export async function Stats({ lang }: { lang: Locale }) {
       <SectionHeader eyebrow={t.eyebrow[lang]} title={t.title[lang]} />
       <ul className="wrap mt-12 grid grid-cols-2 gap-3 md:gap-5 lg:grid-cols-4">
         {items.map(({ s, src }, i) => (
-          <li key={s.id} className="reveal" style={{ ["--rd" as string]: `${i * 80}ms` }}>
+          <li key={s.id} suppressHydrationWarning className="reveal" style={{ ["--rd" as string]: `${i * 80}ms` }}>
             <TargetLink targetId={s.target} href={src.href} className={`card card-hover group flex h-full flex-col p-5 md:p-7 ${src.className}`} style={src.style} {...src.attrs}>
               <span className="flex items-start justify-between text-[var(--d)]">
                 <Glyph name={ICON[s.icon]} className="size-6 md:size-7" strokeWidth={1.7} />
