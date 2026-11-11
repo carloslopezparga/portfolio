@@ -17,14 +17,14 @@ export function agentTools(): Anthropic.Tool[] {
       eager_input_streaming: true,
       input_schema: {
         type: "object",
-        properties: { sectionId: { type: "string", enum: registry.sections, description: "top = hero, now = current job and studies, experience, education, projects, skills, leadership, contact." } },
+        properties: { sectionId: { type: "string", enum: registry.sections, description: "top = hero, now = current job and studies, experience, education, projects, skills, volunteering, contact." } },
         required: ["sectionId"],
         additionalProperties: false,
       },
     },
     {
       name: "highlight",
-      description: "Scroll to and outline one element on the page (a job, school, course, project, skill, language or leadership item) while the rest dims for a moment.",
+      description: "Scroll to and outline one element on the page (a job, school, course, project, skill, language or volunteering item) while the rest dims for a moment.",
       eager_input_streaming: true,
       input_schema: {
         type: "object",

@@ -17,16 +17,36 @@ Cada carpeta corresponde a una tarjeta:
 | `education/etsii/` | ETSII-UPM |
 | `education/retamar/` | Colegio Retamar |
 | `education/cs50/` | CS50 |
-| `projects/job-hunt-copilot/` | job-hunt-copilot |
+| `projects/job-hunt-copilot/` | Shortlist |
 | `projects/mail-autopilot/` | Correo en piloto automático |
 | `projects/cooling-agent/` | Agente de IA para refrigeración de centros de datos |
-| `leadership/dana/` | DANA de Valencia |
-| `leadership/mentor/` | Programa Mentor ETSII |
-| `leadership/food-bank/` | Banco de Alimentos |
-| `leadership/charity-events/` | Eventos benéficos |
-| `leadership/orphanage/` | Orfanato en Sudáfrica |
+| `projects/cs50-ai/` | Proyectos de IA (CS50) |
+| `volunteering/dana/` | DANA de Valencia |
+| `volunteering/food-bank/` | Banco de Alimentos |
+| `volunteering/charity-events/` | Eventos benéficos |
+| `volunteering/orphanage/` | Orfanato en Sudáfrica |
 
-El nombre de cada carpeta es el `id` de la entrada en `content/profile.ts`. Si añades un puesto, proyecto o actividad nueva, crea su carpeta con ese mismo `id`.
+El nombre de cada carpeta es el `id` de la entrada en `content/profile.ts`. Si añades un puesto, proyecto o actividad nueva, crea su carpeta con ese mismo `id`. En Voluntariado, una entrada con foto pasa a ser una tarjeta de foto.
+
+## Fondo de una sección (Formación y Voluntariado)
+
+Lo que subas **directamente** a `education/` o a `volunteering/` (a la carpeta de la sección, no a la de una tarjeta) se ve detrás de toda la sección, muy tenue (10 % de opacidad) y en gris.
+
+- **Vídeo** (`.mp4` o `.webm`; si subes el mismo nombre en los dos formatos, cuenta como uno): se reproduce en silencio y en bucle mientras la sección está en pantalla. Con varios, uno detrás de otro. Portada opcional: `nombre.poster.jpg`.
+- **Fotos** (solo si no hay ningún vídeo): pasan una a una, fundiéndose cada 6 segundos.
+- **Sin archivos, no hay fondo.**
+- En Voluntariado, usa vídeos en los que no se vean caras: el fondo no pide permiso a nadie.
+- Con las animaciones en pausa (o movimiento reducido) se ve la portada o el primer fotograma, quieto.
+
+## Vídeo en bucle de cada proyecto
+
+Arriba de cada tarjeta de proyecto hay un vídeo corto (7 s), mudo y en bucle. Están en la carpeta del proyecto y su nombre empieza por `loop`:
+
+- `loop-es-light.webm`, `loop-es-light.mp4` y `loop-es-light.poster.jpg` (y lo mismo con `en` y con `dark`): uno por idioma y por tema.
+- Para poner un vídeo tuyo, basta `loop.mp4` (y, si quieres, `loop.webm` y `loop.poster.jpg`) y borrar los `loop-…` de esa carpeta. También valen `loop-light.*` / `loop-dark.*` (uno por tema) o `loop-es.*` / `loop-en.*` (uno por idioma). Formato 16:10; lo que sobre se recorta.
+- Los que hay ahora están grabados de las propias ilustraciones de la web. Para volver a grabarlos: `node scripts/record-project-loops.mjs` (lo explica el propio script).
+- Los archivos `loop…` no salen en la tira de fotos y vídeos de la tarjeta.
+- Si un proyecto no tiene vídeo, su tarjeta muestra la ilustración animada de antes.
 
 ## Nombres de archivo
 
@@ -60,7 +80,7 @@ Una foto sin pie se abre igual, sin texto debajo.
 4. Abajo, en **Commit changes**, deja marcada la opción de hacer commit directamente en `main` y pulsa **Commit changes**.
 5. Vercel vuelve a desplegar solo. En uno o dos minutos las miniaturas aparecen en la web.
 
-Para crear una carpeta nueva, pulsa **Add file → Create new file**, escribe la ruta con una barra al final del nombre de la carpeta (por ejemplo `leadership/nueva-actividad/.gitkeep`) y haz commit. Después sube los archivos dentro.
+Para crear una carpeta nueva, pulsa **Add file → Create new file**, escribe la ruta con una barra al final del nombre de la carpeta (por ejemplo `volunteering/nueva-actividad/.gitkeep`) y haz commit. Después sube los archivos dentro.
 
 Para borrar o renombrar un archivo, ábrelo en GitHub y usa el menú **⋯** (borrar) o el lápiz (renombrar).
 

@@ -4,7 +4,7 @@ import { brandOf, logoSrc } from "@/lib/assets";
 import { brandStyle } from "@/lib/brand";
 import { copy } from "@/lib/copy";
 import { graphLayout } from "@/lib/graph";
-import type { GlyphName } from "@/components/ui/icons";
+import { stackColor, type GlyphName } from "@/components/ui/icons";
 import { SectionHeader } from "./SectionHeader";
 import { SkillsGraph, type GraphRef, type GraphSkill } from "./SkillsGraph";
 
@@ -26,6 +26,7 @@ export async function Skills({ lang }: { lang: Locale }) {
     label: s.label[lang],
     domain: s.domain,
     domainLabel: domainLabel[s.domain],
+    color: stackColor(s.id),
     usedIn: s.usedIn.map((u) => (typeof u === "string" ? { id: u, w: 1 } : { id: u.id, w: u.w })),
   }));
   const projectIds = profile.projects.map((p) => p.id as RefId);
@@ -61,10 +62,10 @@ export async function Skills({ lang }: { lang: Locale }) {
           </>
         }
       />
-      <div className="wrap mt-12 md:mt-14">
+      <div className="wrap mt-10 md:mt-12">
         <SkillsGraph skills={skills} refs={refs} layout={graphLayout(skills, refIds)} labels={{ usedIn: t.usedIn[lang], uses: t.uses[lang], close: copy.projects.close[lang], tour: t.title[lang] }} />
 
-        <div className="mt-8">
+        <div className="mt-6">
           <p className="mono-label">{t.languages[lang]}</p>
           <ul className="mt-2 flex flex-wrap gap-2">
             {profile.languages.map((l) => (

@@ -1,20 +1,18 @@
 /**
- * NEXT_PUBLIC_CALCOM_LINK accepts "carlos/15min" or a full URL
- * ("https://cal.com/carlos/15min", or a self-hosted / EU origin).
- * Missing or unparsable → booking is hidden everywhere.
+ * NEXT_PUBLIC_BOOKING_URL: the public page of a Google Calendar appointment
+ * schedule (any https URL works). Every «Book 15 min» opens it in a new tab.
+ * Missing or not https → booking is hidden everywhere (Contact, ⌘K and the
+ * agent's open_booking).
  */
-export function parseCalLink(raw = process.env.NEXT_PUBLIC_CALCOM_LINK): { link: string; origin?: string } | null {
+export function bookingUrl(raw = process.env.NEXT_PUBLIC_BOOKING_URL): string | null {
   const v = raw?.trim();
   if (!v) return null;
-  if (!/^https?:\/\//.test(v)) return { link: v.replace(/^\/+|\/+$/g, "") };
   try {
     const u = new URL(v);
-    const link = u.pathname.replace(/^\/+|\/+$/g, "");
-    if (!link) return null;
-    return u.hostname === "cal.com" ? { link } : { link, origin: u.origin };
+    return u.protocol === "https:" ? u.href : null;
   } catch {
     return null;
   }
 }
 
-export const bookingEnabled = () => parseCalLink() !== null;
+export const bookingEnabled = () => bookingUrl() !== null;

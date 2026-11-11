@@ -20,6 +20,9 @@ const FILES: Record<string, () => string> = {
   "bars-c.svg": () => figureSVG("bars", CLOUD_SIZE.desktop, "colour"),
   "gears-d.svg": () => figureSVG("gears", CLOUD_SIZE.desktop, "ink"),
   "globe-d.svg": () => figureSVG("globe", CLOUD_SIZE.desktop, "ink"),
+  "funnel-d.svg": () => figureSVG("funnel", CLOUD_SIZE.desktop, "ink"),
+  "flow-d.svg": () => figureSVG("flow", CLOUD_SIZE.desktop, "ink"),
+  "book-d.svg": () => figureSVG("book", CLOUD_SIZE.desktop, "ink"),
 };
 
 export function generateStaticParams() {

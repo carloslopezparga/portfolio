@@ -413,7 +413,7 @@ html:not(.js) body {
   display: flex;
   flex-direction: column;
 }
-html:not(.js) body > div[hidden]:has(> #numbers) {
+html:not(.js) body > div[hidden]:has(> #how) {
   order: 1;
 }
 html:not(.js) body > div[hidden]:has(> #now) {
@@ -431,7 +431,7 @@ html:not(.js) body > div[hidden]:has(> #projects) {
 html:not(.js) body > div[hidden]:has(> #skills) {
   order: 6;
 }
-html:not(.js) body > div[hidden]:has(> #leadership) {
+html:not(.js) body > div[hidden]:has(> #volunteering) {
   order: 7;
 }
 html:not(.js) body > div[hidden]:has(> #contact) {
@@ -1430,7 +1430,7 @@ main[data-focusing] > section:not(:has([data-hl])) {
 }
 /* The other figures' gaps (desktop only). Beside a section's title: on the
    header's baseline, reaching up into the section's top padding, and the
-   text keeps 32 px clear of it (the chart's is larger: its title is short).
+   text keeps 32 px clear of it (How I work's is larger: its title is short).
    In Contact: the right half of the band. */
 .fig-gap {
   display: none;
@@ -1440,7 +1440,7 @@ main[data-focusing] > section:not(:has([data-hl])) {
     --fig-w: 320px;
     --fig-h: 210px;
   }
-  .fig-row-bars {
+  .fig-row-wide {
     --fig-w: 400px;
     --fig-h: 250px;
   }
@@ -1474,10 +1474,19 @@ main[data-focusing] > section:not(:has([data-hl])) {
     --fig-w: 380px;
     --fig-h: 240px;
   }
-  .fig-row-bars {
+  .fig-row-wide {
     --fig-w: 440px;
     --fig-h: 264px;
   }
+}
+/* a gap that takes turns between figures: only the poster of the one it shows now */
+.fig-gap[data-figure-set] .fig-poster {
+  visibility: hidden;
+}
+.fig-gap[data-figure="funnel"] .fig-poster[data-of="funnel"],
+.fig-gap[data-figure="flow"] .fig-poster[data-of="flow"],
+.fig-gap[data-figure="bars"] .fig-poster[data-of="bars"] {
+  visibility: visible;
 }
 /* their still posters (masks painted in the page's ink, like the chip's): reduced motion, no JavaScript, no WebGL */
 .fig-poster {
@@ -1672,6 +1681,111 @@ html:not(.js) :is(.chip-poster-still, .chip-poster-cores),
 }
 
 /* ------------------------------------------------------------------ */
+/* How I work: the three steps                                         */
+/* ------------------------------------------------------------------ */
+.step {
+  transition:
+    opacity 600ms var(--ease-out) var(--rd, 0ms),
+    box-shadow 350ms var(--ease-out);
+}
+.step-n {
+  color: var(--subtle);
+  transition: color 350ms var(--ease-out);
+}
+/* the active step (under the mouse, or the one the scroll picks): the one whose figure the cloud forms */
+.step[data-active] {
+  box-shadow: inset 0 0 0 1.5px var(--fg);
+}
+.step[data-active] .step-n {
+  color: var(--accent);
+}
+
+/* ------------------------------------------------------------------ */
+/* Rows that scroll sideways (Projects, Volunteering)                  */
+/* ------------------------------------------------------------------ */
+/* The row runs to the edges of the screen; its padding is the page's column,
+   so the first card lines up with the titles and snaps back to that line. */
+.carousel {
+  --gutter: 20px;
+  --edge: max(var(--gutter), calc((100% - 1200px) / 2 + var(--gutter)));
+}
+@media (min-width: 640px) {
+  .carousel {
+    --gutter: 32px;
+  }
+}
+.carousel-track {
+  position: relative;
+  display: flex;
+  gap: 16px;
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+  scroll-snap-type: x mandatory;
+  scroll-padding-inline: var(--edge);
+  /* room for the cards' shadow and their lift on hover */
+  padding: 8px var(--edge) 20px;
+  scrollbar-width: none;
+  outline-offset: -2px;
+}
+.carousel-track::-webkit-scrollbar {
+  display: none;
+}
+.carousel-track > * {
+  flex: none;
+  scroll-snap-align: start;
+}
+@media (min-width: 768px) {
+  .carousel-track {
+    gap: 20px;
+  }
+}
+.carousel-btn {
+  display: grid;
+  width: 44px;
+  height: 44px;
+  place-items: center;
+  border-radius: 999px;
+  background: var(--btn-2);
+  color: var(--fg);
+  transition:
+    background 200ms var(--ease-out),
+    opacity 200ms var(--ease-out);
+}
+.carousel-btn:hover:not(:disabled) {
+  background: var(--btn-2-hover);
+}
+.carousel-btn:disabled {
+  opacity: 0.35;
+  cursor: default;
+}
+/* A project's looping clip: until it loads (and with reduced motion or no
+   JavaScript), its poster, in the page's theme. */
+.project-loop {
+  border-bottom: 1px solid var(--line);
+  background: var(--poster-light) center / cover no-repeat;
+}
+[data-theme="dark"] .project-loop {
+  background-image: var(--poster-dark);
+}
+
+/* ------------------------------------------------------------------ */
+/* A section's backdrop: its video or photos, very faint and grey      */
+/* ------------------------------------------------------------------ */
+.section-backdrop {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  overflow: hidden;
+  opacity: 0.1;
+  filter: grayscale(1);
+  pointer-events: none;
+}
+.section-backdrop ~ * {
+  position: relative;
+  z-index: 1;
+}
+
+/* ------------------------------------------------------------------ */
 /* Skills graph                                                        */
 /* ------------------------------------------------------------------ */
 .g-link {
@@ -1688,6 +1802,22 @@ html:not(.js) :is(.chip-poster-still, .chip-poster-cores),
   cursor: pointer;
   outline: none;
   transition: opacity 350ms var(--ease-out);
+  /* every node floats a little, each at its own pace (duration and delay come from the node) */
+  animation: g-float 7s var(--ease-in-out) infinite;
+}
+@keyframes g-float {
+  25% {
+    translate: 2px -3px;
+  }
+  50% {
+    translate: -0.5px -1.5px;
+  }
+  75% {
+    translate: -2px 2.5px;
+  }
+}
+[data-motion="reduce"] .g-node {
+  animation: none;
 }
 /* keyboard focus: a ring in the accent colour around the disc */
 .g-ring {
@@ -1730,6 +1860,11 @@ html:not(.js) :is(.chip-poster-still, .chip-poster-cores),
 }
 .g-label {
   fill: var(--fg);
+  /* a halo in the section's colour, so a link that passes behind a label does not cross its letters */
+  paint-order: stroke;
+  stroke: var(--bg-alt);
+  stroke-width: 4px;
+  stroke-linejoin: round;
 }
 .sheet {
   animation: sheet-in 320ms var(--ease-out) both;

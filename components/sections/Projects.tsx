@@ -3,14 +3,15 @@ import { has, type Locale } from "@/content/types";
 import { photoSrc, readDemo } from "@/lib/assets";
 import { copy, mediaLabels } from "@/lib/copy";
 import { formatMonth } from "@/lib/i18n";
-import { mediaFor } from "@/lib/media";
+import { mediaFor, projectLoop } from "@/lib/media";
 import { isSkill, metricSuffix } from "@/lib/metrics";
-import { ProjectsGrid, type ProjectItem } from "./ProjectsGrid";
+import { ProjectsRow, type ProjectItem } from "./ProjectsRow";
 import { SectionHeader } from "./SectionHeader";
 
 export async function Projects({ lang }: { lang: Locale }) {
   const t = copy.projects;
   const media = await Promise.all(profile.projects.map((p) => mediaFor("projects", p.id, lang)));
+  const loops = await Promise.all(profile.projects.map((p) => projectLoop(p.id, lang)));
   const items: ProjectItem[] = profile.projects.map((p, i) => {
     let demo: ProjectItem["demo"] = null;
     if (p.demo?.kind === "terminal") {
@@ -37,6 +38,7 @@ export async function Projects({ lang }: { lang: Locale }) {
       demo,
       screenshot: p.screenshot ? photoSrc(p.screenshot) : null,
       media: media[i],
+      loop: loops[i],
     };
   });
 
@@ -44,7 +46,7 @@ export async function Projects({ lang }: { lang: Locale }) {
     <section id="projects" className="section">
       <SectionHeader eyebrow={t.eyebrow[lang]} title={t.title[lang]} intro={t.intro[lang]} />
       <div className="mt-12 md:mt-14">
-        <ProjectsGrid
+        <ProjectsRow
           lang={lang}
           items={items}
           labels={{
@@ -58,6 +60,9 @@ export async function Projects({ lang }: { lang: Locale }) {
             demoSoon: t.demoSoon[lang],
             realFlow: t.realFlow[lang],
             animated: t.animated[lang],
+            row: t.title[lang],
+            rowPrev: copy.carousel.prev[lang],
+            rowNext: copy.carousel.next[lang],
             media: mediaLabels(lang),
             mail: {
               gmail: t.mail.gmail[lang],

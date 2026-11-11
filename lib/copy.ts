@@ -26,10 +26,14 @@ export const copy = {
     pause: { en: "Pause animations", es: "Pausar animaciones" },
     resume: { en: "Resume animations", es: "Reanudar animaciones" },
   },
-  stats: {
-    eyebrow: { en: "By the numbers", es: "En cifras" },
-    title: { en: "Real figures, from real work.", es: "Cifras reales, de trabajo real." },
-    see: { en: "See where it comes from", es: "Ver de dónde sale" },
+  how: {
+    eyebrow: { en: "Method", es: "Método" },
+    title: { en: "How I work", es: "Cómo trabajo" },
+    intro: { en: "Three steps, always in this order.", es: "Tres pasos, siempre en este orden." },
+  },
+  carousel: {
+    prev: { en: "Previous", es: "Anterior" },
+    next: { en: "Next", es: "Siguiente" },
   },
   agent: {
     name: { en: "Ask my agent", es: "Pregúntale a mi agente" },
@@ -39,7 +43,7 @@ export const copy = {
       en: [
         "What does he do at PropHero?",
         "Is he available for an internship in 2027?",
-        "What did job-hunt-copilot achieve?",
+        "What did Shortlist achieve?",
         "What is he studying at ETSII-UPM?",
         "Which projects use Python?",
         "What did he automate at Classy?",
@@ -49,7 +53,7 @@ export const copy = {
       es: [
         "¿Qué hace en PropHero?",
         "¿Está disponible para prácticas en 2027?",
-        "¿Qué consiguió job-hunt-copilot?",
+        "¿Qué consiguió Shortlist?",
         "¿Qué estudia en la ETSII-UPM?",
         "¿Qué proyectos usan Python?",
         "¿Qué automatizó en Classy?",
@@ -91,7 +95,6 @@ export const copy = {
     current: { en: "Current", es: "Actual" },
     starts: { en: "Starts {x}", es: "Empieza el {x}" },
     year: { en: "Year {x}", es: "{x}º curso" },
-    specialisation: { en: "Specialisation", es: "Especialidad" },
     more: { en: "See in Experience", es: "Ver en Experiencia" },
     moreStudy: { en: "See in Education", es: "Ver en Formación" },
   },
@@ -110,17 +113,14 @@ export const copy = {
     eyebrow: { en: "Academic background", es: "Formación académica" },
     title: { en: "Education", es: "Formación" },
     intro: {
-      en: "Industrial engineering at ETSII-UPM, specialising in intelligent systems. Engineering method for everything else.",
-      es: "Ingeniería industrial en la ETSII-UPM, especialidad en sistemas inteligentes. Método de ingeniero para todo lo demás.",
+      en: "Industrial engineering at ETSII-UPM. Engineering method for everything else.",
+      es: "Ingeniería industrial en la ETSII-UPM. Método de ingeniero para todo lo demás.",
     },
-    specialisation: { en: "Specialisation", es: "Especialidad" },
     year: { en: "Year {x}", es: "{x}º curso" },
     erasmus: { en: "Erasmus exchange", es: "Erasmus" },
     complementary: { en: "Also", es: "Además" },
     school: { en: "School", es: "Colegio" },
     course: { en: "Course", es: "Curso" },
-    cone: { en: "Graduation · Jun 2028 → full-time", es: "Graduación · jun 2028 → full-time" },
-    coneNote: { en: "Full-time from Jan 2028; many possible paths, one destination.", es: "Tiempo completo desde ene 2028; muchos caminos posibles, un destino." },
   },
   projects: {
     eyebrow: { en: "Built by me", es: "Construido por mí" },
@@ -174,9 +174,9 @@ export const copy = {
     uses: { en: "Skills", es: "Skills" },
     languages: { en: "Languages", es: "Idiomas" },
   },
-  leadership: {
+  volunteering: {
     eyebrow: { en: "Beyond work", es: "Más allá del trabajo" },
-    title: { en: "Leadership & impact", es: "Liderazgo e impacto" },
+    title: { en: "Volunteering", es: "Voluntariado" },
     intro: { en: "What I do outside the job description.", es: "Lo que hago fuera de la descripción del puesto." },
     offTheClock: { en: "Off the clock", es: "Fuera del horario" },
   },
@@ -191,12 +191,8 @@ export const copy = {
     copy: { en: "Copy", es: "Copiar" },
     copied: { en: "Email copied", es: "Email copiado" },
     book: { en: "Book 15 min", es: "Reservar 15 min" },
+    bookNewTab: { en: "opens Google Calendar in a new tab", es: "abre Google Calendar en una pestaña nueva" },
     cv: { en: "CV (PDF)", es: "CV (PDF)" },
-  },
-  booking: {
-    title: { en: "Book 15 minutes", es: "Reserva 15 minutos" },
-    note: { en: "Handled by Cal.com. This site stores nothing about your booking.", es: "Lo gestiona Cal.com. Esta web no guarda nada de tu reserva." },
-    close: { en: "Close", es: "Cerrar" },
   },
   palette: {
     placeholder: { en: "Type a command or a section…", es: "Escribe un comando o una sección…" },
@@ -206,7 +202,7 @@ export const copy = {
     actions: { en: "Actions", es: "Acciones" },
     prefs: { en: "Preferences", es: "Preferencias" },
     ask: { en: "Ask my agent", es: "Pregúntale a mi agente" },
-    book: { en: "Book a call", es: "Reservar llamada" },
+    book: { en: "Book 15 min", es: "Reservar 15 min" },
     cv: { en: "Download CV (PDF)", es: "Descargar CV (PDF, en inglés)" },
     copyEmail: { en: "Copy email", es: "Copiar email" },
     lang: { en: "Ver en español", es: "View in English" },

@@ -1,7 +1,6 @@
 "use client";
 
 import { toast } from "@/components/ui/Toaster";
-import { dispatchUI } from "@/lib/ui-bus";
 
 /** The email, large; a click copies it (or opens the mail app if copying fails). */
 export function CopyEmail({ email, copied, hint }: { email: string; copied: string; hint: string }) {
@@ -26,15 +25,6 @@ export function CopyEmail({ email, copied, hint }: { email: string; copied: stri
         </svg>
         {hint}
       </span>
-    </button>
-  );
-}
-
-export function BookButton({ label }: { label: string }) {
-  return (
-    <button type="button" onClick={() => dispatchUI({ type: "open_booking" })} className="btn btn-primary">
-      <span className="ai-dot size-2 rounded-full" aria-hidden />
-      {label}
     </button>
   );
 }

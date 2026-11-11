@@ -1,7 +1,8 @@
 /*
  * The figures the hero's cloud forms further down the page, out of the same
- * points: a bar chart (Figures), a gear train (Experience) and a globe
- * (Contact). Pure and deterministic, shared by the WebGL scene
+ * points: a funnel, a pipeline and a bar chart (How I work, one per step), a
+ * gear train (Experience), an open book (Education) and a globe (Contact).
+ * Pure and deterministic, shared by the WebGL scene
  * (components/figures/scene.ts) and the still posters (app/chip/[file]).
  *
  * Every figure lives in the chip's world (same camera, lib/chip-cloud.ts) and
@@ -10,9 +11,9 @@
  */
 import { AI, BLEED, buildCloud, CAM, type Cloud, dotsSVG, FOCAL, look, type Look, mulberry32, pick, project, type SvgDot } from "./chip-cloud";
 
-export type FigureId = "chip" | "bars" | "gears" | "globe";
+export type FigureId = "chip" | "bars" | "gears" | "globe" | "funnel" | "flow" | "book";
 /** The order is the figure's index in the shaders. */
-export const FIGURES: FigureId[] = ["chip", "bars", "gears", "globe"];
+export const FIGURES: FigureId[] = ["chip", "bars", "gears", "globe", "funnel", "flow", "book"];
 
 /** Dot diameters for a figure drawn at about `px` pixels per world unit: the same hierarchy as the chip's (lib/chip-cloud.ts DOT). */
 const dots = (px: number) => ({ xs: 1.7 / px, s: 2.6 / px, m: 4.2 / px, l: 6.6 / px, xl: 9.4 / px });
@@ -225,6 +226,198 @@ function gearsSlots(rnd: () => number): Slot[] {
   return out;
 }
 
+/* --------------------------------- funnel ------------------------------- */
+
+/**
+ * A funnel about the y axis: a swarm of loose points over its mouth (what
+ * goes in, in no order) and a single, evenly spaced file out of its spout.
+ * Points: x, y, z, code. code 0 → fixed; 1 → loose (the scene makes each one
+ * circle and bob on its own); 2 → the file, x = its place in it (0..1).
+ */
+export const FUNNEL = { top: 0.5, neck: -0.28, foot: -0.74, R: 0.98, r: 0.15, file: 8, fall: 0.5, swarm: 0.62 };
+export const funnelR = (y: number) => (y <= FUNNEL.neck ? FUNNEL.r : FUNNEL.r + (FUNNEL.R - FUNNEL.r) * ((y - FUNNEL.neck) / (FUNNEL.top - FUNNEL.neck)) ** 1.5);
+
+function funnelSlots(rnd: () => number): Slot[] {
+  const d = dots(112);
+  const RIM = look([[d.s, 0.5], [d.m, 0.42], [d.l, 0.08]]);
+  const RING = look([[d.xs, 0.5], [d.s, 0.5]]);
+  const WALL = look([[d.xs, 0.92], [d.s, 0.08]], [[0.4, 0.55], [0.75, 0.45]]);
+  const LOOSE = look([[d.xs, 0.36], [d.s, 0.32], [d.m, 0.22], [d.l, 0.08], [d.xl, 0.02]], [[0.55, 0.3], [1, 0.7]]);
+  const out: Slot[] = [];
+  const add = (x: number, y: number, z: number, code: number, lk: Look, tint = -1) => out.push({ v: [x, y, z, code], s: pick(rnd, lk.sizes), a: pick(rnd, lk.alphas), tint });
+  const ring = (y: number, lk: Look, step: number, scale = 1) => {
+    const rad = funnelR(y) * scale;
+    const count = Math.max(8, Math.round((2 * Math.PI * rad) / step));
+    const turn = rnd() * Math.PI * 2;
+    for (let j = 0; j < count; j++) add(rad * Math.cos(turn + (j / count) * Math.PI * 2), y, rad * Math.sin(turn + (j / count) * Math.PI * 2), 0, lk);
+  };
+  const { top, neck, foot } = FUNNEL;
+  // the mouth (crisp, with a lip just inside), rings down the cone, the neck and the spout
+  ring(top, RIM, 0.03);
+  ring(top - 0.035, RING, 0.04, 0.965);
+  for (let j = 1; j <= 5; j++) ring(top - (j * (top - neck)) / 6, RING, 0.036);
+  ring(neck, RIM, 0.032);
+  for (let j = 1; j <= 2; j++) ring(neck - (j * (neck - foot)) / 3, RING, 0.04);
+  ring(foot, RIM, 0.032);
+  // meridians and a light grain on the wall
+  for (let m = 0; m < 10; m++) {
+    const th = (m / 10) * Math.PI * 2;
+    for (let y = top - 0.03; y > foot; y -= 0.04) add(funnelR(y) * Math.cos(th), y, funnelR(y) * Math.sin(th), 0, WALL);
+  }
+  for (let j = 0; j < 220; j++) {
+    const y = foot + (top - foot) * rnd() ** 0.7;
+    const th = rnd() * Math.PI * 2;
+    add(funnelR(y) * Math.cos(th), y, funnelR(y) * Math.sin(th), 0, WALL);
+  }
+  // what goes in: a loose swarm over the mouth and down into it, wider the higher it is
+  for (let j = 0; j < 400; j++) {
+    const t = rnd() ** 0.8;
+    const y = top - 0.2 + t * (FUNNEL.swarm + 0.2);
+    const rad = Math.sqrt(rnd()) * (0.2 + 1.15 * t);
+    const th = rnd() * Math.PI * 2;
+    add(rad * Math.cos(th), y, rad * Math.sin(th) * 0.8, 1, LOOSE);
+  }
+  // what comes out: one file
+  for (let k = 0; k < FUNNEL.file; k++) out.push({ v: [k / FUNNEL.file, 0, 0, 2], s: d.l, a: 1, tint: k % AI.length });
+  return out;
+}
+
+/* ---------------------------------- flow -------------------------------- */
+
+/**
+ * A pipeline, facing the camera: four nodes (one in, two in parallel, one
+ * out) joined by wires, and points marching along the wires, evenly spaced
+ * and at one pace. Points: x, y, z, code. code 0 → fixed; 10 + w → on wire w,
+ * x = its place along it (0..1); 20 + w → a coloured packet on wire w.
+ */
+export const FLOW = (() => {
+  const half = 0.3;
+  const nodes: [number, number][] = [[-1.25, 0], [0, 0.55], [0, -0.55], [1.25, 0]];
+  const edge = (n: number, side: 1 | -1): [number, number] => [nodes[n][0] + side * half, nodes[n][1]];
+  /** x0, y0, x1, y1: straight in x, an S in y */
+  const wires: [number, number, number, number][] = [
+    [-1.97, 0, ...edge(0, -1)],
+    [...edge(0, 1), ...edge(1, -1)],
+    [...edge(0, 1), ...edge(2, -1)],
+    [...edge(1, 1), ...edge(3, -1)],
+    [...edge(2, 1), ...edge(3, -1)],
+    [...edge(3, 1), 1.97, 0],
+  ];
+  return { half, thick: 0.14, nodes, wires };
+})();
+/** Where a point is at fraction u of a wire. */
+export const wireAt = ([x0, y0, x1, y1]: number[], u: number): [number, number] => [x0 + (x1 - x0) * u, y0 + (y1 - y0) * u * u * (3 - 2 * u)];
+/** Points fade in as they leave a node and out as they reach the next. */
+export const wireFade = (u: number) => Math.min(1, u / 0.12) * Math.min(1, (1 - u) / 0.12);
+
+function flowSlots(rnd: () => number): Slot[] {
+  const d = dots(124);
+  const RIM = look([[d.s, 0.55], [d.m, 0.45]]);
+  const BACK = look([[d.xs, 0.6], [d.s, 0.4]], [[0.6, 1]]);
+  const FACE = look([[d.xs, 0.85], [d.s, 0.15]], [[0.5, 0.5], [0.9, 0.5]]);
+  const MARK = look([[d.m, 0.7], [d.l, 0.3]]);
+  const WIRE = look([[d.s, 0.7], [d.m, 0.3]]);
+  const DUST = look([[d.xs, 0.75], [d.s, 0.2], [d.m, 0.05]], [[0.45, 0.5], [0.8, 0.5]]);
+  const { half, thick, nodes, wires } = FLOW;
+  const zf = thick / 2;
+  const out: Slot[] = [];
+  const add = (x: number, y: number, z: number, lk: Look) => out.push({ v: [x, y, z, 0], s: pick(rnd, lk.sizes), a: pick(rnd, lk.alphas), tint: -1 });
+  const line = (a: number[], b: number[], lk: Look, step: number, z = zf) => {
+    const count = Math.max(1, Math.round(Math.hypot(b[0] - a[0], b[1] - a[1]) / step));
+    for (let j = 0; j < count; j++) {
+      const t = (j + 0.5) / count;
+      add(a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t, z, lk);
+    }
+  };
+  nodes.forEach(([cx, cy], n) => {
+    const c = [[-1, -1], [1, -1], [1, 1], [-1, 1]].map(([sx, sy]) => [cx + sx * half, cy + sy * half]);
+    for (let k = 0; k < 4; k++) {
+      line(c[k], c[(k + 1) % 4], RIM, 0.03);
+      line(c[k], c[(k + 1) % 4], BACK, 0.05, -zf);
+      out.push({ v: [c[k][0], c[k][1], zf, 0], s: d.l, a: 1, tint: -1 });
+    }
+    for (let j = 0; j < 46; j++) add(cx + (rnd() - 0.5) * 1.8 * half, cy + (rnd() - 0.5) * 1.8 * half, zf, FACE);
+    // what each node does, as a small mark: a list, a ring, a grid, a tick
+    if (n === 0) for (const y of [0.11, 0, -0.11]) line([cx - 0.15, cy + y], [cx + (y < 0 ? 0.04 : 0.15), cy + y], MARK, 0.05);
+    else if (n === 1) {
+      for (let j = 0; j < 14; j++) add(cx + 0.14 * Math.cos((j / 14) * Math.PI * 2), cy + 0.14 * Math.sin((j / 14) * Math.PI * 2), zf, MARK);
+      out.push({ v: [cx, cy, zf, 0], s: d.xl, a: 1, tint: -1 });
+    } else if (n === 2) for (const x of [-0.09, 0.09]) for (const y of [-0.09, 0.09]) out.push({ v: [cx + x, cy + y, zf, 0], s: d.xl, a: 1, tint: -1 });
+    else {
+      line([cx - 0.15, cy - 0.01], [cx - 0.04, cy - 0.12], MARK, 0.045);
+      line([cx - 0.04, cy - 0.12], [cx + 0.16, cy + 0.13], MARK, 0.045);
+    }
+  });
+  wires.forEach((w, wi) => {
+    const count = Math.max(4, Math.round(Math.hypot(w[2] - w[0], w[3] - w[1]) / 0.075));
+    for (let k = 0; k < count; k++) out.push({ v: [k / count, 0, 0, 10 + wi], s: pick(rnd, WIRE.sizes), a: 1, tint: -1 });
+    out.push({ v: [((wi * 0.37) % 1) + 0.5 / count, 0, 0, 20 + wi], s: d.xl, a: 1, tint: wi % AI.length });
+  });
+  for (let i = 0; i < 90; i++) add((rnd() - 0.5) * 4.2, (rnd() - 0.5) * 2.1, (rnd() - 0.5) * 0.9, DUST);
+  return out;
+}
+
+/* ---------------------------------- book -------------------------------- */
+
+/**
+ * An open book lying flat: the spine along z, a page each side (arched, with
+ * lines of text), and leaves that turn by themselves from right to left, one
+ * at a time. Points: x, y, z, code. code 0 → fixed; 1 + k → on leaf k, x =
+ * distance from the spine and z = along it (the scene turns it).
+ */
+export const BOOK = { W: 1, L: 1.3, arch: 0.07, lag: 0.16, leaves: 3, /** the share of its turn a leaf spends in the air */ air: 0.85 };
+/** A point of a leaf turned th radians about the spine (0 flat on the right, π flat on the left): arched when flat, trailing behind in the air. */
+export function leafAt(u: number, th: number): [number, number] {
+  const f = u / BOOK.W;
+  const n = BOOK.arch * Math.sin(Math.PI * f) * Math.cos(th) - BOOK.lag * f * f * Math.sin(th);
+  return [u * Math.cos(th) - n * Math.sin(th), u * Math.sin(th) + n * Math.cos(th)];
+}
+
+function bookSlots(rnd: () => number): Slot[] {
+  const d = dots(132);
+  const RIM = look([[d.s, 0.55], [d.m, 0.4], [d.l, 0.05]]);
+  const LOW = look([[d.xs, 0.5], [d.s, 0.5]], [[0.7, 1]]);
+  const TEXT = look([[d.xs, 0.6], [d.s, 0.4]], [[0.55, 0.3], [0.95, 0.7]]);
+  const DUST = look([[d.xs, 0.75], [d.s, 0.2], [d.m, 0.05]], [[0.45, 0.5], [0.8, 0.5]]);
+  const { W, L, arch, leaves } = BOOK;
+  const out: Slot[] = [];
+  const add = (x: number, y: number, z: number, code: number, lk: Look) => out.push({ v: [x, y, z, code], s: pick(rnd, lk.sizes), a: pick(rnd, lk.alphas), tint: -1 });
+  const run = (from: number, to: number, step: number, each: (t: number) => void) => {
+    const count = Math.max(1, Math.round(Math.abs(to - from) / step));
+    for (let j = 0; j < count; j++) each(from + ((j + 0.5 + (rnd() - 0.5) * 0.3) / count) * (to - from));
+  };
+  const y = (u: number) => arch * Math.sin((Math.PI * u) / W);
+  /** rows of text: every fourth one ends early, like a paragraph */
+  const text = (rows: number, step: number, put: (u: number, z: number) => void) => {
+    for (let r = 0; r < rows; r++) run(0.13, r % 4 === 3 ? 0.5 : 0.87, step, (u) => put(u, -L / 2 + 0.17 + (r * (L - 0.34)) / (rows - 1)));
+  };
+
+  // the cover, a little larger, under the pages
+  const cw = W + 0.07;
+  const cl = L / 2 + 0.06;
+  run(-cw, cw, 0.036, (x) => [-cl, cl].forEach((z) => add(x, -0.075, z, 0, LOW)));
+  run(-cl, cl, 0.036, (z) => [-cw, cw].forEach((x) => add(x, -0.075, z, 0, LOW)));
+  for (const x of [-cw, cw]) for (const z of [-cl, cl]) out.push({ v: [x, -0.075, z, 0], s: d.l, a: 1, tint: -1 });
+  // the spine's valley, and the two pages: head, foot and fore edge crisp, the block's thickness under them, the text
+  run(-L / 2, L / 2, 0.04, (z) => add(0, 0, z, 0, LOW));
+  for (const side of [-1, 1]) {
+    run(0, W, 0.03, (u) => [-L / 2, L / 2].forEach((z) => add(side * u, y(u), z, 0, RIM)));
+    run(0.1, W, 0.045, (u) => [-L / 2, L / 2].forEach((z) => add(side * u, y(u) * 0.5 - 0.035, z, 0, LOW)));
+    run(-L / 2, L / 2, 0.03, (z) => add(side * W, 0, z, 0, RIM));
+    for (const drop of [0.025, 0.05]) run(-L / 2, L / 2, 0.045, (z) => add(side * (W + drop * 0.4), -drop, z, 0, LOW));
+    for (const z of [-L / 2, L / 2]) out.push({ v: [side * W, 0, z, 0], s: d.l, a: 1, tint: -1 });
+    text(9, 0.034, (u, z) => add(side * u, y(u), z, 0, TEXT));
+  }
+  // the leaves that turn
+  for (let k = 0; k < leaves; k++) {
+    run(-L / 2, L / 2, 0.034, (z) => add(W, 0, z, 1 + k, RIM));
+    run(0, W, 0.034, (u) => [-L / 2, L / 2].forEach((z) => add(u, 0, z, 1 + k, RIM)));
+    text(7, 0.046, (u, z) => add(u, 0, z, 1 + k, TEXT));
+  }
+  for (let i = 0; i < 70; i++) add((rnd() - 0.5) * 2.8, 0.15 + rnd() * 0.9, (rnd() - 0.5) * 1.6, 0, DUST);
+  return out;
+}
+
 /* --------------------------------- globe -------------------------------- */
 
 /** The globe's radius: the cloud's own sphere, drawn on its surface. */
@@ -286,23 +479,56 @@ const gearsBounds = () => {
   return pts;
 };
 const globeHalf = Math.tan(Math.asin(GLOBE_R / CAM.dist)) * FOCAL * 1.1;
+const funnelBounds = () => {
+  const pts: number[][] = [];
+  const top = FUNNEL.top + FUNNEL.swarm;
+  for (let k = 0; k < 16; k++) {
+    const c = Math.cos((k / 16) * Math.PI * 2);
+    const s = Math.sin((k / 16) * Math.PI * 2);
+    pts.push([FUNNEL.R * c, FUNNEL.top, FUNNEL.R * s], [1.3 * c, top, 1.05 * s], [FUNNEL.r * c, FUNNEL.foot - FUNNEL.fall, FUNNEL.r * s]);
+  }
+  return pts;
+};
+const flowBounds = () => {
+  const pts: number[][] = [[-1.97, 0, 0], [1.97, 0, 0]];
+  for (const [cx, cy] of FLOW.nodes) for (const sx of [-1, 1]) for (const sy of [-1, 1]) for (const z of [-FLOW.thick / 2, FLOW.thick / 2]) pts.push([cx + sx * FLOW.half, cy + sy * FLOW.half, z]);
+  return pts;
+};
+const bookBounds = () => {
+  const pts: number[][] = [];
+  for (const z of [-BOOK.L / 2 - 0.06, BOOK.L / 2 + 0.06]) {
+    for (const x of [-BOOK.W - 0.07, BOOK.W + 0.07]) pts.push([x, -0.075, z]);
+    // a leaf at the top of its turn
+    for (let k = 3; k <= 7; k++) pts.push([...leafAt(BOOK.W, (k / 10) * Math.PI), z]);
+  }
+  return pts;
+};
 
 export const FRAMES: Record<FigureId, Frame> = {
   chip: { tilt: CAM.tilt, yaw: CAM.yaw, w: 1 / (1 + 2 * BLEED), h: 1 / (1 + 2 * BLEED), cx: 0, cy: 0 },
   bars: fit(barsBounds(), CAM.tilt, CAM.yaw, 1.04),
   gears: fit(gearsBounds(), 0.16, -0.38, 1.05),
   globe: { tilt: 0.32, yaw: 0, w: globeHalf, h: globeHalf, cx: 0, cy: 0 },
+  funnel: fit(funnelBounds(), 0.3, 0, 1.03),
+  flow: fit(flowBounds(), 0.2, -0.3, 1.05),
+  book: fit(bookBounds(), 0.62, -0.34, 1.05),
 };
 
 /* ------------------------------- the cloud ------------------------------ */
 
 export interface Particles extends Cloud {
-  /** per point: the bar chart's and the gears' four numbers (see Slot) */
+  /** per point: each figure's four numbers (see Slot and each figure's notes) */
   bars: Float32Array;
   gears: Float32Array;
-  /** per point: diameter and opacity in each figure, in FIGURES order */
+  funnel: Float32Array;
+  flow: Float32Array;
+  book: Float32Array;
+  /** per point: diameter and opacity in each figure: chip, bars, gears, globe… */
   sizes: Float32Array;
   alphas: Float32Array;
+  /** …and funnel, flow, book (the fourth is unused) */
+  sizes2: Float32Array;
+  alphas2: Float32Array;
   /** per point: its colour index in the bar chart (the trend's nodes), or -1 */
   tint: Float32Array;
 }
@@ -325,7 +551,8 @@ function assign(slots: Slot[], n: number, rnd: () => number, hidden: () => [numb
  */
 export function buildParticles(n: number, all: boolean): Particles {
   const c = buildCloud(n);
-  const p: Particles = { ...c, bars: new Float32Array(n * 4), gears: new Float32Array(n * 4), sizes: new Float32Array(n * 4), alphas: new Float32Array(n * 4), tint: new Float32Array(n).fill(-1) };
+  const quad = () => new Float32Array(n * 4);
+  const p: Particles = { ...c, bars: quad(), gears: quad(), funnel: quad(), flow: quad(), book: quad(), sizes: quad(), alphas: quad(), sizes2: quad(), alphas2: quad(), tint: new Float32Array(n).fill(-1) };
   for (let i = 0; i < n; i++) {
     p.sizes[i * 4] = c.size[i];
     p.alphas[i * 4] = c.alpha[i];
@@ -335,6 +562,9 @@ export function buildParticles(n: number, all: boolean): Particles {
   const rnd = mulberry32(4421 + n);
   const bars = assign(barsSlots(rnd), n, rnd, () => [(rnd() - 0.5) * 0.6, 0.2 + rnd() * 0.9, (rnd() - 0.5) * 3, -1]);
   const gears = assign(gearsSlots(rnd), n, rnd, () => [(rnd() - 0.5) * 3.2, (rnd() - 0.5) * 1.6, 0, -1]);
+  const funnel = assign(funnelSlots(rnd), n, rnd, () => [(rnd() - 0.5) * 0.5, FUNNEL.neck + rnd() * 0.9, (rnd() - 0.5) * 0.5, 0]);
+  const flow = assign(flowSlots(rnd), n, rnd, () => [(rnd() - 0.5) * 3.4, (rnd() - 0.5) * 1.4, 0, 0]);
+  const book = assign(bookSlots(rnd), n, rnd, () => [(rnd() - 0.5) * 1.8, 0.05, (rnd() - 0.5) * 1.1, 0]);
   // the globe: a few strong dots of very different sizes over a fine grain; the rest of the points rest
   const g = dots(178);
   const STRONG = look([[g.s, 0.5], [g.m, 0.3], [g.l, 0.14], [g.xl, 0.06]]);
@@ -342,6 +572,11 @@ export function buildParticles(n: number, all: boolean): Particles {
   for (let i = 0; i < n; i++) {
     p.bars.set(bars[i].v, i * 4);
     p.gears.set(gears[i].v, i * 4);
+    p.funnel.set(funnel[i].v, i * 4);
+    p.flow.set(flow[i].v, i * 4);
+    p.book.set(book[i].v, i * 4);
+    p.sizes2.set([funnel[i].s, flow[i].s, book[i].s], i * 4);
+    p.alphas2.set([funnel[i].a, flow[i].a, book[i].a], i * 4);
     p.tint[i] = bars[i].tint;
     const u = rnd();
     const lk = u < 0.15 ? STRONG : u < 0.5 ? GRAIN : null;
@@ -355,7 +590,8 @@ export function buildParticles(n: number, all: boolean): Particles {
 
 /**
  * A figure at rest as an SVG over its frame: its ink (black dots on
- * transparent, used as a CSS mask) or, for the bar chart, its coloured dots.
+ * transparent, used as a CSS mask) or, for the bar chart, its coloured dots
+ * (the other figures' coloured points are drawn in ink here).
  * What reduced motion, no JavaScript and no WebGL show in the figure's gap.
  */
 export function figureSVG(id: Exclude<FigureId, "chip">, n: number, part: "ink" | "colour"): string {
@@ -372,8 +608,8 @@ export function figureSVG(id: Exclude<FigureId, "chip">, n: number, part: "ink" 
   const sy = Math.sin(f.yaw);
   const dotList: SvgDot[] = [];
   for (let i = 0; i < n; i++) {
-    let size = p.sizes[i * 4 + k];
-    let alpha = p.alphas[i * 4 + k];
+    let size = k < 4 ? p.sizes[i * 4 + k] : p.sizes2[i * 4 + k - 4];
+    let alpha = k < 4 ? p.alphas[i * 4 + k] : p.alphas2[i * 4 + k - 4];
     let pos: [number, number, number];
     let tint = -1;
     if (id === "bars") {
@@ -384,6 +620,21 @@ export function figureSVG(id: Exclude<FigureId, "chip">, n: number, part: "ink" 
     } else if (id === "gears") {
       const [a, b, z, gear] = p.gears.subarray(i * 4, i * 4 + 4);
       pos = gear < 0 ? [a, b, z] : [GEARS.c[gear][0] + a * Math.cos(b + GEARS.phase[gear]), GEARS.c[gear][1] + a * Math.sin(b + GEARS.phase[gear]), z];
+    } else if (id === "funnel") {
+      const [x, y, z, code] = p.funnel.subarray(i * 4, i * 4 + 4);
+      pos = code === 2 ? [0, FUNNEL.foot - x * FUNNEL.fall, 0] : [x, y, z];
+      if (code === 2) alpha *= Math.min(1, x / 0.1) * Math.min(1, (1 - x) / 0.25);
+    } else if (id === "flow") {
+      const [x, y, z, code] = p.flow.subarray(i * 4, i * 4 + 4);
+      if (code >= 10) {
+        pos = [...wireAt(FLOW.wires[code % 10], x), 0];
+        alpha *= wireFade(x);
+      } else pos = [x, y, z];
+    } else if (id === "book") {
+      const [x, y, z, code] = p.book.subarray(i * 4, i * 4 + 4);
+      // one leaf caught in the air; the others are out of sight
+      if (code > 1) continue;
+      pos = code === 1 ? [...leafAt(x, 0.6 * Math.PI), z] : [x, y, z];
     } else {
       const [x, y, z] = p.sphere.subarray(i * 3, i * 3 + 3);
       const len = Math.hypot(x, y, z);

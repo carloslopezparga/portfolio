@@ -45,12 +45,11 @@ export const profile: Profile = {
     { id: "software", label: { en: "Software", es: "Software" } },
   ],
 
-  // The headline figures under the hero. Each links to the entry it comes from.
-  impact: [
-    { id: "events", prefix: "~", value: 400, label: { en: "events a year", es: "eventos al año" }, target: "grupo-lalala", icon: "calendar" },
-    { id: "postings", value: 6400, suffix: "+", label: { en: "job postings analysed", es: "ofertas analizadas" }, target: "job-hunt-copilot", icon: "search" },
-    { id: "volunteers", value: 200, label: { en: "volunteers mobilised", es: "voluntarios movilizados" }, target: "dana", icon: "people" },
-    { id: "payouts", prefix: "−", value: 80, suffix: PCT, label: { en: "payment cycle", es: "ciclo de pagos" }, target: "classy-night-society", icon: "clock" },
+  // «How I work», right under the hero. Short on purpose, and with no figures: those live in the experience and project cards.
+  method: [
+    { id: "detect", title: { en: "Detect", es: "Detecto" }, text: { en: "Manual tasks and inefficiencies in operations.", es: "Tareas manuales e ineficiencias en operaciones." } },
+    { id: "automate", title: { en: "Automate", es: "Automatizo" }, text: { en: "With code, low-code and AI.", es: "Con código, low-code e IA." } },
+    { id: "measure", title: { en: "Measure", es: "Mido" }, text: { en: "Time saved, errors and volume processed.", es: "Tiempo ahorrado, errores y volumen procesado." } },
   ],
 
   // Brand colours are read from the logo in public/logos; `color` is the
@@ -165,14 +164,19 @@ export const profile: Profile = {
       short: "ETSII-UPM",
       brand: { logo: "upm", monogram: "UPM", color: "#003262", tile: "fill" },
       degree: { en: "B.Sc. in Industrial Engineering", es: "Grado en Ingeniería en Tecnologías Industriales" },
-      specialisation: { en: "Intelligent Systems & Structures", es: "Sistemas y Estructuras Inteligentes" },
       start: "2023-09",
       end: "2028-06",
       chips: [
         { label: { en: "Matrícula de Honor · Statistics", es: "MH · Estadística" } },
         { label: { en: "Matrícula de Honor · Design of Experiments & Regression", es: "MH · Diseño de Experimentos y Regresión" } },
         { label: { en: "EvAU 12.97/14", es: "EvAU 12,97/14" } },
-        { label: { en: "ETSII Mentor Programme", es: "Programa Mentor ETSII" }, target: "mentor" },
+      ],
+      notes: [
+        {
+          id: "mentor",
+          label: { en: "ETSII Mentor Programme", es: "Programa Mentor ETSII" },
+          detail: { en: "Selected two years running as peer mentor for first-year students.", es: "Seleccionado dos años seguidos como mentor de alumnos de primero." },
+        },
       ],
       coursework: {
         en: ["Programming", "Statistics", "Regression & Experimental Design", "Linear Algebra", "Differential Equations", "Control Engineering", "System Dynamics", "Production Systems"],
@@ -206,7 +210,7 @@ export const profile: Profile = {
     },
   ],
 
-  // The end of the education timeline: a small Monte Carlo cone.
+  // What comes after: the Erasmus row in the ETSII card, and what the agent knows about 2028.
   future: {
     erasmus: { start: "2027-09", end: "2027-12", destination: "TODO: destino Erasmus" },
     thesis: { en: "Final-year project (TFG)", es: "Trabajo Fin de Grado (TFG)" },
@@ -218,7 +222,8 @@ export const profile: Profile = {
     {
       id: "job-hunt-copilot",
       domain: "automation",
-      name: { en: "job-hunt-copilot", es: "job-hunt-copilot" },
+      // Shown as «Shortlist»; the id and the repository keep the old name.
+      name: { en: "Shortlist", es: "Shortlist" },
       oneLiner: { en: "Finds, scores and prepares applications", es: "Busca, puntúa y prepara candidaturas" },
       status: "building",
       problem: {
@@ -235,7 +240,7 @@ export const profile: Profile = {
         { value: 29, label: { en: "companies", es: "empresas" } },
         { value: 116, label: { en: "tests", es: "tests" } },
       ],
-      stack: ["python", { label: "REST APIs" }, "pytest", { label: "CI" }, "git", "claude-code"],
+      stack: ["python", { label: "REST APIs" }, { label: "pytest" }, { label: "CI" }, { label: "Git" }, "claude-code"],
       repo: { url: "https://github.com/carloslopezparga/job-hunt-copilot", public: false },
       demo: { kind: "terminal", file: "content/demos/job-hunt-copilot.txt" },
     },
@@ -294,34 +299,24 @@ export const profile: Profile = {
         en: "A CNN that classifies traffic signs (GTSRB), a Q-learning Nim agent, a k-NN classifier, Bayesian networks, minimax and BFS search, and an analysis of BERT's attention patterns.",
         es: "Una CNN que clasifica señales de tráfico (GTSRB), un agente de Nim con Q-learning, un clasificador k-NN, redes bayesianas, búsqueda minimax y BFS, y un análisis de los patrones de atención de BERT.",
       },
-      stack: ["python", "tensorflow", { label: "OpenCV" }, "sklearn", { label: "NLTK" }, { label: "Transformers" }],
+      stack: ["python", { label: "TensorFlow/Keras" }, { label: "OpenCV" }, { label: "scikit-learn" }, { label: "NLTK" }, { label: "Transformers" }],
     },
   ],
 
-  // Skills graph. weight = node size (1–3); usedIn {id, w} = line thickness.
+  // Skills graph: the twelve key skills (weights 3 and 2). weight = importance (1–3); usedIn {id, w} = line thickness.
   stack: [
     { id: "llm-apis", label: { en: "LLM APIs", es: "APIs de LLMs" }, domain: "ai", weight: 3, usedIn: ["mail-autopilot", "cooling-agent", "this-site"] },
     { id: "claude-code", label: { en: "Claude Code", es: "Claude Code" }, domain: "ai", weight: 3, usedIn: ["prophero", "job-hunt-copilot", "this-site"] },
     { id: "cursor", label: { en: "Cursor", es: "Cursor" }, domain: "ai", weight: 2, usedIn: ["prophero"] },
-    { id: "tensorflow", label: { en: "TensorFlow/Keras", es: "TensorFlow/Keras" }, domain: "ai", weight: 2, usedIn: ["cs50-ai"] },
     { id: "automation", label: { en: "Process automation", es: "Automatización de procesos" }, domain: "automation", weight: 3, usedIn: ["prophero", "mail-autopilot", "job-hunt-copilot"] },
     { id: "n8n", label: { en: "n8n", es: "n8n" }, domain: "automation", weight: 2, usedIn: ["mail-autopilot"] },
     { id: "excel-vba", label: { en: "Excel/VBA", es: "Excel/VBA" }, domain: "automation", weight: 2, usedIn: ["classy-night-society"] },
     { id: "python", label: { en: "Python", es: "Python" }, domain: "data", weight: 3, usedIn: ["job-hunt-copilot", "cooling-agent", "cs50-ai", "cs50"] },
     { id: "stats", label: { en: "Statistics & regression", es: "Estadística y regresión" }, domain: "data", weight: 2, usedIn: ["giti"] },
-    { id: "pandas", label: { en: "pandas/NumPy", es: "pandas/NumPy" }, domain: "data", weight: 1, usedIn: ["cs50-ai"] },
-    { id: "sklearn", label: { en: "scikit-learn", es: "scikit-learn" }, domain: "data", weight: 1, usedIn: ["cs50-ai"] },
-    { id: "sql", label: { en: "SQL", es: "SQL" }, domain: "data", weight: 1, usedIn: ["cs50"] },
-    { id: "matlab", label: { en: "MATLAB", es: "MATLAB" }, domain: "data", weight: 1, usedIn: ["giti"] },
     { id: "nextjs", label: { en: "Next.js", es: "Next.js" }, domain: "software", weight: 2, usedIn: ["prophero", "this-site"] },
     { id: "supabase", label: { en: "Supabase", es: "Supabase" }, domain: "software", weight: 2, usedIn: ["prophero"] },
-    { id: "typescript", label: { en: "TypeScript", es: "TypeScript" }, domain: "software", weight: 1, usedIn: ["this-site"] },
-    { id: "git", label: { en: "Git", es: "Git" }, domain: "software", weight: 1, usedIn: ["job-hunt-copilot"] },
-    { id: "pytest", label: { en: "pytest", es: "pytest" }, domain: "software", weight: 1, usedIn: ["job-hunt-copilot"] },
-    { id: "c", label: { en: "C", es: "C" }, domain: "software", weight: 1, usedIn: ["giti"] },
     { id: "operations", label: { en: "Operations", es: "Operaciones" }, domain: "ops", weight: 3, usedIn: ["grupo-lalala", "classy-night-society"] },
     { id: "sales", label: { en: "Sales", es: "Ventas" }, domain: "ops", weight: 2, usedIn: ["grupo-lalala", "induforum"] },
-    { id: "negotiation", label: { en: "Sponsor negotiation", es: "Negociación con patrocinadores" }, domain: "ops", weight: 2, usedIn: ["grupo-lalala"] },
   ],
 
   languages: [
@@ -331,7 +326,8 @@ export const profile: Profile = {
     { id: "pt", name: { en: "Portuguese", es: "Portugués" }, level: { en: "Basic", es: "Básico" } },
   ],
 
-  leadership: [
+  // Volunteering only (the ETSII Mentor Programme is a line in the ETSII card).
+  volunteering: [
     {
       id: "dana",
       accent: "orange",
@@ -343,17 +339,6 @@ export const profile: Profile = {
       metric: { value: 200, label: { en: "volunteers", es: "voluntarios" } },
       start: "2024-10",
       end: "2024-11",
-    },
-    {
-      id: "mentor",
-      accent: "indigo",
-      title: { en: "ETSII Mentor Programme", es: "Programa Mentor ETSII" },
-      description: {
-        en: "Selected two years running as peer mentor for first-year students.",
-        es: "Seleccionado dos años seguidos como mentor de alumnos de primero.",
-      },
-      start: "2024-09",
-      end: null,
     },
     {
       id: "food-bank",
@@ -399,7 +384,7 @@ export const profile: Profile = {
   // say by itself: captions by file name, and videos hosted elsewhere.
   // Folders: experience/{prophero, grupo-lalala, induforum, classy-night-society},
   // education/{etsii, retamar, cs50}, projects/{job-hunt-copilot, mail-autopilot,
-  // cooling-agent, cs50-ai}, leadership/{dana, mentor, food-bank, charity-events, orphanage}.
+  // cooling-agent, cs50-ai}, volunteering/{dana, food-bank, charity-events, orphanage}.
   // Example:
   //   "experience/prophero": {
   //     captions: { "01-first-day.jpg": { en: "First day", es: "Primer día" } },
@@ -410,7 +395,7 @@ export const profile: Profile = {
 
 /** Display names for every node a skill can point to. */
 export const refLabels: Record<RefId, { en: string; es: string }> = {
-  "job-hunt-copilot": { en: "job-hunt-copilot", es: "job-hunt-copilot" },
+  "job-hunt-copilot": { en: "Shortlist", es: "Shortlist" },
   "mail-autopilot": { en: "Email on autopilot", es: "Correo en piloto automático" },
   "cooling-agent": { en: "Cooling agent", es: "Agente de refrigeración" },
   prophero: { en: "PropHero", es: "PropHero" },
@@ -452,12 +437,12 @@ export const sectionLabels: Record<SectionId, { en: string; es: string }> = {
   education: { en: "Education", es: "Formación" },
   projects: { en: "Projects", es: "Proyectos" },
   skills: { en: "Skills", es: "Skills" },
-  leadership: { en: "Leadership", es: "Liderazgo" },
+  volunteering: { en: "Volunteering", es: "Voluntariado" },
   contact: { en: "Contact", es: "Contacto" },
 };
 
 /** Sections in page order (their number is shown in each header). */
-export const SECTIONS: SectionId[] = ["top", "now", "experience", "education", "projects", "skills", "leadership", "contact"];
+export const SECTIONS: SectionId[] = ["top", "now", "experience", "education", "projects", "skills", "volunteering", "contact"];
 
 
 /**
@@ -471,14 +456,14 @@ export const registry = {
   targets: [
     ...profile.experience.map((e) => e.id),
     ...profile.education.map((e) => e.id),
+    ...profile.education.flatMap((e) => (e.notes ?? []).map((n) => n.id)),
     ...profile.courses.map((c) => c.id),
     "erasmus",
-    "full-time",
     ...profile.projects.map((p) => p.id),
     ...profile.stack.map((s) => s.id),
     ...profile.languages.map((l) => `lang-${l.id}`),
     "this-site",
-    ...profile.leadership.map((l) => l.id),
+    ...profile.volunteering.map((l) => l.id),
   ],
 };
 
@@ -492,7 +477,9 @@ export function targetLabel(id: string, lang: Locale): string {
   if (ed) return ed.short;
   const c = profile.courses.find((x) => x.id === id);
   if (c) return c.name;
-  const l = profile.leadership.find((x) => x.id === id);
+  const note = profile.education.flatMap((x) => x.notes ?? []).find((x) => x.id === id);
+  if (note) return note.label[lang];
+  const l = profile.volunteering.find((x) => x.id === id);
   if (l) return l.title[lang];
   const s = profile.stack.find((x) => x.id === id);
   if (s) return s.label[lang];
@@ -500,7 +487,6 @@ export function targetLabel(id: string, lang: Locale): string {
   if (lg) return lg.name[lang];
   if (id in refLabels) return refLabels[id as RefId][lang];
   if (id === "erasmus") return "Erasmus";
-  if (id === "full-time") return lang === "en" ? "Full-time · Jan 2028" : "Tiempo completo · ene 2028";
   const d = profile.domains.find((x) => x.id === id);
   if (d) return d.label[lang];
   return id;

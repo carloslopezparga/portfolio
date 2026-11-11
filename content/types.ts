@@ -27,31 +27,10 @@ export type DomainId = "ai" | "automation" | "data" | "ops" | "software";
 /** Apple system accents (light / dark variants live in globals.css). */
 export type Accent = "blue" | "indigo" | "purple" | "pink" | "orange" | "green" | "cyan";
 
-export type SectionId = "top" | "now" | "experience" | "education" | "projects" | "skills" | "leadership" | "contact";
+export type SectionId = "top" | "now" | "experience" | "education" | "projects" | "skills" | "volunteering" | "contact";
 
-export type StackId =
-  | "python"
-  | "sql"
-  | "stats"
-  | "pandas"
-  | "sklearn"
-  | "matlab"
-  | "nextjs"
-  | "typescript"
-  | "supabase"
-  | "git"
-  | "pytest"
-  | "c"
-  | "n8n"
-  | "excel-vba"
-  | "llm-apis"
-  | "claude-code"
-  | "cursor"
-  | "tensorflow"
-  | "automation"
-  | "operations"
-  | "sales"
-  | "negotiation";
+/** The key skills: the ones in the graph (about a dozen, the heaviest). Other tools appear only as plain labels on a project. */
+export type StackId = "llm-apis" | "claude-code" | "cursor" | "automation" | "n8n" | "excel-vba" | "python" | "stats" | "nextjs" | "supabase" | "operations" | "sales";
 
 /** A project's stack entry: a skill from the graph, or a plain label for tools that aren't skills there. */
 export type StackRef = StackId | { label: string };
@@ -80,14 +59,11 @@ export interface Metric {
   label: L;
 }
 
-export type StatIcon = "calendar" | "search" | "people" | "clock";
-
-/** The headline figures under the hero; each one links to the entry it comes from. */
-export interface Stat extends Metric {
-  id: string;
-  /** A registry target (data-target-id on the page). */
-  target: string;
-  icon: StatIcon;
+/** One step of «How I work»: a verb and a short line, no figures. */
+export interface Step {
+  id: "detect" | "automate" | "measure";
+  title: L;
+  text: L;
 }
 
 export interface Project {
@@ -151,8 +127,13 @@ export interface Experience {
 
 export interface Chip {
   label: L;
-  /** A registry target to jump to (e.g. a leadership card). */
-  target?: string;
+}
+
+/** A line of its own inside an education card (a programme, a role): a registry target the agent can point at. */
+export interface EducationNote {
+  id: string;
+  label: L;
+  detail: L;
 }
 
 export interface Education {
@@ -162,11 +143,12 @@ export interface Education {
   short: string;
   brand: Brand;
   degree: L;
-  specialisation?: L;
   start: DateISO | null;
   end: DateISO;
-  /** Chips: honours, programmes. */
+  /** Chips: honours. */
   chips: Maybe<Chip>[];
+  /** Lines under the chips: programmes and roles at the school. */
+  notes?: EducationNote[];
   /** Main subjects (for the agent). */
   coursework?: L<string[]>;
   featured?: boolean;
@@ -181,7 +163,7 @@ export interface Course {
   date: DateISO;
 }
 
-export interface Leadership {
+export interface Volunteering {
   id: string;
   accent: Accent;
   title: L;
@@ -224,7 +206,7 @@ export interface FuturePlan {
 }
 
 /** Sections whose cards show media from public/media/<section>/<folder>/. */
-export type MediaSection = "experience" | "education" | "projects" | "leadership";
+export type MediaSection = "experience" | "education" | "projects" | "volunteering";
 
 /**
  * A video hosted elsewhere, for files too heavy for the repo:
@@ -256,8 +238,8 @@ export interface Profile {
   email: string;
   links: { linkedin: string; github: string };
   domains: Domain[];
-  /** The headline figures under the hero. */
-  impact: Stat[];
+  /** «How I work»: three steps, in order. */
+  method: Step[];
   experience: Experience[];
   education: Education[];
   courses: Course[];
@@ -265,7 +247,7 @@ export interface Profile {
   projects: Project[];
   stack: StackItem[];
   languages: Language[];
-  leadership: Leadership[];
+  volunteering: Volunteering[];
   offTheClock: Hobby[];
   /**
    * Media folders (keys like "experience/prophero"): captions and external

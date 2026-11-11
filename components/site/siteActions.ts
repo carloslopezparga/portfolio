@@ -57,7 +57,7 @@ export function useSiteGroups({ lang, sections, email, booking, labels: t }: Sit
       heading: t.actions,
       items: [
         { id: "ask", label: t.ask, icon: "chat", keywords: ["agent", "agente", "ai", "ia", "chat"], run: () => askAgent() },
-        ...(booking ? [{ id: "book", label: t.book, icon: "clock" as const, keywords: ["call", "llamada", "cal", "meeting"], run: () => dispatchUI({ type: "open_booking" }) }] : []),
+        ...(booking ? [{ id: "book", label: t.book, icon: "clock" as const, keywords: ["call", "llamada", "calendar", "calendario", "meeting", "reunión", "cita"], run: () => dispatchUI({ type: "open_booking" }) }] : []),
         { id: "cv", label: t.cv, icon: "download", keywords: ["cv", "resume", "currículum", "pdf"], run: () => dispatchUI({ type: "download_cv" }) },
         {
           id: "email",

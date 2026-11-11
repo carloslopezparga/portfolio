@@ -1,16 +1,29 @@
 import { CAM, FOCAL } from "@/lib/chip-cloud";
-import { GLOBE_R } from "@/lib/figure-cloud";
+import { BOOK, FLOW, FUNNEL, GLOBE_R } from "@/lib/figure-cloud";
+
+/** The cursor's recent path, as the shader gets it: this many samples, this many seconds apart (newest first). */
+export const TRAIL = { taps: 12, dt: 0.06 };
+
+/** The strip (px) before the line the chip's points may not cross, where the ones pushed towards it squeeze (see scene.ts). */
+export const SQUEEZE = 5;
+
+const f = (n: number) => n.toFixed(4);
 
 /*
  * Everything a point does happens here, per vertex, from a handful of
  * uniforms: no per-particle simulation on the CPU. A point knows where it
  * sits in each figure; the page tells the shader which figure the cloud is
  * (A), which one it is flying to (B) and how far, where their gaps are on
- * screen, how they are turned, and what the cursor is doing.
+ * screen, how they are turned, and where the cursor has been.
+ *
+ * A figure is rigid: it turns as a whole and nothing in it stretches or
+ * swings. What moves is each point, on its own: it wanders a little about
+ * its place, and it steps aside from the cursor and comes back critically
+ * damped, at its own pace, with no overshoot.
  *
  * Positions are worked out in CSS pixels from the canvas's top-left (the
  * camera is the chip's: lib/chip-cloud.ts), so the cursor's push and the
- * click's shock wave are plain 2D pushes in the same space.
+ * click's wave are plain 2D pushes in the same space.
  */
 const COMMON = /* glsl */ `
 uniform vec2 uView;        // canvas size
@@ -22,9 +35,12 @@ uniform float uFlight;     // 0 at A, 1 at B
 uniform float uForm;       // 1 formed, 0 mist
 uniform float uIntro;      // the chip's first appearance: 0 sphere, 1 chip
 uniform float uSpread;     // extra gap between the chip's layers
-uniform vec4 uMouse;       // the cursor, twice: a quick follower (xy) and a slow, springy one (zw)
+uniform vec3 uTrail[${TRAIL.taps}];    // where the cursor was (xy) and whether it was on the page (z), newest first
 uniform vec2 uHover;       // x: a cursor is on the page; y: it is over the figure
 uniform vec4 uClick;       // where, seconds since, and how hard (px)
+uniform vec4 uLintel[2];   // the chip: the texts over it, as left, right and the y no point may cross under them (w: in use)
+uniform float uGuard;      // how much that applies
+uniform float uRun;        // a clock for what a figure does by itself (faster under the cursor)
 
 const float FOCAL = ${FOCAL.toFixed(7)};
 const float DIST = ${CAM.dist.toFixed(4)};
@@ -40,22 +56,42 @@ vec3 place(vec3 p, mat3 rot, vec3 box) {
   return vec3(box.xy + vec2(q.x, -q.y) * k, k);
 }
 
-// the chip's layers float, each with its own phase; hovering opens the stack about its middle
-float layerShift(float layer) { return (layer - 1.5) * uSpread + 0.024 * sin(uTime * 0.9 + layer * 1.9); }
+// hovering opens the chip's stack about its middle (the layers themselves never move)
+float layerShift(float layer) { return (layer - 1.5) * uSpread; }
 
-vec2 push(vec2 s, vec2 c, float amp) {
+// How far a point within 140 px of the cursor is asked to step aside.
+vec2 push(vec2 s, vec2 c) {
   vec2 d = s - c;
   float dist = length(d);
   float fall = 1.0 - smoothstep(0.0, 140.0, dist);
-  return d / max(dist, 1.0) * fall * fall * amp;
+  return d / max(dist, 1.0) * fall * fall;
 }
 
-// The cursor parts the points (they come back late, on the slow follower, and wobble with it);
-// a click sends a shock front out: each point is thrown as the front passes and falls back.
+// Each point wanders about its place, with its own phases and pace: nothing moves together.
+// (Nothing at t = 0, so the first frame is the poster.)
+vec2 wander(vec4 seed) {
+  float k = 0.45 + 0.9 * seed.w;
+  vec2 a = vec2(sin(uTime * k + seed.x * 6.2832), cos(uTime * k * 1.3 + seed.y * 6.2832));
+  vec2 b = vec2(sin(uTime * k * 2.3 + seed.z * 6.2832), cos(uTime * k * 1.9 + seed.x * 12.566));
+  return (a + 0.5 * b) * 1.5 * min(1.0, uTime / 1.2);
+}
+
+// The cursor parts the points, one by one. Each answers like a critically damped spring to where
+// the cursor has been: its push is the cursor's recent path weighed by that spring's response
+// (t · e^-wt, all positive), so it leaves and comes back without ever overshooting, and at its own pace w.
+// A click sends a front out: each point is thrown as the front passes and settles back the same way.
 vec2 disturb(vec2 s, vec4 seed) {
+  float w = 8.0 + 9.0 * seed.z;
+  vec2 sum = vec2(0.0);
+  float norm = 0.0;
+  for (int k = 0; k < ${TRAIL.taps}; k++) {
+    float tau = (float(k) + 0.5) * ${f(TRAIL.dt)};
+    float g = tau * exp(-w * tau);
+    sum += g * uTrail[k].z * push(s, uTrail[k].xy);
+    norm += g;
+  }
   // (a little gentler while the cursor is over the figure: there it opens as well)
-  float w = uHover.x * (1.0 - 0.45 * uHover.y) * (0.7 + 0.6 * seed.w);
-  s += push(s, uMouse.xy, 34.0 * w) + push(s, uMouse.zw, 30.0 * w);
+  s += sum / norm * 58.0 * (1.0 - 0.4 * uHover.y) * (0.65 + 0.7 * seed.w);
   float t = uClick.z;
   if (t < 2.0) {
     vec2 d = s - uClick.xy;
@@ -65,6 +101,15 @@ vec2 disturb(vec2 s, vec4 seed) {
       float x = tau / 0.1;
       vec2 dir = normalize(d + (seed.yz - 0.5) * 70.0 + vec2(1e-3));
       s += dir * uClick.w * exp(-dist / 300.0) * (0.4 + 1.2 * seed.w) * x * exp(1.0 - x);
+    }
+  }
+  // the chip: no point crosses under the texts over it (their boxes' lower corners are cut at 45°);
+  // the last pixels before the line squeeze, so the points a push sends there pile up instead
+  if (uGuard > 0.0) {
+    for (int i = 0; i < 2; i++) {
+      float lim = uLintel[i].z - max(0.0, max(s.x - uLintel[i].y, uLintel[i].x - s.x));
+      float over = lim + ${f(SQUEEZE)} - s.y;
+      if (uLintel[i].w > 0.0 && over > 0.0) s.y = mix(s.y, lim + ${f(SQUEEZE)} * exp(-over / ${f(SQUEEZE)}), uGuard);
     }
   }
   return s;
@@ -83,14 +128,20 @@ attribute vec3 aSphere;   // the sphere the chip condenses from; normalised, the
 attribute vec4 aChip;     // layer (-1 dust), core (-1 none), ring (-1 none), colour index in the bar chart (-1 none)
 attribute vec4 aBars;     // x, t, z, code
 attribute vec4 aGears;    // radius, angle, z, gear | x, y, z, -1
-attribute vec4 aSize;     // diameter in each figure
-attribute vec4 aAlpha;    // opacity in each figure
+attribute vec4 aFunnel;   // x, y, z, code (lib/figure-cloud.ts)
+attribute vec4 aFlow;
+attribute vec4 aBook;
+attribute vec4 aSize;     // diameter in the chip, the chart, the gears and the globe
+attribute vec4 aAlpha;    // opacity in each of those
+attribute vec4 aSize2;    // …and in the funnel, the pipeline and the book
+attribute vec4 aAlpha2;
 attribute vec4 aSeed;
 uniform float uCoreClock, uWave;
 uniform float uBarH[6];
 uniform float uTrend[6];
 uniform float uGear;
 uniform vec4 uGearK[3];   // centre, turns per turn of the driver, phase
+uniform vec4 uWire[${FLOW.wires.length}];    // the pipeline's wires: from (xy) to (zw)
 uniform vec4 uInkA, uInkB;
 uniform vec3 uAI[4];
 varying vec4 vColor;
@@ -110,9 +161,8 @@ Dot chipDot() {
   if (layer >= 0.0) {
     c.y += layerShift(layer);
   } else {
-    // dust: a slow orbit about the chip's axis, bobbing a little
+    // dust: a slow orbit about the chip's axis
     c.xz = turn(uTime * (0.07 + 0.13 * aSeed.y)) * c.xz;
-    c.y += 0.035 * sin(uTime * 0.5 + aSeed.z * 6.2832);
   }
   vec3 p = mix(aSphere, c, m);
   float sw = sin(m * PI) * (aSeed.x - 0.5) * 1.6;
@@ -158,8 +208,6 @@ Dot barsDot() {
     p.y = mix(uTrend[i], uTrend[i + 1], aBars.y);
   } else if (code >= -0.5) {
     p.y = aBars.y * uBarH[int(code + 0.5)];
-  } else if (code < -1.5) {
-    p.y += 0.05 * sin(uTime * 0.6 + aSeed.x * 6.2832);
   }
   d.p = p;
   return d;
@@ -176,39 +224,105 @@ Dot gearsDot() {
     float a = aGears.y + k.w + uGear * k.z;
     d.p = vec3(k.xy + aGears.x * vec2(cos(a), sin(a)), aGears.z);
   } else {
-    d.p = aGears.xyz + 0.04 * vec3(sin(uTime * 0.5 + aSeed.x * 6.2832), cos(uTime * 0.4 + aSeed.y * 6.2832), 0.0);
+    d.p = aGears.xyz;
   }
   return d;
 }
 
-Dot globeDot(mat3 rot, vec3 box) {
+Dot globeDot(mat3 rot) {
   Dot d;
   d.tint = vec3(0.0);
   d.lit = 0.0;
   vec3 nrm = normalize(aSphere);
-  // a slow swell over the surface
-  float r = ${GLOBE_R.toFixed(3)} * (1.0 + 0.016 * sin(uTime * 0.7 + nrm.y * 5.0 + nrm.x * 3.0));
-  float facing = (rot * nrm).z;
-  // the cursor raises ripples that run out from it over the near side
-  float dc = distance(place(nrm * r, rot, box).xy, uMouse.xy);
-  float wv = sin(dc * 0.055 - uTime * 5.5) * exp(-dc / 150.0) * uHover.x * smoothstep(-0.2, 0.5, facing);
-  d.p = nrm * r * (1.0 + 0.085 * wv + 0.04 * uHover.y);
+  d.p = nrm * ${GLOBE_R.toFixed(3)};
   // the far side smaller and fainter (lib/figure-cloud.ts globeShade)
-  float front = smoothstep(-0.75, 0.55, facing);
-  d.size = aSize.w * (0.6 + 0.4 * front) * (1.0 + 0.5 * max(wv, 0.0));
+  float front = smoothstep(-0.75, 0.55, (rot * nrm).z);
+  d.size = aSize.w * (0.6 + 0.4 * front);
   d.alpha = aAlpha.w * (0.14 + 0.86 * front);
   return d;
 }
 
-Dot figure(int id, mat3 rot, vec3 box) {
+Dot funnelDot() {
+  Dot d;
+  d.size = aSize2.x;
+  d.alpha = aAlpha2.x;
+  d.tint = vec3(0.0);
+  d.lit = 0.0;
+  vec3 p = aFunnel.xyz;
+  if (aFunnel.w > 1.5) {
+    // what comes out: one file, evenly spaced, at one pace
+    float u = fract(aFunnel.x + uRun * 0.13);
+    p = vec3(0.0, ${f(FUNNEL.foot)} - u * ${f(FUNNEL.fall)}, 0.0);
+    d.alpha *= smoothstep(0.0, 0.1, u) * (1.0 - smoothstep(0.75, 1.0, u));
+    d.tint = uAI[int(aFunnel.x * ${f(FUNNEL.file)} + 0.5) % 4];
+    d.lit = 1.0;
+  } else if (aFunnel.w > 0.5) {
+    // what goes in: every point on its own, circling the mouth one way or the other and bobbing
+    p.xz = turn(uTime * (0.08 + 0.3 * aSeed.y) * (aSeed.z > 0.5 ? 1.0 : -1.0)) * p.xz;
+    p.y += 0.06 * sin(uTime * (0.7 + 1.1 * aSeed.w) + aSeed.x * 6.2832);
+  }
+  d.p = p;
+  return d;
+}
+
+Dot flowDot() {
+  Dot d;
+  d.size = aSize2.y;
+  d.alpha = aAlpha2.y;
+  d.tint = vec3(0.0);
+  d.lit = 0.0;
+  vec3 p = aFlow.xyz;
+  if (aFlow.w > 9.5) {
+    // along its wire, evenly spaced and at one pace: straight in x, an S in y; out of sight at the nodes
+    bool packet = aFlow.w > 19.5;
+    int wi = int(aFlow.w - (packet ? 19.5 : 9.5));
+    vec4 wire = uWire[wi];
+    float u = fract(aFlow.x + uRun * 0.16);
+    p = vec3(mix(wire.x, wire.z, u), mix(wire.y, wire.w, u * u * (3.0 - 2.0 * u)), ${f(FLOW.thick / 2)});
+    d.alpha *= smoothstep(0.0, 0.12, u) * (1.0 - smoothstep(0.88, 1.0, u));
+    if (packet) {
+      d.tint = uAI[wi % 4];
+      d.lit = 1.0;
+    }
+  }
+  d.p = p;
+  return d;
+}
+
+Dot bookDot() {
+  Dot d;
+  d.size = aSize2.z;
+  d.alpha = aAlpha2.z;
+  d.tint = vec3(0.0);
+  d.lit = 0.0;
+  vec3 p = aBook.xyz;
+  if (aBook.w > 0.5) {
+    // a leaf turning about the spine, right to left: one at a time, each in its share of the cycle.
+    // Flat it is arched like the page under it; in the air its edge trails behind.
+    float ph = fract(uRun * 0.1 - (aBook.w - 1.0) / ${f(BOOK.leaves)}) * ${f(BOOK.leaves)};
+    float go = clamp(ph / ${f(BOOK.air)}, 0.0, 1.0);
+    float th = PI * ease(go);
+    float fr = p.x / ${f(BOOK.W)};
+    float n = ${f(BOOK.arch)} * sin(PI * fr) * cos(th) - ${f(BOOK.lag)} * fr * fr * sin(th);
+    p = vec3(p.x * cos(th) - n * sin(th), p.x * sin(th) + n * cos(th) + 0.012, p.z);
+    d.alpha *= smoothstep(0.0, 0.07, go) * (1.0 - smoothstep(0.93, 1.0, go));
+  }
+  d.p = p;
+  return d;
+}
+
+Dot figure(int id, mat3 rot) {
   if (id == 0) return chipDot();
   if (id == 1) return barsDot();
   if (id == 2) return gearsDot();
-  return globeDot(rot, box);
+  if (id == 3) return globeDot(rot);
+  if (id == 4) return funnelDot();
+  if (id == 5) return flowDot();
+  return bookDot();
 }
 
 void main() {
-  Dot a = figure(uFigA, uRotA, uBoxA);
+  Dot a = figure(uFigA, uRotA);
   vec3 sa = place(a.p, uRotA, uBoxA);
   vec2 s = sa.xy;
   float size = a.size * sa.z;
@@ -218,7 +332,7 @@ void main() {
 
   if (uFigB != uFigA) {
     // in flight to another figure: each point leaves in its own time and bows out on the way
-    Dot b = figure(uFigB, uRotB, uBoxB);
+    Dot b = figure(uFigB, uRotB);
     vec3 sb = place(b.p, uRotB, uBoxB);
     float e = ease(clamp(uFlight * 1.5 - aSeed.x * 0.5, 0.0, 1.0));
     vec2 way = uBoxB.xy - uBoxA.xy;
@@ -239,7 +353,7 @@ void main() {
   size *= 1.0 + 0.5 * gone;
   alpha *= f * f;
 
-  s = disturb(s, aSeed);
+  s = disturb(s + wander(aSeed), aSeed);
   alpha *= edgeFade(s);
   float r = max(size, 0.0) * uDpr * 0.5;
   vRadius = r;

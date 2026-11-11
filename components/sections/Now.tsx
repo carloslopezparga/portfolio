@@ -63,11 +63,7 @@ export async function Now({ lang, now }: { lang: Locale; now: Date }) {
           <LogoMark brand={school.brand} size={64} className="mt-8" />
           <h3 className="mt-5 text-[clamp(1.75rem,3vw,2.25rem)] leading-tight text-fg">{school.short}</h3>
           <p className="mt-1 text-[16px] font-semibold text-[var(--d)]">{school.degree[lang]}</p>
-          {school.specialisation ? (
-            <p className="mt-4 text-[16px] leading-relaxed text-muted">
-              {t.specialisation[lang]}: <span className="text-fg">{school.specialisation[lang]}</span>
-            </p>
-          ) : null}
+          <p className="mt-4 text-[16px] leading-relaxed text-fg">{school.institution[lang]}</p>
           <div className="mt-auto flex flex-wrap items-center justify-between gap-3 pt-8 text-[14px] text-muted">
             <span>
               {formatRange(school.start, school.end, lang)} · {profile.location[lang]}

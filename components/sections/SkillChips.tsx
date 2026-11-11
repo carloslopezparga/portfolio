@@ -1,6 +1,6 @@
 import { profile } from "@/content/profile";
 import type { Locale, RefId, StackId } from "@/content/types";
-import { StackIcon } from "@/components/ui/icons";
+import { StackIcon, stackColor } from "@/components/ui/icons";
 
 /** Skills used in `ref` (from the stack's usedIn), or an explicit list, as chips in their domain colour. */
 export function SkillChips({ lang, refId, ids, className }: { lang: Locale; refId?: RefId; ids?: StackId[]; className?: string }) {
@@ -12,7 +12,9 @@ export function SkillChips({ lang, refId, ids, className }: { lang: Locale; refI
     <ul className={`flex flex-wrap gap-1.5 ${className ?? ""}`}>
       {items.map((s) => (
         <li key={s.id} data-domain={s.domain} className="chip">
-          <StackIcon id={s.id} className="size-3.5 text-[var(--d)]" />
+          <span style={{ color: stackColor(s.id) }}>
+            <StackIcon id={s.id} className="size-3.5" />
+          </span>
           {s.label[lang]}
         </li>
       ))}

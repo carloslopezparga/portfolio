@@ -19,11 +19,13 @@ const inView = (el: Element) => {
 
 /**
  * Runs the page-level UI actions shared by the agent, clicks and ⌘K:
- * scroll_to, highlight, open_project (scroll; the switcher opens it) and
- * download_cv. open_booking is handled by the
- * components that own them.
+ * scroll_to, highlight, open_project (scroll; the row opens it), download_cv
+ * and open_booking: the booking page (NEXT_PUBLIC_BOOKING_URL) in a new tab.
+ * A browser only lets a page open a tab right after a click or a key press,
+ * and the agent's answer can arrive later than that: if the tab is blocked,
+ * the page goes to Contact and points at the «Book 15 min» button instead.
  */
-export function UIActionHost() {
+export function UIActionHost({ booking }: { booking: string | null }) {
   const lenis = useLenis();
 
   useEffect(() => {
@@ -122,6 +124,12 @@ export function UIActionHost() {
         const el = document.getElementById("projects");
         if (el && !inView(el)) scrollTo(el);
       }),
+      onUI("open_booking", () => {
+        if (!booking) return;
+        const tab = window.open(booking, "_blank");
+        if (tab) tab.opener = null;
+        else highlight("booking");
+      }),
       onUI("download_cv", () => {
         const a = document.createElement("a");
         a.href = CV_URL;
@@ -138,7 +146,7 @@ export function UIActionHost() {
       window.clearTimeout(clear);
       window.clearTimeout(delayed);
     };
-  }, [lenis]);
+  }, [lenis, booking]);
 
   return null;
 }
