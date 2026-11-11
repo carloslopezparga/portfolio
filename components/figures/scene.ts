@@ -1,8 +1,9 @@
-import { BufferAttribute, BufferGeometry, Camera, Points, Scene, ShaderMaterial, WebGLRenderer } from "three";
+import { BufferAttribute, BufferGeometry, Camera, FloatType, HalfFloatType, NearestFilter, NoBlending, Points, Scene, ShaderMaterial, WebGLRenderer, WebGLRenderTarget } from "three";
 import { FIN, LAYERS } from "@/lib/chip";
 import { AI, buildPackets, CAM, FOCAL, SWAY, toWorld } from "@/lib/chip-cloud";
 import { BARS, buildParticles, FIGURES, FLOW, FRAMES, GEARS, trendOf, type FigureId, type Frame } from "@/lib/figure-cloud";
-import { CLOUD_VERT, DOT_FRAG, GLOW_FRAG, PACKET_VERT, SQUEEZE, TRAIL } from "./shaders";
+import { DRIFT, particleConfig, SIM } from "@/lib/particle-config";
+import { CLOUD_SIM, CLOUD_VERT, DOT_FRAG, GLOW_FRAG, PACKET_SIM, PACKET_VERT, SQUEEZE, STATE_FRAG, STATE_W, TRAIL } from "./shaders";
 
 const INK = { light: "#1d1d1f", dark: "#f5f5f7" };
 /** Ink opacity per theme: light dots on black read bolder, so dark mode is a little lighter (the posters match it in CSS). */
@@ -41,7 +42,7 @@ const HOME = 34;
 const CLEAR = 30;
 /** How hard a click throws the points (px). */
 const CLICK: Record<FigureId, number> = { chip: 110, bars: 90, gears: 90, globe: 200, funnel: 90, flow: 90, book: 90 };
-/** The cursor's path is kept this long (samples, at most one per 1/90 s): enough for the shader's taps. */
+/** Without the simulation: the cursor's path is kept this long (samples, at most one per 1/90 s), enough for the shader's taps. */
 const PATH = 128;
 
 export interface SceneOptions {
@@ -56,10 +57,16 @@ export interface SceneOptions {
   /** WebGL unavailable or lost: the page shows the still posters */
   onFail: () => void;
 }
+export interface SimState {
+  points: Float32Array;
+  clock: number;
+}
 export interface SceneHandle {
   dispose: () => void;
   /** Queue the next frame again, behind whoever else animates the scroll, so both use the same scroll position. */
   rearm: () => void;
+  /** For the tests (through the tuning panel): every point's state as the simulation has it now (per point: offset x, y and velocity x, y, in pixels) and the simulation's clock (s), or null without the simulation. */
+  state: () => SimState | null;
 }
 
 /** A figure's gap on the page. Positions are document coordinates, cached: nothing here is read per frame. */
@@ -124,12 +131,17 @@ function turnXY(a: number, b: number, out: number[]) {
  * the gaps are on screen, and it always finishes: whenever the scroll stops
  * it ends up as the most visible figure, or gone.
  *
- * A figure is rigid and its points move one by one: each wanders a little
- * about its place and steps aside from the cursor on its own, coming back
- * critically damped (shaders.ts works it out per vertex from the cursor's
- * recent path). The figure as a whole only turns: it leans towards the
- * cursor, a drag turns it and it comes home without a bounce. Hovering opens
- * the chip and a click sends a wave through the points.
+ * A figure is rigid and its points move one by one: each drifts with a slow
+ * flow its neighbours share, and the cursor stirs them like water. With a
+ * mouse every point has its own state (how far it is from its place, and how
+ * fast it moves), kept in a float texture and advanced on the GPU in fixed
+ * steps: a spring back to its place, the cursor's push and its wake, a
+ * click's kick (shaders.ts, SIM; the numbers are in lib/particle-config.ts).
+ * The state is never reset, so the points keep their momentum while the cloud
+ * flies from figure to figure. Without a mouse, or without float textures,
+ * there is no state and the push is worked out from the cursor's recent path.
+ * The figure as a whole only turns: it leans towards the cursor, a drag turns
+ * it and it comes home without a bounce. Hovering opens the chip.
  *
  * Set up in small steps (yielding in between, shaders compiled
  * asynchronously). The loop stops when no figure is on screen or the tab is
@@ -139,6 +151,7 @@ export function mountFigures(canvas: HTMLCanvasElement, opts: SceneOptions): Sce
   const html = document.documentElement;
   let alive = true;
   let rearm = () => {};
+  let readState: () => SimState | null = () => null;
   const disposers: (() => void)[] = [];
   const dispose = () => {
     alive = false;
@@ -184,6 +197,20 @@ export function mountFigures(canvas: HTMLCanvasElement, opts: SceneOptions): Sce
     cloudGeo.setAttribute("aAlpha2", new BufferAttribute(p.alphas2, 4));
     cloudGeo.setAttribute("aSeed", new BufferAttribute(p.seed, 4));
 
+    // With a mouse, and where the GPU can draw into a float texture: the points' state, one texel each (the cloud's, then the
+    // packets'), in two textures that take turns (one is read while the other is written).
+    const floats = opts.pointer ? (gl.extensions.has("EXT_color_buffer_float") ? FloatType : gl.extensions.has("EXT_color_buffer_half_float") ? HalfFloatType : null) : null;
+    const stateSize: [number, number] = [STATE_W, Math.ceil((p.n + pk.n) / STATE_W)];
+    const makeState = () => new WebGLRenderTarget(stateSize[0], stateSize[1], { type: floats!, minFilter: NearestFilter, magFilter: NearestFilter, depthBuffer: false });
+    const state = floats ? [makeState(), makeState()] : null;
+    // (FIGURES: the shader's code for every figure but the chip, and for the flights between them: desktop only)
+    const defines: Record<string, string> = { ...(state ? { STATEFUL: "" } : {}), ...(opts.layer ? { FIGURES: "" } : {}) };
+    canvas.dataset.sim = state ? "gpu" : "trail";
+    disposers.push(() => {
+      state?.forEach((s) => s.dispose());
+      delete canvas.dataset.sim;
+    });
+
     // Colours go to the shaders as plain sRGB numbers and come out unchanged (no colour management): #1D1D1F on screen is #1D1D1F.
     const u = {
       uView: { value: [1, 1] },
@@ -206,6 +233,14 @@ export function mountFigures(canvas: HTMLCanvasElement, opts: SceneOptions): Sce
       uLintel: { value: new Float32Array(8) },
       uGuard: { value: 0 },
       uRun: { value: 0 },
+      uDrift: { value: [0, 0] },
+      uState: { value: state?.[0].texture ?? null },
+      // the simulation's own
+      uStateSize: { value: stateSize },
+      uCursor: { value: [0, 0, 0, 0] },
+      uCursorV: { value: [0, 0, 0] },
+      uRepel: { value: [1, 0, 0] },
+      uSpring: { value: [1, 1, SIM.step] },
     };
     const cu = {
       ...u,
@@ -220,7 +255,7 @@ export function mountFigures(canvas: HTMLCanvasElement, opts: SceneOptions): Sce
       uInkB: { value: [0, 0, 0, 1] },
       uAI: { value: Float32Array.from(AI.flatMap(rgb)) },
     };
-    const cloudMat = new ShaderMaterial({ vertexShader: CLOUD_VERT, fragmentShader: DOT_FRAG, uniforms: cu, transparent: true, depthWrite: false, depthTest: false });
+    const cloudMat = new ShaderMaterial({ vertexShader: CLOUD_VERT, fragmentShader: DOT_FRAG, uniforms: cu, defines, transparent: true, depthWrite: false, depthTest: false });
     const cloud = new Points(cloudGeo, cloudMat);
     cloud.frustumCulled = false;
     cloud.renderOrder = 0;
@@ -239,19 +274,29 @@ export function mountFigures(canvas: HTMLCanvasElement, opts: SceneOptions): Sce
     pGeo.setAttribute("aMarks", new BufferAttribute(pk.marks, 2));
     pGeo.setAttribute("aMotion", new BufferAttribute(pk.motion, 3));
     pGeo.setAttribute("aColor", new BufferAttribute(pk.color, 3));
-    const pu = { ...u, uPulseClock: { value: 0 }, uSize: { value: opts.n < 4000 ? 0.125 : 0.105 }, uChip: { value: 1 } };
-    const pMat = new ShaderMaterial({ vertexShader: PACKET_VERT, fragmentShader: GLOW_FRAG, uniforms: pu, transparent: true, depthWrite: false, depthTest: false });
+    const pu = { ...u, uPulseClock: { value: 0 }, uSize: { value: opts.n < 4000 ? 0.125 : 0.105 }, uChip: { value: 1 }, uStateBase: { value: p.n } };
+    const pMat = new ShaderMaterial({ vertexShader: PACKET_VERT, fragmentShader: GLOW_FRAG, uniforms: pu, defines, transparent: true, depthWrite: false, depthTest: false });
     const packets = new Points(pGeo, pMat);
     packets.frustumCulled = false;
     packets.renderOrder = 1;
     const scene = new Scene();
     const camera = new Camera();
     scene.add(cloud, packets);
+    // the simulation's pass: the same points with the same uniforms, each drawn into its own texel of the state
+    const simScene = new Scene();
+    const simMats = state ? [new ShaderMaterial({ vertexShader: CLOUD_SIM, uniforms: cu }), new ShaderMaterial({ vertexShader: PACKET_SIM, uniforms: pu })] : [];
+    simMats.forEach((m, i) => {
+      m.setValues({ fragmentShader: STATE_FRAG, defines: { ...defines, SIM: "" }, blending: NoBlending, depthWrite: false, depthTest: false });
+      const points = new Points(i ? pGeo : cloudGeo, m);
+      points.frustumCulled = false;
+      simScene.add(points);
+    });
     disposers.push(() => {
       cloudGeo.dispose();
       cloudMat.dispose();
       pGeo.dispose();
       pMat.dispose();
+      simMats.forEach((m) => m.dispose());
     });
 
     /* -------------------------- the gaps on the page -------------------------- */
@@ -330,7 +375,7 @@ export function mountFigures(canvas: HTMLCanvasElement, opts: SceneOptions): Sce
 
     /* ------------------------------- the state ------------------------------- */
 
-    // The cloud is figure A, or between A and B (always a chip–chart pair, the chip as A); form 0 is mist.
+    // The cloud is figure A, or between A and B (two figures of the same gap); form 0 is mist.
     let figA = -1;
     let figB = -1;
     let flight = 0;
@@ -357,9 +402,7 @@ export function mountFigures(canvas: HTMLCanvasElement, opts: SceneOptions): Sce
         const mine = i === held || (held >= 0 && spots[held].el === s.el);
         if (s.v < (opts.layer ? (mine ? HELD : SEEN) : 0.02)) continue;
         const mid = (top + vh) / 2;
-        // The chip is the hero's figure: once the page scrolls it gives way early, so the chart forms as soon as its gap is fully on screen.
-        const givesWay = opts.layer && i === CHIP ? 0.8 * clamp(sy / (0.5 * vh), 0, 1) : 0;
-        const score = s.v + 0.5 * (1 - Math.min(1, Math.abs(y0 + s.h / 2 - mid) / (vh - mid))) + (mine ? 0.1 : 0) - givesWay;
+        const score = s.v + 0.5 * (1 - Math.min(1, Math.abs(y0 + s.h / 2 - mid) / (vh - mid))) + (mine ? 0.1 : 0);
         if (score > bestScore) {
           bestScore = score;
           best = i;
@@ -368,13 +411,8 @@ export function mountFigures(canvas: HTMLCanvasElement, opts: SceneOptions): Sce
       held = best;
       return best;
     };
-    /** The cloud flies from one figure to the other instead of dissolving: figures of the same gap, and the chip and the gap right under the hero when both are on screen. */
-    const linked = (a: number, b: number) => {
-      if (a === b || a < 0 || b < 0) return false;
-      if (spots[a].el === spots[b].el) return true;
-      const other = a === CHIP ? b : b === CHIP ? a : -1;
-      return other >= 0 && spots[other].shared && spots[a].v > 0.2 && spots[b].v > 0.2;
-    };
+    /** Figures of the same gap: the cloud flies from one to the other instead of dissolving. */
+    const linked = (a: number, b: number) => a !== b && a >= 0 && b >= 0 && spots[a].el === spots[b].el;
 
     const advance = (want: number, dt: number) => {
       if (!opts.layer) {
@@ -406,15 +444,8 @@ export function mountFigures(canvas: HTMLCanvasElement, opts: SceneOptions): Sce
         if (figA === figB) flight = 0;
       } else if (want === figA) form += dt / FORM_IN;
       else if (want >= 0 && form > 0.6 && linked(figA, want)) {
-        // (the chip is always A: its data packets are drawn in A's box)
-        if (want === CHIP) {
-          figB = figA;
-          figA = want;
-          flight = 1;
-        } else {
-          figB = want;
-          flight = 0;
-        }
+        figB = want;
+        flight = 0;
       } else form -= dt / FORM_OUT;
       form = clamp(form, 0, 1);
       flight = clamp(flight, 0, 1);
@@ -428,7 +459,10 @@ export function mountFigures(canvas: HTMLCanvasElement, opts: SceneOptions): Sce
     /* ------------------------------- the cursor ------------------------------ */
 
     const ptr = { x: 0, y: 0, on: false, presence: 0, gx: 0, gy: 0, over: null as HTMLElement | null, open: 0 };
-    // The cursor's recent path (document coordinates, so it stays put while the page scrolls under it).
+    // The simulation's cursor, in document coordinates (so the page scrolling under a still mouse moves it across the
+    // points): where it was at the last step, how fast it moves, and whether it has just come onto the page.
+    const sim = { x: 0, y: 0, vx: 0, vy: 0, fresh: true, due: 0, waited: 0, clock: 0, flip: 0 };
+    // Without the simulation: the cursor's recent path (document coordinates too).
     const path = { t: new Float64Array(PATH), x: new Float32Array(PATH), y: new Float32Array(PATH), on: new Float32Array(PATH), head: 0, count: 0 };
     const trail = u.uTrail.value;
     const lintel = u.uLintel.value;
@@ -448,7 +482,9 @@ export function mountFigures(canvas: HTMLCanvasElement, opts: SceneOptions): Sce
       trail[k * 3 + 2] = path.count ? path.on[i] + (path.on[j] - path.on[i]) * f : 0;
     };
     let press: { spot: Spot; x: number; y: number; lastX: number; lastY: number; lastT: number; moved: boolean; drag: boolean; gear: number } | null = null;
+    /** (`at`: on the simulation's clock when there is one, so the kick lasts the same number of steps at any frame rate) */
     let click = { x: 0, y: 0, at: -99, power: 0 };
+    const clock = () => (state ? sim.clock : t);
     const gear = { phi: 0, vel: 0 };
     let liveZone: HTMLElement | null | undefined;
     /** the clock of what the figures do by themselves (pages, wires, the file out of the funnel) */
@@ -474,8 +510,11 @@ export function mountFigures(canvas: HTMLCanvasElement, opts: SceneOptions): Sce
     const barH = cu.uBarH.value;
     const barV = new Float32Array(BARS.count);
     const barGoal = Float32Array.from(BARS.rest);
+    const barWait = new Float32Array(BARS.count);
+    let barsOn = false;
     let nextData = 1.2;
     let spin = 0;
+    let driftT = 0;
 
     const boxOf = (s: Spot, out: number[], sx: number, sy: number) => {
       const unit = Math.min(s.w / (2 * s.frame.w), s.h / (2 * s.frame.h));
@@ -559,6 +598,8 @@ export function mountFigures(canvas: HTMLCanvasElement, opts: SceneOptions): Sce
       const at = present();
       if (figA < 0) {
         if (draw) gl.clear();
+        // (when a figure is back the cursor may be anywhere: it has not swept its way there)
+        sim.fresh = true;
         return;
       }
       const A = spots[figA];
@@ -570,15 +611,17 @@ export function mountFigures(canvas: HTMLCanvasElement, opts: SceneOptions): Sce
       const cx = ptr.x - (opts.layer ? 0 : ox - sx);
       const cy = ptr.y - (opts.layer ? 0 : oy - sy);
       ptr.presence = damp(ptr.presence, ptr.on ? 1 : 0, 8, dt);
-      if (!path.count || t - path.t[path.head] >= 1 / 90) {
-        path.head = (path.head + 1) % PATH;
-        path.count = Math.min(PATH, path.count + 1);
+      if (!state) {
+        if (!path.count || t - path.t[path.head] >= 1 / 90) {
+          path.head = (path.head + 1) % PATH;
+          path.count = Math.min(PATH, path.count + 1);
+        }
+        path.t[path.head] = t;
+        path.x[path.head] = ptr.x + sx;
+        path.y[path.head] = ptr.y + sy;
+        path.on[path.head] = ptr.presence;
+        for (let k = 0; k < TRAIL.taps; k++) tap(k, (k + 0.5) * TRAIL.dt, opts.layer ? sx : ox, opts.layer ? sy : oy);
       }
-      path.t[path.head] = t;
-      path.x[path.head] = ptr.x + sx;
-      path.y[path.head] = ptr.y + sy;
-      path.on[path.head] = ptr.presence;
-      for (let k = 0; k < TRAIL.taps; k++) tap(k, (k + 0.5) * TRAIL.dt, opts.layer ? sx : ox, opts.layer ? sy : oy);
       boxOf(here, u.uBoxA.value, sx, sy);
       const lean = ptr.on && !press?.moved ? 1 : 0;
       ptr.gx = damp(ptr.gx, lean * GAZE.yaw * clamp((cx - u.uBoxA.value[0]) / (vw * 0.5), -1, 1), 5, dt);
@@ -634,22 +677,35 @@ export function mountFigures(canvas: HTMLCanvasElement, opts: SceneOptions): Sce
         const l = guarded ? lintels[i] : undefined;
         lintel.set(l ? [l[0] - sx, l[1] - sx, l[2] - sy, 1] : [0, 0, 0, 0], i * 4);
       }
-      // (not while the sphere is still condensing, nor once the cloud has left for another figure)
-      u.uGuard.value = guarded ? smooth(0.9, 1, form) * smooth(0.85, 1, introT / INTRO) * (figA === figB ? 1 : 1 - smooth(0, 0.3, flight)) : 0;
+      // (not while the sphere is still condensing, nor once the cloud is leaving)
+      u.uGuard.value = guarded ? smooth(0.9, 1, form) * smooth(0.85, 1, introT / INTRO) : 0;
       u.uSpread.value = ptr.open * OPEN * share;
       rotOf(A, u.uRotA.value, share);
       rotOf(B, u.uRotB.value);
 
-      // the chart: new «data» every so often; each bar settles on its new height without a bounce
-      if (BARS_AT >= 0 && (figA === BARS_AT || figB === BARS_AT)) {
+      // the chart: as the cloud arrives its bars grow from the plate, one after another (the points stack up); then new
+      // «data» every so often. Each bar settles on its height without a bounce.
+      const bars = BARS_AT >= 0 && (figA === BARS_AT || figB === BARS_AT);
+      if (bars && !barsOn) {
+        for (let i = 0; i < BARS.count; i++) {
+          barH[i] = BARS.rest[i] * BARS.seed;
+          barV[i] = 0;
+          barGoal[i] = BARS.rest[i];
+          barWait[i] = 0.3 + i * 0.13;
+        }
+        nextData = 2.4;
+      }
+      barsOn = bars;
+      if (bars) {
         if ((nextData -= dt * rate) <= 0) {
-          nextData = 1.7 + Math.random() * 1.2;
+          nextData = 1.5 + Math.random() * 1.1;
           for (let k = 0; k < 2; k++) {
             const i = Math.floor(Math.random() * BARS.count);
-            barGoal[i] = clamp(BARS.rest[i] * (0.66 + Math.random() * 0.62), 0.22, 1.25);
+            barGoal[i] = BARS.rest[i] * (BARS.swing[0] + Math.random() * (BARS.swing[1] - BARS.swing[0]));
           }
         }
         for (let i = 0; i < BARS.count; i++) {
+          if ((barWait[i] -= dt) > 0) continue;
           barV[i] += ((barGoal[i] - barH[i]) * 40 - barV[i] * 2 * Math.sqrt(40)) * dt;
           barH[i] += barV[i] * dt;
         }
@@ -667,15 +723,72 @@ export function mountFigures(canvas: HTMLCanvasElement, opts: SceneOptions): Sce
       u.uHover.value[1] = ptr.open;
       u.uClick.value[0] = click.x - (opts.layer ? sx : ox);
       u.uClick.value[1] = click.y - (opts.layer ? sy : oy);
-      u.uClick.value[2] = t - click.at;
+      u.uClick.value[2] = clock() - click.at;
       u.uClick.value[3] = click.power;
+      driftT += dt * particleConfig.driftSpeed * DRIFT.rate;
+      u.uDrift.value[0] = particleConfig.driftAmp;
+      u.uDrift.value[1] = driftT;
       cu.uCoreClock.value = cores;
       cu.uGear.value = gear.phi;
       cu.uInkA.value = inkOf(figA);
       cu.uInkB.value = inkOf(figB);
       pu.uPulseClock.value = pulse;
-      pu.uChip.value = figA === CHIP ? (1 - smooth(0, 0.3, figA === figB ? 0 : flight)) * smooth(0.6, 1, form) : 0;
-      if (draw) gl.render(scene, camera);
+      pu.uChip.value = figA === CHIP ? smooth(0.6, 1, form) : 0;
+      sim.due += dt;
+      sim.waited += dt;
+      if (!draw) return;
+      if (state) simulate(state, sx, sy);
+      gl.render(scene, camera);
+    };
+
+    /**
+     * The points' own physics, in fixed steps: as many as the time since the last frame asks for, a few at most (a longer
+     * stall is not caught up). Every step sees the figure where it is now, and the cursor a little further along the
+     * stretch it has covered since the last frame.
+     */
+    const simulate = (pair: WebGLRenderTarget[], sx: number, sy: number) => {
+      const cfg = particleConfig;
+      const steps = Math.min(SIM.maxSteps, Math.floor(sim.due / SIM.step + 1e-6));
+      if (!steps) return;
+      sim.due = Math.min(sim.due - steps * SIM.step, SIM.step);
+      const tx = ptr.x + sx;
+      const ty = ptr.y + sy;
+      if (sim.fresh || ptr.presence < 0.02) {
+        // the cursor has just come onto the page: it did not sweep its way here
+        sim.x = tx;
+        sim.y = ty;
+        sim.vx = sim.vy = 0;
+        sim.fresh = false;
+      }
+      const waited = Math.max(sim.waited, SIM.step);
+      sim.vx = damp(sim.vx, (tx - sim.x) / waited, 30, waited);
+      sim.vy = damp(sim.vy, (ty - sim.y) / waited, 30, waited);
+      sim.waited = 0;
+      const wake = Math.min(1, SIM.maxWake / Math.max(Math.hypot(sim.vx, sim.vy), 1));
+      u.uCursorV.value = [sim.vx * wake, sim.vy * wake, ptr.presence];
+      u.uRepel.value = [cfg.repelRadius, cfg.repelForce, cfg.drag];
+      u.uSpring.value = [2 * Math.PI * cfg.springHz, cfg.springDamping, SIM.step];
+      for (let i = 0; i < steps; i++) {
+        const x0 = sim.x + ((tx - sim.x) * i) / steps - sx;
+        const y0 = sim.y + ((ty - sim.y) * i) / steps - sy;
+        u.uCursor.value = [x0, y0, x0 + (tx - sim.x) / steps, y0 + (ty - sim.y) / steps];
+        sim.clock += SIM.step;
+        u.uClick.value[2] = sim.clock - click.at;
+        u.uState.value = pair[sim.flip].texture;
+        sim.flip = 1 - sim.flip;
+        gl.setRenderTarget(pair[sim.flip]);
+        gl.render(simScene, camera);
+      }
+      gl.setRenderTarget(null);
+      u.uState.value = pair[sim.flip].texture;
+      sim.x = tx;
+      sim.y = ty;
+    };
+    readState = () => {
+      if (!state || floats !== FloatType) return null;
+      const out = new Float32Array(stateSize[0] * stateSize[1] * 4);
+      gl.readRenderTargetPixels(state[sim.flip], 0, 0, stateSize[0], stateSize[1], out);
+      return { points: out.subarray(0, p.n * 4), clock: sim.clock };
     };
 
     const frame = (now: number) => {
@@ -736,6 +849,7 @@ export function mountFigures(canvas: HTMLCanvasElement, opts: SceneOptions): Sce
       if (e.pointerType !== "mouse") return;
       ptr.x = e.clientX;
       ptr.y = e.clientY;
+      if (!ptr.on) sim.fresh = true;
       ptr.on = true;
       // a pointer that was already resting on a figure when it formed never «entered» it
       if (!ptr.over && e.target instanceof Element) ptr.over = zones.find((z) => z.contains(e.target as Element)) ?? null;
@@ -816,7 +930,7 @@ export function mountFigures(canvas: HTMLCanvasElement, opts: SceneOptions): Sce
       const up = (e: PointerEvent) => {
         if (!press || press.spot !== s) return;
         // a click (or a tap): a shock wave from that point
-        if (!press.moved && ready()) click = { x: e.clientX + window.scrollX, y: e.clientY + window.scrollY, at: t, power: CLICK[s.id] };
+        if (!press.moved && ready()) click = { x: e.clientX + window.scrollX, y: e.clientY + window.scrollY, at: clock(), power: CLICK[s.id] };
         release();
       };
       const enter = (e: PointerEvent) => e.pointerType === "mouse" && (ptr.over = z);
@@ -902,7 +1016,11 @@ export function mountFigures(canvas: HTMLCanvasElement, opts: SceneOptions): Sce
     await nextTask();
     if (!alive) return;
     try {
-      await gl.compileAsync(scene, camera);
+      // (the simulation's programs are compiled as they will run: drawing into the state)
+      gl.setRenderTarget(state?.[0] ?? null);
+      const sims = state ? gl.compileAsync(simScene, camera) : null;
+      gl.setRenderTarget(null);
+      await Promise.all([gl.compileAsync(scene, camera), sims]);
     } catch {
       /* compiled on the first render instead */
     }
@@ -924,5 +1042,5 @@ export function mountFigures(canvas: HTMLCanvasElement, opts: SceneOptions): Sce
     schedule();
   })();
 
-  return { dispose, rearm: () => rearm() };
+  return { dispose, rearm: () => rearm(), state: () => readState() };
 }

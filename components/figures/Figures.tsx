@@ -1,10 +1,13 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import dynamic from "next/dynamic";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useLenis } from "@/components/providers/SmoothScroll";
 import { CLOUD_SIZE, DESKTOP_QUERY } from "@/lib/chip-config";
 import { usePrefs } from "@/lib/prefs";
 import type { SceneHandle } from "./scene";
+
+const TunePanel = dynamic(() => import("./TunePanel"), { ssr: false });
 
 /**
  * Loads the page's point cloud (one WebGL context) over the chip's sphere
@@ -21,12 +24,23 @@ import type { SceneHandle } from "./scene";
  * the chip, on the canvas inside its own stage, so it scrolls with the page.
  * Reduced motion (or the pause button): nothing loads and every gap shows
  * its still poster.
+ *
+ * With ?tune=1 in the address it also shows the panel that tunes the
+ * points' physics (lib/particle-config.ts).
  */
 export function Figures() {
   const ref = useRef<HTMLCanvasElement>(null);
   const handle = useRef<SceneHandle | null>(null);
   const { reduced, touch } = usePrefs();
   const lenis = useLenis();
+  const [tune, setTune] = useState(false);
+  const state = useCallback(() => handle.current?.state() ?? null, []);
+
+  // (read after hydration: the server does not know the address's query)
+  useEffect(() => {
+    const t = window.setTimeout(() => setTune(new URLSearchParams(window.location.search).get("tune") === "1"), 0);
+    return () => window.clearTimeout(t);
+  }, []);
 
   // the smooth scroll starts later than the scene: draw after it in each frame, never a frame behind
   useEffect(() => handle.current?.rearm(), [lenis]);
@@ -101,5 +115,10 @@ export function Figures() {
     };
   }, [reduced, touch]);
 
-  return <canvas ref={ref} className="chip-canvas" aria-hidden />;
+  return (
+    <>
+      <canvas ref={ref} className="chip-canvas" aria-hidden />
+      {tune ? <TunePanel state={state} /> : null}
+    </>
+  );
 }

@@ -5,9 +5,8 @@ import { FigureGap, type GapFigure } from "@/components/figures/FigureGap";
  * Small grey label, a big title and an optional one-line intro. With figures
  * (desktop): the gap for them sits to the right, on the header's baseline,
  * reaching up into the section's top padding; the text keeps clear of it.
- * `wide`: a larger gap, for a short title.
  */
-export function SectionHeader({ eyebrow, title, intro, center = false, figures, wide = false }: { eyebrow: string; title: string; intro?: ReactNode; center?: boolean; figures?: GapFigure[]; wide?: boolean }) {
+export function SectionHeader({ eyebrow, title, intro, center = false, figures }: { eyebrow: string; title: string; intro?: ReactNode; center?: boolean; figures?: GapFigure[] }) {
   const header = (
     <header suppressHydrationWarning className={`reveal reveal-rise ${figures ? "fig-beside" : "wrap"} ${center ? "text-center" : ""}`}>
       <p className="eyebrow">{eyebrow}</p>
@@ -17,7 +16,7 @@ export function SectionHeader({ eyebrow, title, intro, center = false, figures, 
   );
   if (!figures) return header;
   return (
-    <div className={`wrap fig-row ${wide ? "fig-row-wide" : ""} relative`}>
+    <div className="wrap fig-row relative">
       {header}
       <FigureGap figures={figures} className="fig-gap-head" />
     </div>

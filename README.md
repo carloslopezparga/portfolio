@@ -4,7 +4,9 @@ Next.js 16 (App Router, Cache Components) · TypeScript · Tailwind 4 · three.j
 
 `/` (English) and `/es` (Spanish), light theme by default with a dark one on the toggle. Approved and pending decisions are in [`DECISIONS.md`](DECISIONS.md).
 
-Sections: hero (with the AI chip, a point cloud that goes on to form a funnel, a pipeline and a bar chart in how I work, gears in experience, an open book in education and a globe in contact), how I work (three steps), right now, experience, education, projects (one row that scrolls sideways; a looping clip, case study and demo per card), skills graph, volunteering (a row of cards) and contact.
+Sections: hero (with the AI chip, a point cloud that goes on to form gears in experience, an open book in education, a funnel, a pipeline and a bar chart in how I work, and a globe in contact), right now, experience, education, how I work (three steps that advance by themselves, each with its figure), projects (one row that scrolls sideways; a looping clip, case study and demo per card), skills (a network in three layers, in 3D), volunteering (a row of cards) and contact.
+
+The points' physics (how the cursor stirs them, the spring that brings them back, the drift) is tuned in `lib/particle-config.ts`; open the site with `?tune=1` for a panel of sliders and a button that copies the values.
 
 ## Run it
 

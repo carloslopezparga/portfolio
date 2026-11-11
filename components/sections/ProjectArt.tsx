@@ -212,13 +212,13 @@ const ART: Record<ProjectId, (p: { lang: Locale }) => ReactNode> = {
  * interface (HTML/CSS, no images) that float slowly and shift with the
  * pointer, each at its own depth. Only real figures or generic labels.
  */
-export function ProjectArt({ id, lang }: { id: ProjectId; lang: Locale }) {
+export function ProjectArt({ id, lang, className = "" }: { id: ProjectId; lang: Locale; className?: string }) {
   const ref = useRef<HTMLDivElement>(null);
   const Art = ART[id];
   return (
     <div
       ref={ref}
-      className="frag-stage relative aspect-[16/10] overflow-hidden rounded-t-[var(--radius-card)]"
+      className={`frag-stage relative aspect-[16/10] overflow-hidden rounded-t-[var(--radius-card)] ${className}`}
       aria-hidden
       onPointerMove={(e) => {
         if (e.pointerType !== "mouse" || getPrefs().reduced) return;

@@ -8,13 +8,16 @@ import { useTheme } from "@/lib/theme";
 import { ProjectArt } from "./ProjectArt";
 
 /**
- * The top of a project's card: a short clip of the project, muted and in a
- * loop (public/media/projects/<id>/loop…, one per theme; see lib/media.ts).
- * Until the card is near the screen, and with reduced motion or without
- * JavaScript, only its poster shows (painted by CSS, in the page's theme);
- * the clip plays only while the card is on screen. No clip for a theme: the
- * live illustration, as before. `?live-art` in the address always shows the
- * live illustration (scripts/record-project-loops.mjs records the clips from it).
+ * The top of a project's card. From 768 px: a short clip of the project,
+ * muted and in a loop (public/media/projects/<id>/loop…, one per theme; see
+ * lib/media.ts). Until the card is near the screen, and with reduced motion
+ * or without JavaScript, only its poster shows (painted by CSS, in the
+ * page's theme); the clip plays only while the card is on screen. Phones: the
+ * clip is a recording of the desktop card and cannot be read at that size, so
+ * they get the live illustration instead (its main fragment, large: see
+ * .frag-main), and never load the clip or its poster. No clip for a theme:
+ * the live illustration everywhere. `?live-art` in the address always shows
+ * it (scripts/record-project-loops.mjs records the clips from it).
  */
 export function ProjectLoop({ id, lang, clips }: { id: ProjectId; lang: Locale; clips: Record<"light" | "dark", Clip | null> }) {
   const box = useRef<HTMLDivElement>(null);
@@ -52,18 +55,21 @@ export function ProjectLoop({ id, lang, clips }: { id: ProjectId; lang: Locale; 
   if (!has || live) return <ProjectArt id={id} lang={lang} />;
   const clip = clips[theme]!;
   return (
-    <div
-      ref={box}
-      className="project-loop relative aspect-[16/10] overflow-hidden rounded-t-[var(--radius-card)]"
-      style={{ "--poster-light": clips.light!.poster ? `url(${clips.light!.poster})` : "none", "--poster-dark": clips.dark!.poster ? `url(${clips.dark!.poster})` : "none" } as CSSProperties}
-      aria-hidden
-    >
-      {near && !reduced ? (
-        <video key={theme} ref={video} muted autoPlay loop playsInline preload="metadata" poster={clip.poster} className="absolute inset-0 size-full object-cover">
-          {clip.webm ? <source src={clip.webm} type="video/webm" /> : null}
-          {clip.mp4 ? <source src={clip.mp4} type="video/mp4" /> : null}
-        </video>
-      ) : null}
-    </div>
+    <>
+      <ProjectArt id={id} lang={lang} className="md:hidden" />
+      <div
+        ref={box}
+        className="project-loop relative aspect-[16/10] overflow-hidden rounded-t-[var(--radius-card)] max-md:hidden"
+        style={{ "--poster-light": clips.light!.poster ? `url(${clips.light!.poster})` : "none", "--poster-dark": clips.dark!.poster ? `url(${clips.dark!.poster})` : "none" } as CSSProperties}
+        aria-hidden
+      >
+        {near && !reduced ? (
+          <video key={theme} ref={video} muted autoPlay loop playsInline preload="metadata" poster={clip.poster} className="absolute inset-0 size-full object-cover">
+            {clip.webm ? <source src={clip.webm} type="video/webm" /> : null}
+            {clip.mp4 ? <source src={clip.mp4} type="video/mp4" /> : null}
+          </video>
+        ) : null}
+      </div>
+    </>
   );
 }

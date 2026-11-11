@@ -3,7 +3,7 @@ import type { Locale, RefId } from "@/content/types";
 import { brandOf, logoSrc } from "@/lib/assets";
 import { brandStyle } from "@/lib/brand";
 import { copy } from "@/lib/copy";
-import { graphLayout } from "@/lib/graph";
+import { netLayout } from "@/lib/graph";
 import { stackColor, type GlyphName } from "@/components/ui/icons";
 import { SectionHeader } from "./SectionHeader";
 import { SkillsGraph, type GraphRef, type GraphSkill } from "./SkillsGraph";
@@ -32,6 +32,10 @@ export async function Skills({ lang }: { lang: Locale }) {
   const projectIds = profile.projects.map((p) => p.id as RefId);
   const workIds = profile.experience.map((e) => e.id as RefId);
   const refIds = (Object.keys(refLabels) as RefId[]).filter((id) => skills.some((s) => s.usedIn.some((u) => u.id === id)));
+  // the network's three layers: skills (by domain), then projects (and this site), then jobs and studies
+  const byDomain = profile.domains.flatMap((d) => skills.filter((s) => s.domain === d.id).map((s) => s.id));
+  const outputs = [...workIds, ...refIds.filter((id) => id === "giti" || id === "cs50")].filter((id) => refIds.includes(id));
+  const layout = netLayout([byDomain, refIds.filter((id) => !outputs.includes(id)), outputs]);
   const refs: GraphRef[] = await Promise.all(
     refIds.map(async (id) => {
       const tone = refTone[id];
@@ -51,7 +55,8 @@ export async function Skills({ lang }: { lang: Locale }) {
   );
 
   return (
-    <section id="skills" className="section section-alt">
+    // (the network sways: at the ends of its swing its outer nodes reach past the column, and on a narrow desktop past the screen's edge)
+    <section id="skills" className="section section-alt overflow-x-clip">
       <SectionHeader
         eyebrow={t.eyebrow[lang]}
         title={t.title[lang]}
@@ -63,7 +68,7 @@ export async function Skills({ lang }: { lang: Locale }) {
         }
       />
       <div className="wrap mt-10 md:mt-12">
-        <SkillsGraph skills={skills} refs={refs} layout={graphLayout(skills, refIds)} labels={{ usedIn: t.usedIn[lang], uses: t.uses[lang], close: copy.projects.close[lang], tour: t.title[lang] }} />
+        <SkillsGraph skills={skills} refs={refs} layout={layout} labels={{ usedIn: t.usedIn[lang], uses: t.uses[lang], close: copy.projects.close[lang], tour: t.title[lang] }} />
 
         <div className="mt-6">
           <p className="mono-label">{t.languages[lang]}</p>

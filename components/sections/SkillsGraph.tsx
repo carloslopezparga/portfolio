@@ -2,12 +2,14 @@
 
 import Image from "next/image";
 import { createPortal } from "react-dom";
-import { Fragment, useCallback, useEffect, useMemo, useRef, useState, type CSSProperties, type KeyboardEvent } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties, type KeyboardEvent } from "react";
 import type { DomainId, StackId } from "@/content/types";
-import { link, wrap, type GraphLayout } from "@/lib/graph";
-import { getPrefs } from "@/lib/prefs";
+import { camera, NET, type NetLayout } from "@/lib/graph";
+import { usePrefs } from "@/lib/prefs";
+import { useTheme } from "@/lib/theme";
 import { dispatchUI, onUI } from "@/lib/ui-bus";
 import { Glyph, StackIcon, type GlyphName } from "@/components/ui/icons";
+import { mountNet, type NetHandle } from "./skillsNet";
 
 export interface GraphSkill {
   id: StackId;
@@ -61,29 +63,6 @@ function nearest(pos: Map<string, { x: number; y: number }>, from: string, [dx, 
 }
 
 const tone = (r: GraphRef) => ({ className: r.brand ? "brand" : "", style: r.brand ?? undefined, domain: r.brand ? undefined : (r.domain ?? undefined) });
-/** The id of a ref's monogram drawing, when that is what its node shows (no logo file, no glyph). */
-const monoId = (r: GraphRef) => (!r.logo && !r.glyph && r.monogram ? `mono-${r.id}` : null);
-
-/**
- * A node's visible label, one <text> per line. The space the label was
- * wrapped at stays in the DOM between the lines (SVG draws nothing for it), so
- * the node's text reads "piloto automático", not "pilotoautomático": what is
- * visible has to be part of the node's accessible name, its aria-label
- * (WCAG 2.5.3, axe's label-content-name-mismatch).
- */
-function NodeLabel({ lines, x, y, leading, className }: { lines: string[]; x: number; y: number; leading: number; className: string }) {
-  return lines.map((line, i) => (
-    <Fragment key={i}>
-      {i > 0 ? " " : null}
-      <text x={x} y={y + i * leading} aria-hidden textAnchor="middle" className={`g-label ${className}`}>
-        {line}
-      </text>
-    </Fragment>
-  ));
-}
-
-/** A node's own slow float: every node at its own pace and out of step with the rest (the links end under the discs, so they stay put). */
-const float = (i: number) => ({ animationDuration: `${6.5 + (i % 5) * 0.9}s`, animationDelay: `${-((i * 1.7) % 9)}s` });
 
 /** What the inspector and the phone sheet show for the active node. */
 function Details({ active, skills, refs, labels, select }: { active: Active; skills: GraphSkill[]; refs: GraphRef[]; labels: GraphLabels; select: (a: Active) => void }) {
@@ -158,32 +137,40 @@ function Details({ active, skills, refs, labels, select }: { active: Active; ski
 }
 
 /**
- * Skills graph. Desktop: white nodes with the tool's real logo (or a glyph of
- * our own) and a ring in their domain colour, grouped by domain on both
- * sides; projects, jobs and studies, with their logos, as larger nodes in
- * the middle; faint "used in" lines that light up in colour. Compact: graph
+ * The skills as a network in three layers, in depth: the skills (input), the
+ * projects (hidden) and the jobs and studies (output), joined by "used in"
+ * links. Desktop: the nodes are buttons (the tool's real logo or a glyph of
+ * our own, in a ring of their domain's colour) placed on every frame where
+ * the camera sees them, over a canvas with the links and their pulses
+ * (skillsNet.ts): nearer nodes larger, further ones smaller and fainter. The
+ * view sways, leans towards the cursor and can be orbited with a drag. At
+ * rest a tour lights a different skill every few seconds (it stops for good
+ * once you interact); the inspector underneath always shows something. Graph
  * and inspector together stay within about 60 % of the screen's height.
- * Every node floats slowly on its own, and at rest a tour highlights a
- * different skill every few seconds (it stops for good once you interact);
- * the inspector underneath always shows something. Phones: a list by domain
- * and a bottom sheet.
+ * One tab stop for the whole network; arrow keys move between nodes. Phones:
+ * a list by domain and a bottom sheet.
  */
-export function SkillsGraph({ skills, refs, layout, labels }: { skills: GraphSkill[]; refs: GraphRef[]; layout: GraphLayout; labels: GraphLabels }) {
+export function SkillsGraph({ skills, refs, layout, labels }: { skills: GraphSkill[]; refs: GraphRef[]; layout: NetLayout; labels: GraphLabels }) {
   const order = useMemo(() => skills.map((s) => s.id), [skills]);
   const [active, setActive] = useState<Active>({ kind: "skill", id: skills[0].id });
   const [touched, setTouched] = useState(false);
   const [sheet, setSheet] = useState<Active | null>(null);
   const [show, setShow] = useState(false);
+  const { reduced } = usePrefs();
+  const theme = useTheme();
   const graphRef = useRef<HTMLDivElement>(null);
-  // One tab stop for the whole graph (the last node focused); arrow keys move between nodes.
+  const stageRef = useRef<HTMLDivElement>(null);
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const net = useRef<NetHandle | null>(null);
+  // One tab stop for the whole network (the last node focused); arrow keys move between nodes.
   const [stop, setStop] = useState<string>(skills[0].id);
-  const nodes = useRef(new Map<string, SVGGElement>());
-  const nodeRef = (id: string) => (el: SVGGElement | null) => {
+  const nodes = useRef(new Map<string, HTMLButtonElement>());
+  const nodeRef = (id: string) => (el: HTMLButtonElement | null) => {
     if (el) nodes.current.set(id, el);
     else nodes.current.delete(id);
   };
 
-  // The SVG graph is desktop-only: it mounts when its (visible) box nears the
+  // The network is desktop-only: it mounts when its (visible) box nears the
   // viewport, so phones never build it and the first load stays light.
   useEffect(() => {
     const io = new IntersectionObserver(
@@ -203,9 +190,9 @@ export function SkillsGraph({ skills, refs, layout, labels }: { skills: GraphSki
     setActive(a);
   }, []);
 
-  // The tour: one skill after another while the graph is on screen and untouched.
+  // The tour: one skill after another while the network is on screen and untouched.
   useEffect(() => {
-    if (touched || getPrefs().reduced) return;
+    if (touched || reduced) return;
     const el = graphRef.current!;
     let visible = false;
     let i = 0;
@@ -220,7 +207,7 @@ export function SkillsGraph({ skills, refs, layout, labels }: { skills: GraphSki
       io.disconnect();
       window.clearInterval(t);
     };
-  }, [touched, order]);
+  }, [touched, reduced, order]);
 
   // The agent (or a click elsewhere) highlighting a skill selects it here too.
   useEffect(
@@ -232,21 +219,46 @@ export function SkillsGraph({ skills, refs, layout, labels }: { skills: GraphSki
     [skills, refs, pick],
   );
 
-  const pos = new Map([...layout.skills, ...layout.refs].map((p) => [p.id, p]));
-  const lit = new Set<string>([active.id]);
-  if (active.kind === "skill") skills.find((s) => s.id === active.id)?.usedIn.forEach((u) => lit.add(u.id));
-  else skills.forEach((s) => s.usedIn.some((u) => u.id === active.id) && lit.add(s.id));
-  const isOn = (skill: string, ref: string) => (active.kind === "skill" ? active.id === skill : active.id === ref);
+  // what is lit: the active node and the nodes it is linked to
+  const lit = useMemo(() => {
+    const ids = new Set<string>([active.id]);
+    if (active.kind === "skill") skills.find((s) => s.id === active.id)?.usedIn.forEach((u) => ids.add(u.id));
+    else skills.forEach((s) => s.usedIn.some((u) => u.id === active.id) && ids.add(s.id));
+    return { active: active.id, ids, on: (from: string, to: string) => (active.kind === "skill" ? active.id === from : active.id === to) };
+  }, [active, skills]);
+  const litRef = useRef(lit);
+
+  // the engine places the nodes and draws the links; it reads what is lit on every frame
+  useEffect(() => {
+    if (!show) return;
+    const handle = mountNet(stageRef.current!, canvasRef.current!, {
+      layout,
+      els: nodes.current,
+      links: skills.flatMap((s) => s.usedIn.map((u) => ({ from: s.id, to: u.id }))),
+      reduced,
+      lit: () => litRef.current,
+    });
+    net.current = handle;
+    return () => {
+      handle.dispose();
+      net.current = null;
+    };
+  }, [show, reduced, layout, skills]);
+  useEffect(() => {
+    litRef.current = lit;
+    net.current?.refresh();
+  }, [lit, theme]);
+
+  // where the nodes are in the view at rest: what the arrow keys go by
+  const pos = useMemo(() => {
+    const see = camera(NET.yaw, NET.pitch);
+    return new Map(layout.nodes.map((n) => [n.id, { x: see(n.x, n.y, n.z)[0], y: see(n.x, n.y, n.z)[1] }]));
+  }, [layout]);
   const focusNode = (a: Active) => {
     pick(a);
     setStop(a.id);
   };
   const keys = (a: Active) => (e: KeyboardEvent) => {
-    if (e.key === "Enter" || e.key === " ") {
-      e.preventDefault();
-      pick(a);
-      return;
-    }
     const all = [...order, ...refs.map((r) => r.id)];
     const to = ARROWS[e.key] ? nearest(pos, a.id, ARROWS[e.key]) : e.key === "Home" ? all[0] : e.key === "End" ? all[all.length - 1] : null;
     if (!to) return;
@@ -256,119 +268,65 @@ export function SkillsGraph({ skills, refs, layout, labels }: { skills: GraphSki
 
   return (
     <>
-      {/* desktop: the graph and its inspector */}
+      {/* desktop: the network and its inspector */}
       <div ref={graphRef} className="skills-desktop hidden lg:block">
-        {show ? (
-          <svg viewBox={`0 0 ${layout.w} ${layout.h}`} className="skills-graph mx-auto block h-auto max-h-[calc(60vh-116px)] w-full" role="toolbar" aria-label={labels.tour}>
-            <g aria-hidden>
-              {skills.flatMap((s) =>
-                s.usedIn.map((u) => {
-                  const a = pos.get(s.id)!;
-                  const b = pos.get(u.id)!;
-                  const on = isOn(s.id, u.id);
-                  return <path key={`${s.id}-${u.id}`} d={link(a, b)} data-domain={s.domain} className={`g-link ${on ? "is-on" : ""}`} style={{ strokeWidth: on ? 1.2 + u.w * 0.6 : 1 }} />;
-                }),
-              )}
-            </g>
-
-            {layout.clusters.map((c) => (
-              <text key={c.id} x={c.x} y={c.y} textAnchor={c.anchor} data-domain={c.id} className="fill-[var(--d)] text-[13px] font-semibold" aria-hidden>
-                {skills.find((s) => s.domain === c.id)?.domainLabel}
-              </text>
-            ))}
-
-            {/* A monogram stands in for a missing logo, so it is drawn like one: defined here, at its
-                node's centre, and painted from the node with <use>. As text inside the node it would
-                be part of its visible label ("IF Induforum 2027"), which its aria-label has to contain. */}
-            <defs>
-              {refs.map((r) => {
-                const id = monoId(r);
-                const p = pos.get(r.id)!;
-                return id ? (
-                  <text key={id} id={id} x={p.x} y={p.y + 5} aria-hidden textAnchor="middle" className="fill-[var(--d)] text-[14px] font-bold">
-                    {r.monogram}
-                  </text>
-                ) : null;
-              })}
-            </defs>
-
-            {refs.map((r, i) => {
-              const p = pos.get(r.id)!;
-              const on = lit.has(r.id);
-              const t = tone(r);
-              return (
-                <g
-                  key={r.id}
-                  ref={nodeRef(r.id)}
-                  role="button"
-                  tabIndex={stop === r.id ? 0 : -1}
-                  aria-label={`${r.label} · ${r.kindLabel}`}
-                  aria-pressed={active.id === r.id}
-                  data-target-id={r.card ? undefined : r.id}
-                  className={`g-node g-ref ${r.logo ? "g-logo" : ""} ${t.className} ${on ? "is-lit" : ""} ${active.id === r.id ? "is-active" : ""}`}
-                  style={{ ...t.style, ...float(i + 3) }}
-                  data-domain={t.domain}
-                  onPointerEnter={() => pick({ kind: "ref", id: r.id })}
-                  onFocus={() => focusNode({ kind: "ref", id: r.id })}
-                  onClick={() => (r.card ? dispatchUI({ type: "highlight", targetId: r.card }) : pick({ kind: "ref", id: r.id }))}
-                  onKeyDown={keys({ kind: "ref", id: r.id })}
-                >
-                  <circle cx={p.x} cy={p.y} r={31} fill="transparent" />
-                  <circle cx={p.x} cy={p.y} r={29.5} className="g-ring" />
-                  <circle cx={p.x} cy={p.y} r={24} className="g-disc" />
-                  {r.logo ? (
-                    <>
-                      <clipPath id={`clip-${r.id}`}>
-                        <circle cx={p.x} cy={p.y} r={19} />
-                      </clipPath>
-                      <image href={r.logo} x={p.x - 19} y={p.y - 19} width={38} height={38} clipPath={`url(#clip-${r.id})`} preserveAspectRatio="xMidYMid meet" />
-                    </>
-                  ) : r.glyph ? (
-                    <g transform={`translate(${p.x - 10} ${p.y - 10})`} className="text-[var(--d)]">
-                      <Glyph name={r.glyph} size={20} />
-                    </g>
-                  ) : monoId(r) ? (
-                    <use href={`#${monoId(r)}`} aria-hidden />
-                  ) : null}
-                  <NodeLabel lines={wrap(r.label, 18)} x={p.x} y={p.y + 41} leading={14} className="text-[12px] font-semibold" />
-                </g>
-              );
-            })}
-
-            {skills.map((s, i) => {
-              const p = pos.get(s.id)!;
-              return (
-                <g
+        <div ref={stageRef} className="net" role="toolbar" aria-label={labels.tour} style={{ aspectRatio: `${NET.w} / ${NET.h}` }}>
+          {show ? (
+            <>
+              <canvas ref={canvasRef} className="net-links" aria-hidden />
+              {skills.map((s) => (
+                <button
                   key={s.id}
                   ref={nodeRef(s.id)}
-                  role="button"
+                  type="button"
                   tabIndex={stop === s.id ? 0 : -1}
                   aria-label={`${s.label} · ${s.domainLabel}`}
                   aria-pressed={active.id === s.id}
                   data-target-id={s.id}
                   data-domain={s.domain}
-                  className={`g-node g-skill ${lit.has(s.id) ? "is-lit" : ""} ${active.id === s.id ? "is-active" : ""}`}
-                  style={float(i)}
+                  className={`net-node ${lit.ids.has(s.id) ? "is-lit" : ""} ${active.id === s.id ? "is-active" : ""}`}
                   onPointerEnter={() => pick({ kind: "skill", id: s.id })}
                   onFocus={() => focusNode({ kind: "skill", id: s.id })}
                   onClick={() => pick({ kind: "skill", id: s.id })}
                   onKeyDown={keys({ kind: "skill", id: s.id })}
                 >
-                  <circle cx={p.x} cy={p.y} r={30} fill="transparent" />
-                  <circle cx={p.x} cy={p.y} r={29} className="g-halo" />
-                  <circle cx={p.x} cy={p.y} r={21} className="g-disc" />
-                  <circle cx={p.x} cy={p.y} r={26} className="g-ring" />
-                  <g transform={`translate(${p.x - 10} ${p.y - 10})`} style={{ color: s.color }}>
-                    <StackIcon id={s.id} size={20} />
-                  </g>
-                  <NodeLabel lines={wrap(s.label)} x={p.x} y={p.y + 38} leading={14} className="text-[12px] font-medium" />
-                </g>
-              );
-            })}
-          </svg>
-        ) : (
-          <div className="mx-auto max-h-[calc(60vh-116px)]" style={{ aspectRatio: `${layout.w} / ${layout.h}` }} />
-        )}
+                  <span className="net-disc" style={{ color: s.color }}>
+                    <StackIcon id={s.id} className="size-[22px]" />
+                  </span>
+                  <span className="net-label">{s.label}</span>
+                </button>
+              ))}
+              {refs.map((r) => {
+                const t = tone(r);
+                return (
+                  <button
+                    key={r.id}
+                    ref={nodeRef(r.id)}
+                    type="button"
+                    tabIndex={stop === r.id ? 0 : -1}
+                    aria-label={`${r.label} · ${r.kindLabel}`}
+                    aria-pressed={active.id === r.id}
+                    data-target-id={r.card ? undefined : r.id}
+                    data-domain={t.domain}
+                    className={`net-node net-ref ${r.logo ? "net-logo" : ""} ${t.className} ${lit.ids.has(r.id) ? "is-lit" : ""} ${active.id === r.id ? "is-active" : ""}`}
+                    style={t.style}
+                    onPointerEnter={() => pick({ kind: "ref", id: r.id })}
+                    onFocus={() => focusNode({ kind: "ref", id: r.id })}
+                    onClick={() => (r.card ? dispatchUI({ type: "highlight", targetId: r.card }) : pick({ kind: "ref", id: r.id }))}
+                    onKeyDown={keys({ kind: "ref", id: r.id })}
+                  >
+                    {/* A monogram stands in for a missing logo, so it is drawn like one (generated content): as text it
+                        would be part of the node's visible label ("IF Induforum 2027"), which its aria-label has to contain. */}
+                    <span className="net-disc" data-mono={!r.logo && !r.glyph ? (r.monogram ?? undefined) : undefined}>
+                      {r.logo ? <Image src={r.logo} alt="" width={40} height={40} sizes="64px" className="size-full rounded-full object-contain" /> : r.glyph ? <Glyph name={r.glyph} className="size-[22px]" /> : null}
+                    </span>
+                    <span className="net-label">{r.label}</span>
+                  </button>
+                );
+              })}
+            </>
+          ) : null}
+        </div>
 
         <div className="card mt-4 flex min-h-[100px] flex-col justify-center px-6 py-4 md:px-7" aria-live="polite">
           <Details active={active} skills={skills} refs={refs} labels={labels} select={pick} />
