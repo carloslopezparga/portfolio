@@ -5,15 +5,19 @@ import { brandStyle } from "@/lib/brand";
 import { copy, fill } from "@/lib/copy";
 import { formatMonth, formatRange, studyYear } from "@/lib/i18n";
 import { CardMedia } from "@/components/media/CardMedia";
+import { SectionBackdrop } from "@/components/media/SectionBackdrop";
 import { Glyph } from "@/components/ui/icons";
 import { LogoMark } from "@/components/ui/LogoMark";
-import { MonteCarlo } from "./MonteCarlo";
 import { SectionHeader } from "./SectionHeader";
 import { SkillChips } from "./SkillChips";
-import { TargetLink } from "./TargetLink";
 import { TimelineRail } from "./TimelineRail";
 
-/** Same language as Experience: ETSII-UPM first and larger, then Retamar and CS50; the paths ahead to close. */
+/**
+ * Same language as Experience: ETSII-UPM first and larger (its programmes and
+ * the Erasmus as lines of the card), then Retamar and CS50. Beside the title,
+ * on desktop, the cloud forms an open book. Behind everything, very faint,
+ * the video or photos found in public/media/education/ (none: no backdrop).
+ */
 export async function Education({ lang, now }: { lang: Locale; now: Date }) {
   const t = copy.education;
   const [upm, retamar] = profile.education;
@@ -31,7 +35,8 @@ export async function Education({ lang, now }: { lang: Locale; now: Date }) {
 
   return (
     <section id="education" className="section section-alt">
-      <SectionHeader eyebrow={t.eyebrow[lang]} title={t.title[lang]} intro={t.intro[lang]} />
+      <SectionBackdrop section="education" />
+      <SectionHeader eyebrow={t.eyebrow[lang]} title={t.title[lang]} intro={t.intro[lang]} figures={["book"]} />
       <TimelineRail className="wrap mt-14 space-y-6 md:mt-16">
         {/* ETSII-UPM */}
         <div className="tl-row brand" style={brandStyle(upmTone)}>
@@ -49,26 +54,24 @@ export async function Education({ lang, now }: { lang: Locale; now: Date }) {
               <span className="text-muted"> · Universidad Politécnica de Madrid</span>
             </p>
             <p className="mt-1 text-[14px] text-muted lg:hidden">{formatRange(upm.start, upm.end, lang)}</p>
-            {upm.specialisation ? (
-              <p className="mt-5 text-[16px] text-muted">
-                {t.specialisation[lang]}: <span className="font-semibold text-fg">{upm.specialisation[lang]}</span>
-              </p>
-            ) : null}
             <ul className="mt-5 flex flex-wrap gap-2">
               {upm.chips.filter(has).map((c) => (
-                <li key={c.label.en}>
-                  {c.target ? (
-                    <TargetLink targetId={c.target} href={`#lead-${c.target}`} className="chip chip-link">
-                      {c.label[lang]}
-                      <span aria-hidden>↗</span>
-                    </TargetLink>
-                  ) : (
-                    <span className="chip">{c.label[lang]}</span>
-                  )}
+                <li key={c.label.en} className="chip">
+                  {c.label[lang]}
                 </li>
               ))}
             </ul>
-            <div data-target-id="erasmus" className="mt-6 flex flex-wrap items-center gap-x-3 gap-y-0.5 border-t border-[var(--line)] pt-5 text-[15px]">
+            {(upm.notes ?? []).map((n) => (
+              <div key={n.id} data-target-id={n.id} className="mt-6 flex items-start gap-x-3 border-t border-[var(--line)] pt-5 text-[15px]">
+                <Glyph name="people" className="mt-0.5 size-[18px] shrink-0 text-[var(--d)]" />
+                <p className="text-pretty text-fg">
+                  <span className="font-medium">{n.label[lang]}</span>
+                  <span className="text-muted"> · </span>
+                  {n.detail[lang]}
+                </p>
+              </div>
+            ))}
+            <div data-target-id="erasmus" className="mt-5 flex flex-wrap items-center gap-x-3 gap-y-0.5 border-t border-[var(--line)] pt-5 text-[15px]">
               <Glyph name="globe" className="size-[18px] shrink-0 text-[var(--d)]" />
               <span className="font-medium text-fg">
                 {t.erasmus[lang]}
@@ -120,19 +123,6 @@ export async function Education({ lang, now }: { lang: Locale; now: Date }) {
           </article>
         </div>
 
-        {/* what comes next */}
-        <div className="tl-row" data-accent="pink">
-          <span className="tl-marker" data-tl-marker>
-            <span className="tl-dot">
-              <Glyph name="cap" className="size-4 sm:size-5" />
-            </span>
-          </span>
-          {when("2027 → 2028")}
-          <div data-target-id="full-time" suppressHydrationWarning className="card reveal p-5 sm:p-6 md:p-9">
-            <MonteCarlo from={lang === "en" ? "Now" : "Ahora"} to={t.cone[lang]} />
-            <p className="mt-3 text-[15px] leading-relaxed text-fg">{t.coneNote[lang]}</p>
-          </div>
-        </div>
       </TimelineRail>
     </section>
   );

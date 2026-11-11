@@ -14,6 +14,8 @@ export interface GraphSkill {
   label: string;
   domain: DomainId;
   domainLabel: string;
+  /** the colour of its mark: the tool's own, or the domain's for a glyph */
+  color: string;
   usedIn: { id: string; w: number }[];
 }
 export interface GraphRef {
@@ -80,6 +82,9 @@ function NodeLabel({ lines, x, y, leading, className }: { lines: string[]; x: nu
   ));
 }
 
+/** A node's own slow float: every node at its own pace and out of step with the rest (the links end under the discs, so they stay put). */
+const float = (i: number) => ({ animationDuration: `${6.5 + (i % 5) * 0.9}s`, animationDelay: `${-((i * 1.7) % 9)}s` });
+
 /** What the inspector and the phone sheet show for the active node. */
 function Details({ active, skills, refs, labels, select }: { active: Active; skills: GraphSkill[]; refs: GraphRef[]; labels: GraphLabels; select: (a: Active) => void }) {
   if (active.kind === "skill") {
@@ -87,7 +92,7 @@ function Details({ active, skills, refs, labels, select }: { active: Active; ski
     return (
       <div data-domain={s.domain} className="flex flex-col gap-5 md:flex-row md:items-center md:gap-8">
         <div className="flex items-center gap-4 md:w-[300px] md:shrink-0">
-          <span className="grid size-14 shrink-0 place-items-center rounded-full bg-[var(--bg)] text-[var(--d)] shadow-[inset_0_0_0_1.5px_var(--d)] dark:bg-[rgb(255_255_255/0.04)]">
+          <span className="grid size-12 shrink-0 place-items-center rounded-full bg-[var(--bg)] shadow-[inset_0_0_0_1.5px_var(--d)] dark:bg-[rgb(255_255_255/0.04)]" style={{ color: s.color }}>
             <StackIcon id={s.id} className="size-6" />
           </span>
           <div className="min-w-0">
@@ -119,7 +124,7 @@ function Details({ active, skills, refs, labels, select }: { active: Active; ski
   return (
     <div className={`flex flex-col gap-5 md:flex-row md:items-center md:gap-8 ${tone(r).className}`} style={tone(r).style} data-domain={tone(r).domain}>
       <div className="flex items-center gap-4 md:w-[300px] md:shrink-0">
-        <span className="grid size-14 shrink-0 place-items-center overflow-hidden rounded-full bg-white text-[var(--d)] shadow-[inset_0_0_0_1.5px_var(--d)]">
+        <span className="grid size-12 shrink-0 place-items-center overflow-hidden rounded-full bg-white text-[var(--d)] shadow-[inset_0_0_0_1.5px_var(--d)]">
           {r.logo ? (
             <Image src={r.logo} alt="" width={36} height={36} className="size-9 object-contain" />
           ) : r.glyph ? (
@@ -139,7 +144,9 @@ function Details({ active, skills, refs, labels, select }: { active: Active; ski
           {used.map((s) => (
             <li key={s.id}>
               <button type="button" data-domain={s.domain} onClick={() => select({ kind: "skill", id: s.id })} className="chip chip-link">
-                <StackIcon id={s.id} className="size-3.5" />
+                <span style={{ color: s.color }}>
+                  <StackIcon id={s.id} className="size-3.5" />
+                </span>
                 {s.label}
               </button>
             </li>
@@ -151,12 +158,15 @@ function Details({ active, skills, refs, labels, select }: { active: Active; ski
 }
 
 /**
- * Skills graph. Desktop: white nodes with an icon and a ring in their domain
- * colour, grouped by domain on both sides; projects, jobs and studies as
- * larger nodes in the middle; faint "used in" lines that light up in colour.
- * At rest a tour highlights a different skill every few seconds (it stops for
- * good once you interact); the inspector underneath always shows something.
- * Phones: a list by domain and a bottom sheet.
+ * Skills graph. Desktop: white nodes with the tool's real logo (or a glyph of
+ * our own) and a ring in their domain colour, grouped by domain on both
+ * sides; projects, jobs and studies, with their logos, as larger nodes in
+ * the middle; faint "used in" lines that light up in colour. Compact: graph
+ * and inspector together stay within about 60 % of the screen's height.
+ * Every node floats slowly on its own, and at rest a tour highlights a
+ * different skill every few seconds (it stops for good once you interact);
+ * the inspector underneath always shows something. Phones: a list by domain
+ * and a bottom sheet.
  */
 export function SkillsGraph({ skills, refs, layout, labels }: { skills: GraphSkill[]; refs: GraphRef[]; layout: GraphLayout; labels: GraphLabels }) {
   const order = useMemo(() => skills.map((s) => s.id), [skills]);
@@ -249,7 +259,7 @@ export function SkillsGraph({ skills, refs, layout, labels }: { skills: GraphSki
       {/* desktop: the graph and its inspector */}
       <div ref={graphRef} className="skills-desktop hidden lg:block">
         {show ? (
-          <svg viewBox={`0 0 ${layout.w} ${layout.h}`} className="skills-graph block h-auto w-full" role="toolbar" aria-label={labels.tour}>
+          <svg viewBox={`0 0 ${layout.w} ${layout.h}`} className="skills-graph mx-auto block h-auto max-h-[calc(60vh-116px)] w-full" role="toolbar" aria-label={labels.tour}>
             <g aria-hidden>
               {skills.flatMap((s) =>
                 s.usedIn.map((u) => {
@@ -282,7 +292,7 @@ export function SkillsGraph({ skills, refs, layout, labels }: { skills: GraphSki
               })}
             </defs>
 
-            {refs.map((r) => {
+            {refs.map((r, i) => {
               const p = pos.get(r.id)!;
               const on = lit.has(r.id);
               const t = tone(r);
@@ -296,36 +306,36 @@ export function SkillsGraph({ skills, refs, layout, labels }: { skills: GraphSki
                   aria-pressed={active.id === r.id}
                   data-target-id={r.card ? undefined : r.id}
                   className={`g-node g-ref ${r.logo ? "g-logo" : ""} ${t.className} ${on ? "is-lit" : ""} ${active.id === r.id ? "is-active" : ""}`}
-                  style={t.style}
+                  style={{ ...t.style, ...float(i + 3) }}
                   data-domain={t.domain}
                   onPointerEnter={() => pick({ kind: "ref", id: r.id })}
                   onFocus={() => focusNode({ kind: "ref", id: r.id })}
                   onClick={() => (r.card ? dispatchUI({ type: "highlight", targetId: r.card }) : pick({ kind: "ref", id: r.id }))}
                   onKeyDown={keys({ kind: "ref", id: r.id })}
                 >
-                  <circle cx={p.x} cy={p.y} r={34} fill="transparent" />
-                  <circle cx={p.x} cy={p.y} r={33} className="g-ring" />
-                  <circle cx={p.x} cy={p.y} r={27} className="g-disc" />
+                  <circle cx={p.x} cy={p.y} r={31} fill="transparent" />
+                  <circle cx={p.x} cy={p.y} r={29.5} className="g-ring" />
+                  <circle cx={p.x} cy={p.y} r={24} className="g-disc" />
                   {r.logo ? (
                     <>
                       <clipPath id={`clip-${r.id}`}>
-                        <circle cx={p.x} cy={p.y} r={21} />
+                        <circle cx={p.x} cy={p.y} r={19} />
                       </clipPath>
-                      <image href={r.logo} x={p.x - 21} y={p.y - 21} width={42} height={42} clipPath={`url(#clip-${r.id})`} preserveAspectRatio="xMidYMid meet" />
+                      <image href={r.logo} x={p.x - 19} y={p.y - 19} width={38} height={38} clipPath={`url(#clip-${r.id})`} preserveAspectRatio="xMidYMid meet" />
                     </>
                   ) : r.glyph ? (
-                    <g transform={`translate(${p.x - 11} ${p.y - 11})`} className="text-[var(--d)]">
-                      <Glyph name={r.glyph} size={22} />
+                    <g transform={`translate(${p.x - 10} ${p.y - 10})`} className="text-[var(--d)]">
+                      <Glyph name={r.glyph} size={20} />
                     </g>
                   ) : monoId(r) ? (
                     <use href={`#${monoId(r)}`} aria-hidden />
                   ) : null}
-                  <NodeLabel lines={wrap(r.label, 18)} x={p.x} y={p.y + 46} leading={15} className="text-[12.5px] font-semibold" />
+                  <NodeLabel lines={wrap(r.label, 18)} x={p.x} y={p.y + 41} leading={14} className="text-[12px] font-semibold" />
                 </g>
               );
             })}
 
-            {skills.map((s) => {
+            {skills.map((s, i) => {
               const p = pos.get(s.id)!;
               return (
                 <g
@@ -338,6 +348,7 @@ export function SkillsGraph({ skills, refs, layout, labels }: { skills: GraphSki
                   data-target-id={s.id}
                   data-domain={s.domain}
                   className={`g-node g-skill ${lit.has(s.id) ? "is-lit" : ""} ${active.id === s.id ? "is-active" : ""}`}
+                  style={float(i)}
                   onPointerEnter={() => pick({ kind: "skill", id: s.id })}
                   onFocus={() => focusNode({ kind: "skill", id: s.id })}
                   onClick={() => pick({ kind: "skill", id: s.id })}
@@ -347,8 +358,8 @@ export function SkillsGraph({ skills, refs, layout, labels }: { skills: GraphSki
                   <circle cx={p.x} cy={p.y} r={29} className="g-halo" />
                   <circle cx={p.x} cy={p.y} r={21} className="g-disc" />
                   <circle cx={p.x} cy={p.y} r={26} className="g-ring" />
-                  <g transform={`translate(${p.x - 9} ${p.y - 9})`} className="text-[var(--d)]">
-                    <StackIcon id={s.id} size={18} />
+                  <g transform={`translate(${p.x - 10} ${p.y - 10})`} style={{ color: s.color }}>
+                    <StackIcon id={s.id} size={20} />
                   </g>
                   <NodeLabel lines={wrap(s.label)} x={p.x} y={p.y + 38} leading={14} className="text-[12px] font-medium" />
                 </g>
@@ -356,10 +367,10 @@ export function SkillsGraph({ skills, refs, layout, labels }: { skills: GraphSki
             })}
           </svg>
         ) : (
-          <div style={{ aspectRatio: `${layout.w} / ${layout.h}` }} />
+          <div className="mx-auto max-h-[calc(60vh-116px)]" style={{ aspectRatio: `${layout.w} / ${layout.h}` }} />
         )}
 
-        <div className="card mt-6 min-h-[132px] p-6 md:p-7" aria-live="polite">
+        <div className="card mt-4 flex min-h-[100px] flex-col justify-center px-6 py-4 md:px-7" aria-live="polite">
           <Details active={active} skills={skills} refs={refs} labels={labels} select={pick} />
         </div>
       </div>
@@ -375,7 +386,7 @@ export function SkillsGraph({ skills, refs, layout, labels }: { skills: GraphSki
                 .map((s) => (
                   <li key={s.id}>
                     <button type="button" data-target-id={s.id} onClick={() => setSheet({ kind: "skill", id: s.id })} className="card flex w-full items-center gap-3 p-3 text-left">
-                      <span className="grid size-9 shrink-0 place-items-center rounded-full bg-[var(--bg)] text-[var(--d)] shadow-[inset_0_0_0_1.5px_var(--d)] dark:bg-[rgb(255_255_255/0.04)]">
+                      <span className="grid size-9 shrink-0 place-items-center rounded-full bg-[var(--bg)] shadow-[inset_0_0_0_1.5px_var(--d)] dark:bg-[rgb(255_255_255/0.04)]" style={{ color: s.color }}>
                         <StackIcon id={s.id} className="size-4" />
                       </span>
                       <span className="min-w-0 text-[14px] font-medium leading-tight text-fg [overflow-wrap:anywhere]">{s.label}</span>

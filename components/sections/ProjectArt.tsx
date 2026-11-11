@@ -70,7 +70,7 @@ function JobHunt({ lang }: { lang: Locale }) {
       </Frag>
       <Frag main className="frag-dark bottom-[9%] left-[20%] w-[60%] font-mono" rot={-2} depth={20} float={11} delay={-4}>
         <p className="text-[9.5px] leading-relaxed">
-          <span className="text-[#2997ff]">$</span> jhc fetch
+          <span className="text-[#2997ff]">$</span> shortlist fetch
           <br />
           <span className="text-[#a1a1a6]">{T.postings[lang]}</span>
           <br />

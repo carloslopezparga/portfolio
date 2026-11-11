@@ -1,23 +1,25 @@
 import type { DomainId } from "@/content/types";
 
 /*
- * Layout of the skills graph (desktop): skill nodes grouped by domain in
- * small grids on both sides, projects / jobs / studies as larger nodes in two
- * central columns, "used in" links between them. Pure geometry, so the
- * server renders it and the client only adds interaction.
+ * Layout of the skills graph (desktop): skill nodes grouped by domain, one
+ * row per domain, on both sides; projects, jobs and studies as larger nodes
+ * in three central columns (the middle one a half step down, like a
+ * honeycomb); "used in" links between them. Compact: with a dozen skills it
+ * is under 400 units tall. Pure geometry, so the server renders it and the
+ * client only adds interaction.
  */
 
 export const GRAPH_W = 1120;
-const COL_DX = 106;
-const ROW_DY = 100;
-const LABEL_H = 34;
-const CLUSTER_GAP = 22;
-const TOP = 24;
+const COL_DX = 104;
+const ROW_DY = 82;
+const LABEL_H = 26;
+const CLUSTER_GAP = 12;
+const TOP = 14;
 const SIDES: Record<"left" | "right", { x: number[]; domains: DomainId[] }> = {
   left: { x: [64, 64 + COL_DX, 64 + COL_DX * 2], domains: ["ai", "automation", "ops"] },
   right: { x: [GRAPH_W - 64 - COL_DX * 2, GRAPH_W - 64 - COL_DX, GRAPH_W - 64], domains: ["data", "software"] },
 };
-const REF_X = [GRAPH_W / 2 - 92, GRAPH_W / 2 + 92];
+const REF_X = [GRAPH_W / 2 - 132, GRAPH_W / 2, GRAPH_W / 2 + 132];
 
 export interface GSkill {
   id: string;
@@ -39,26 +41,34 @@ export interface GraphLayout {
 }
 
 export function graphLayout(skills: GSkill[], refIds: string[]): GraphLayout {
-  const placedSkills: Placed[] = [];
-  const clusters: GraphLayout["clusters"] = [];
-  let bottom = 0;
-  for (const side of ["left", "right"] as const) {
+  // each side on its own, from y = 0; then both centred on the taller one
+  const sides = (["left", "right"] as const).map((side) => {
     const { x, domains } = SIDES[side];
-    let y = TOP;
+    const nodes: Placed[] = [];
+    const labels: GraphLayout["clusters"] = [];
+    let y = 0;
     for (const d of domains) {
       const members = skills.filter((s) => s.domain === d);
       if (!members.length) continue;
-      clusters.push({ id: d, x: side === "left" ? x[0] - 22 : x[2] + 22, y: y + 12, anchor: side === "left" ? "start" : "end" });
+      labels.push({ id: d, x: side === "left" ? x[0] - 22 : x[2] + 22, y: y + 12, anchor: side === "left" ? "start" : "end" });
       y += LABEL_H;
       members.forEach((s, i) => {
         const col = side === "left" ? i % 3 : 2 - (i % 3);
-        placedSkills.push({ id: s.id, x: x[col], y: y + 22 + Math.floor(i / 3) * ROW_DY });
+        nodes.push({ id: s.id, x: x[col], y: y + 22 + Math.floor(i / 3) * ROW_DY });
       });
       y += Math.ceil(members.length / 3) * ROW_DY + CLUSTER_GAP;
     }
-    bottom = Math.max(bottom, y);
+    return { nodes, labels, height: Math.max(0, y - CLUSTER_GAP) };
+  });
+  const inner = Math.max(...sides.map((s) => s.height), 300);
+  const placedSkills: Placed[] = [];
+  const clusters: GraphLayout["clusters"] = [];
+  for (const side of sides) {
+    const dy = TOP + (inner - side.height) / 2;
+    side.nodes.forEach((n) => placedSkills.push({ ...n, y: n.y + dy }));
+    side.labels.forEach((l) => clusters.push({ ...l, y: l.y + dy }));
   }
-  const h = Math.max(bottom, 420);
+  const h = TOP + inner;
 
   // Each ref goes to the central column nearest its skills, ordered by their height.
   const pos = new Map(placedSkills.map((p) => [p.id, p]));
@@ -69,16 +79,19 @@ export function graphLayout(skills: GSkill[], refIds: string[]): GraphLayout {
     return { id, mx, my };
   });
   const sorted = [...stats].sort((a, b) => a.mx - b.mx);
-  const half = Math.ceil(sorted.length / 2);
-  const cols = [sorted.slice(0, half), sorted.slice(half)].map((c) => c.sort((a, b) => a.my - b.my));
+  const outer = Math.ceil(sorted.length / 3);
+  const cols = [sorted.slice(0, outer), sorted.slice(outer, sorted.length - outer), sorted.slice(sorted.length - outer)].map((c) => c.sort((a, b) => a.my - b.my));
   const refs: Placed[] = [];
-  const first = TOP + 30;
-  const lastY = h - 40;
+  const first = TOP + 28;
+  const lastY = h - 50;
+  const step = outer > 1 ? (lastY - first) / (outer - 1) : 0;
   cols.forEach((col, ci) => {
-    col.forEach((r, i) => refs.push({ id: r.id, x: REF_X[ci], y: first + (col.length > 1 ? ((lastY - first) * i) / (col.length - 1) : (lastY - first) / 2) }));
+    // the middle column sits half a step lower, between its neighbours' rows
+    const start = ci === 1 ? first + step / 2 + ((outer - 1 - col.length) * step) / 2 : first + ((outer - col.length) * step) / 2;
+    col.forEach((r, i) => refs.push({ id: r.id, x: REF_X[ci], y: start + i * step }));
   });
   // room under the last row for two-line labels
-  return { w: GRAPH_W, h: h + 40, skills: placedSkills, refs, clusters };
+  return { w: GRAPH_W, h: h + 18, skills: placedSkills, refs, clusters };
 }
 
 /** Word wrap into at most two lines: as many words as fit in `max` characters, then the rest. */

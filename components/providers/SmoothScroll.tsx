@@ -33,6 +33,8 @@ export function SmoothScroll({ children }: { children: ReactNode }) {
         autoRaf: true,
         lerp: 0.12,
         prevent: (node) => node.closest("[data-lenis-prevent]") !== null,
+        // a sideways gesture over a row of cards is the row's own (native) scroll, never the page's
+        virtualScroll: ({ deltaX, deltaY, event }) => !(Math.abs(deltaX) > Math.abs(deltaY) && event.target instanceof Element && event.target.closest(".carousel-track, .media-strip") !== null),
       });
       setLenis(instance);
     });

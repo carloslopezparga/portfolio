@@ -1,7 +1,8 @@
 import { BufferAttribute, BufferGeometry, Camera, Points, Scene, ShaderMaterial, WebGLRenderer } from "three";
-import { AI, buildPackets, CAM, FOCAL, SWAY } from "@/lib/chip-cloud";
-import { BARS, barZ, buildParticles, FIGURES, FRAMES, GEARS, trendOf, type FigureId, type Frame } from "@/lib/figure-cloud";
-import { CLOUD_VERT, DOT_FRAG, GLOW_FRAG, PACKET_VERT } from "./shaders";
+import { FIN, LAYERS } from "@/lib/chip";
+import { AI, buildPackets, CAM, FOCAL, SWAY, toWorld } from "@/lib/chip-cloud";
+import { BARS, buildParticles, FIGURES, FLOW, FRAMES, GEARS, trendOf, type FigureId, type Frame } from "@/lib/figure-cloud";
+import { CLOUD_VERT, DOT_FRAG, GLOW_FRAG, PACKET_VERT, SQUEEZE, TRAIL } from "./shaders";
 
 const INK = { light: "#1d1d1f", dark: "#f5f5f7" };
 /** Ink opacity per theme: light dots on black read bolder, so dark mode is a little lighter (the posters match it in CSS). */
@@ -24,14 +25,24 @@ const NAV = 64;
 /** Buffer cap: DPR 2 at most, and about four megapixels. */
 const MAX_DPR = 2;
 const MAX_PIXELS = 4e6;
-/** How far the figure leans towards the cursor (radians, about the screen's y and x axes). */
-const GAZE = { yaw: 0.6, pitch: 0.5 };
+/** How far the figure leans towards the cursor (radians, about the screen's y and x axes): a hint, about 14° and 10°. It turns as a whole: nothing in it bends. */
+const GAZE = { yaw: 0.24, pitch: 0.18 };
 /** How far hovering pulls the chip's layers apart (world units between neighbours). */
-const OPEN = 0.2;
+const OPEN = 0.16;
 /** Radians a figure turns per pixel dragged. */
 const TURN = 0.0055;
+/** A dragged figure comes home like a critically damped spring of this stiffness (damping 2·√k: no bounce). */
+const HOME = 34;
+/**
+ * The chip keeps clear of the texts over it (the hero's name and the line under it), however it is tilted, opened or
+ * dragged: no point's centre comes closer than CLEAR px (24 plus the largest dot's radius), and the chip itself, as a
+ * rigid body, stays SQUEEZE px further out: that strip is where the points the cursor pushes pile up instead of crossing.
+ */
+const CLEAR = 30;
 /** How hard a click throws the points (px). */
-const CLICK: Record<FigureId, number> = { chip: 110, bars: 90, gears: 90, globe: 200 };
+const CLICK: Record<FigureId, number> = { chip: 110, bars: 90, gears: 90, globe: 200, funnel: 90, flow: 90, book: 90 };
+/** The cursor's path is kept this long (samples, at most one per 1/90 s): enough for the shader's taps. */
+const PATH = 128;
 
 export interface SceneOptions {
   /** number of points (CLOUD_SIZE.desktop or .mobile; must match the poster shown) */
@@ -58,6 +69,8 @@ interface Spot {
   el: HTMLElement;
   zone: HTMLElement;
   section: HTMLElement;
+  /** one of several figures that share a gap: only the one the gap names (data-figure) is formed */
+  shared: boolean;
   frame: Frame;
   known: boolean;
   x: number;
@@ -111,9 +124,12 @@ function turnXY(a: number, b: number, out: number[]) {
  * the gaps are on screen, and it always finishes: whenever the scroll stops
  * it ends up as the most visible figure, or gone.
  *
- * The cursor: every figure leans towards it, the points near it move away,
- * hovering opens the figure, dragging turns it and a click sends a shock
- * wave. All of it is done per vertex from a few uniforms (see shaders.ts).
+ * A figure is rigid and its points move one by one: each wanders a little
+ * about its place and steps aside from the cursor on its own, coming back
+ * critically damped (shaders.ts works it out per vertex from the cursor's
+ * recent path). The figure as a whole only turns: it leans towards the
+ * cursor, a drag turns it and it comes home without a bounce. Hovering opens
+ * the chip and a click sends a wave through the points.
  *
  * Set up in small steps (yielding in between, shaders compiled
  * asynchronously). The loop stops when no figure is on screen or the tab is
@@ -159,8 +175,13 @@ export function mountFigures(canvas: HTMLCanvasElement, opts: SceneOptions): Sce
     cloudGeo.setAttribute("aChip", new BufferAttribute(chipMeta, 4));
     cloudGeo.setAttribute("aBars", new BufferAttribute(p.bars, 4));
     cloudGeo.setAttribute("aGears", new BufferAttribute(p.gears, 4));
+    cloudGeo.setAttribute("aFunnel", new BufferAttribute(p.funnel, 4));
+    cloudGeo.setAttribute("aFlow", new BufferAttribute(p.flow, 4));
+    cloudGeo.setAttribute("aBook", new BufferAttribute(p.book, 4));
     cloudGeo.setAttribute("aSize", new BufferAttribute(p.sizes, 4));
     cloudGeo.setAttribute("aAlpha", new BufferAttribute(p.alphas, 4));
+    cloudGeo.setAttribute("aSize2", new BufferAttribute(p.sizes2, 4));
+    cloudGeo.setAttribute("aAlpha2", new BufferAttribute(p.alphas2, 4));
     cloudGeo.setAttribute("aSeed", new BufferAttribute(p.seed, 4));
 
     // Colours go to the shaders as plain sRGB numbers and come out unchanged (no colour management): #1D1D1F on screen is #1D1D1F.
@@ -179,9 +200,12 @@ export function mountFigures(canvas: HTMLCanvasElement, opts: SceneOptions): Sce
       uForm: { value: 1 },
       uIntro: { value: 0 },
       uSpread: { value: 0 },
-      uMouse: { value: [0, 0, 0, 0] },
+      uTrail: { value: new Float32Array(TRAIL.taps * 3) },
       uHover: { value: [0, 0] },
       uClick: { value: [0, 0, 99, 0] },
+      uLintel: { value: new Float32Array(8) },
+      uGuard: { value: 0 },
+      uRun: { value: 0 },
     };
     const cu = {
       ...u,
@@ -191,6 +215,7 @@ export function mountFigures(canvas: HTMLCanvasElement, opts: SceneOptions): Sce
       uTrend: { value: Float32Array.from(trendOf(BARS.rest, [])) },
       uGear: { value: 0 },
       uGearK: { value: Float32Array.from(GEARS.c.flatMap(([x, y], g) => [x, y, GEARS.ratio[g], GEARS.phase[g]])) },
+      uWire: { value: Float32Array.from(FLOW.wires.flat()) },
       uInkA: { value: [0, 0, 0, 1] },
       uInkB: { value: [0, 0, 0, 1] },
       uAI: { value: Float32Array.from(AI.flatMap(rgb)) },
@@ -233,13 +258,34 @@ export function mountFigures(canvas: HTMLCanvasElement, opts: SceneOptions): Sce
 
     const spots: Spot[] = [];
     document.querySelectorAll<HTMLElement>("[data-figure]").forEach((el) => {
-      const id = el.dataset.figure as FigureId;
-      const index = FIGURES.indexOf(id);
-      if (index < 0 || (!opts.layer && id !== "chip") || spots.some((s) => s.id === id)) return;
-      spots.push({ id, index, el, zone: el.querySelector<HTMLElement>("[data-figure-zone]") ?? el, section: el.closest<HTMLElement>("section") ?? el, frame: FRAMES[id], known: false, x: 0, y: 0, w: 0, h: 0, dy: 0, v: 0, yaw: 0, pitch: 0, vyaw: 0, vpitch: 0 });
+      // a gap can take turns between several figures (data-figure-set); data-figure says which one it is now
+      const ids = (el.dataset.figureSet ?? el.dataset.figure ?? "").split(" ") as FigureId[];
+      for (const id of ids) {
+        const index = FIGURES.indexOf(id);
+        if (index < 0 || (!opts.layer && id !== "chip") || spots.some((s) => s.id === id)) continue;
+        spots.push({ id, index, el, zone: el.querySelector<HTMLElement>("[data-figure-zone]") ?? el, section: el.closest<HTMLElement>("section") ?? el, shared: ids.length > 1, frame: FRAMES[id], known: false, x: 0, y: 0, w: 0, h: 0, dy: 0, v: 0, yaw: 0, pitch: 0, vyaw: 0, vpitch: 0 });
+      }
     });
+    const zones = [...new Set(spots.map((s) => s.zone))];
     const CHIP = spots.findIndex((s) => s.id === "chip");
     const BARS_AT = spots.findIndex((s) => s.id === "bars");
+    // the texts over the chip (the hero's name and its availability line): the chip never comes closer to them than CLEAR
+    const lintelEls = opts.layer && CHIP >= 0 ? [...document.querySelectorAll<HTMLElement>("[data-figure-lintel]")].slice(0, 2) : [];
+    /** each text's box grown by CLEAR, in document coordinates: left, right, bottom */
+    const lintels: [number, number, number][] = [];
+    /** How low a point at x has to stay (canvas y): under every box, whose lower corners are cut at 45°. */
+    const limitAt = (x: number, sx: number, sy: number) => {
+      let lim = -Infinity;
+      for (const [x0, x1, y] of lintels) lim = Math.max(lim, y - sy - Math.max(0, x - (x1 - sx), x0 - sx - x));
+      return lim;
+    };
+    // the chip's box, layer by layer (each moves apart from the others as it opens): the points that can end up on top
+    const chipBox: { p: [number, number, number]; layer: number }[] = [];
+    [LAYERS.substrate, LAYERS.interposer, LAYERS.die, LAYERS.sink].forEach((slab, layer) => {
+      const z0 = slab.z - (layer === 0 ? 5 : 0);
+      const z1 = slab.z + slab.h + (layer === 3 ? FIN.h : 0);
+      for (const x of [-slab.w, slab.w]) for (const y of [-slab.d, slab.d]) for (const z of [z0, z1]) chipBox.push({ p: toWorld(x, y, z), layer });
+    });
 
     let vw = 1;
     let vh = 1;
@@ -272,6 +318,14 @@ export function mountFigures(canvas: HTMLCanvasElement, opts: SceneOptions): Sce
         ox = r.left + sx;
         oy = r.top + sy;
       }
+      lintels.length = 0;
+      for (const el of lintelEls) {
+        // the text itself, not its block (which spans the page)
+        const range = document.createRange();
+        range.selectNodeContents(el);
+        const r = range.getBoundingClientRect();
+        if (r.width > 0) lintels.push([r.left + sx - CLEAR, r.right + sx + CLEAR, r.bottom + sy + CLEAR]);
+      }
     };
 
     /* ------------------------------- the state ------------------------------- */
@@ -297,12 +351,15 @@ export function mountFigures(canvas: HTMLCanvasElement, opts: SceneOptions): Sce
         }
         const y0 = s.y - sy;
         s.v = clamp((Math.min(y0 + s.h, vh) - Math.max(y0, top)) / s.h, 0, 1);
+        if (s.shared && s.el.dataset.figure !== s.id) continue;
         // phones: the chip stays assembled for as long as any of it is on screen
-        if (s.v < (opts.layer ? (i === held ? HELD : SEEN) : 0.02)) continue;
+        // (figures of one gap take over from each other at once: the gap is «held» by whichever is there)
+        const mine = i === held || (held >= 0 && spots[held].el === s.el);
+        if (s.v < (opts.layer ? (mine ? HELD : SEEN) : 0.02)) continue;
         const mid = (top + vh) / 2;
         // The chip is the hero's figure: once the page scrolls it gives way early, so the chart forms as soon as its gap is fully on screen.
         const givesWay = opts.layer && i === CHIP ? 0.8 * clamp(sy / (0.5 * vh), 0, 1) : 0;
-        const score = s.v + 0.5 * (1 - Math.min(1, Math.abs(y0 + s.h / 2 - mid) / (vh - mid))) + (i === held ? 0.1 : 0) - givesWay;
+        const score = s.v + 0.5 * (1 - Math.min(1, Math.abs(y0 + s.h / 2 - mid) / (vh - mid))) + (mine ? 0.1 : 0) - givesWay;
         if (score > bestScore) {
           bestScore = score;
           best = i;
@@ -311,8 +368,13 @@ export function mountFigures(canvas: HTMLCanvasElement, opts: SceneOptions): Sce
       held = best;
       return best;
     };
-    /** Neighbours whose gaps are on screen together: the cloud flies from one to the other instead of dissolving. */
-    const linked = (a: number, b: number) => ((a === CHIP && b === BARS_AT) || (a === BARS_AT && b === CHIP)) && spots[a].v > 0.2 && spots[b].v > 0.2;
+    /** The cloud flies from one figure to the other instead of dissolving: figures of the same gap, and the chip and the gap right under the hero when both are on screen. */
+    const linked = (a: number, b: number) => {
+      if (a === b || a < 0 || b < 0) return false;
+      if (spots[a].el === spots[b].el) return true;
+      const other = a === CHIP ? b : b === CHIP ? a : -1;
+      return other >= 0 && spots[other].shared && spots[a].v > 0.2 && spots[b].v > 0.2;
+    };
 
     const advance = (want: number, dt: number) => {
       if (!opts.layer) {
@@ -328,26 +390,30 @@ export function mountFigures(canvas: HTMLCanvasElement, opts: SceneOptions): Sce
         form = 0;
       }
       if (figA !== figB) {
+        // a third figure, linked to one of the ends (the gap changed its mind in mid-flight): land there first, then fly on
+        const onward = want !== figA && want !== figB && (linked(figB, want) || linked(figA, want));
         if (want === figB) flight += dt / FLIGHT;
         else if (want === figA) flight -= dt / FLIGHT;
+        else if (onward) flight += ((linked(figB, want) ? 1 : -1) * dt) / FLIGHT;
         else {
           // neither end is wanted any more: finish the flight while dissolving
           flight += ((flight > 0.5 ? 1 : -1) * dt) / FLIGHT;
           form -= dt / FORM_OUT;
         }
-        if (want === figA || want === figB) form += dt / FORM_IN;
+        if (want === figA || want === figB || onward) form += dt / FORM_IN;
         if (flight >= 1) figA = figB;
         else if (flight <= 0) figB = figA;
         if (figA === figB) flight = 0;
       } else if (want === figA) form += dt / FORM_IN;
       else if (want >= 0 && form > 0.6 && linked(figA, want)) {
-        if (figA === CHIP) {
-          figB = want;
-          flight = 0;
-        } else {
+        // (the chip is always A: its data packets are drawn in A's box)
+        if (want === CHIP) {
           figB = figA;
           figA = want;
           flight = 1;
+        } else {
+          figB = want;
+          flight = 0;
         }
       } else form -= dt / FORM_OUT;
       form = clamp(form, 0, 1);
@@ -361,11 +427,32 @@ export function mountFigures(canvas: HTMLCanvasElement, opts: SceneOptions): Sce
 
     /* ------------------------------- the cursor ------------------------------ */
 
-    const ptr = { x: 0, y: 0, on: false, presence: 0, fx: 0, fy: 0, sx: 0, sy: 0, svx: 0, svy: 0, gx: 0, gy: 0, over: -1, open: 0 };
+    const ptr = { x: 0, y: 0, on: false, presence: 0, gx: 0, gy: 0, over: null as HTMLElement | null, open: 0 };
+    // The cursor's recent path (document coordinates, so it stays put while the page scrolls under it).
+    const path = { t: new Float64Array(PATH), x: new Float32Array(PATH), y: new Float32Array(PATH), on: new Float32Array(PATH), head: 0, count: 0 };
+    const trail = u.uTrail.value;
+    const lintel = u.uLintel.value;
+    /** Where the cursor was `ago` seconds ago, straight into the shader's tap k. */
+    const tap = (k: number, ago: number, dx: number, dy: number) => {
+      const when = t - ago;
+      let i = path.head;
+      let j = i;
+      for (let n = 1; n < path.count && path.t[i] > when; n++) {
+        j = i;
+        i = (i + PATH - 1) % PATH;
+      }
+      const span = path.t[j] - path.t[i];
+      const f = span > 0 ? clamp((when - path.t[i]) / span, 0, 1) : 0;
+      trail[k * 3] = path.x[i] + (path.x[j] - path.x[i]) * f - dx;
+      trail[k * 3 + 1] = path.y[i] + (path.y[j] - path.y[i]) * f - dy;
+      trail[k * 3 + 2] = path.count ? path.on[i] + (path.on[j] - path.on[i]) * f : 0;
+    };
     let press: { spot: Spot; x: number; y: number; lastX: number; lastY: number; lastT: number; moved: boolean; drag: boolean; gear: number } | null = null;
     let click = { x: 0, y: 0, at: -99, power: 0 };
     const gear = { phi: 0, vel: 0 };
-    const liveZone = { index: -2 };
+    let liveZone: HTMLElement | null | undefined;
+    /** the clock of what the figures do by themselves (pages, wires, the file out of the funnel) */
+    let run = 0;
 
     // clocks and loop state
     let t = 0;
@@ -398,11 +485,11 @@ export function mountFigures(canvas: HTMLCanvasElement, opts: SceneOptions): Sce
     };
     const m1: number[] = [];
     const m2: number[] = [];
-    /** The figure's rotation: its rest view (plus the chip's sway or the globe's spin), then, in screen space, the gaze and the drag. Column-major. */
-    const rotOf = (s: Spot, out: Float32Array) => {
+    /** The figure's rotation: its rest view (plus the chip's sway or the globe's spin), then, in screen space, `k` of the gaze and the drag. Column-major. */
+    const rotOf = (s: Spot, out: Float32Array, k = 1) => {
       const yaw = s.frame.yaw + (s.id === "chip" ? SWAY.amp * Math.sin(SWAY.speed * t) : s.id === "globe" ? spin : 0);
       turnXY(s.frame.tilt, yaw, m2);
-      turnXY(ptr.gy + s.pitch, ptr.gx + s.yaw, m1);
+      turnXY(k * (ptr.gy + s.pitch), k * (ptr.gx + s.yaw), m1);
       for (let r = 0; r < 3; r++) for (let c = 0; c < 3; c++) out[c * 3 + r] = m1[r * 3] * m2[c] + m1[r * 3 + 1] * m2[3 + c] + m1[r * 3 + 2] * m2[6 + c];
     };
     /** Where a world point of a figure lands on the canvas (the shader's place(), for the few points the page needs). */
@@ -412,6 +499,29 @@ export function mountFigures(canvas: HTMLCanvasElement, opts: SceneOptions): Sce
       const qz = rot[2] * x + rot[5] * y + rot[8] * z;
       const k = (FOCAL / (CAM.dist - qz)) * box[2];
       return [box[0] + qx * k, box[1] - qy * k];
+    };
+
+    const probe = new Float32Array(9);
+    /** Whether the chip keeps clear of the texts over it with `k` of its tilt (gaze and drag) and of its opening. */
+    const clear = (s: Spot, box: number[], k: number, sx: number, sy: number) => {
+      rotOf(s, probe, k);
+      for (const c of chipBox) {
+        const [x, y] = placeXY(c.p[0], c.p[1] + (c.layer - 1.5) * k * ptr.open * OPEN, c.p[2], probe, box);
+        if (y < limitAt(x, sx, sy) + SQUEEZE) return false;
+      }
+      return true;
+    };
+    /** How much of its tilt and opening the chip may take: all of it, or the largest share that keeps it clear (found by halving). */
+    const reach = (s: Spot, box: number[], sx: number, sy: number) => {
+      if (clear(s, box, 1, sx, sy)) return 1;
+      let lo = 0;
+      let hi = 1;
+      for (let i = 0; i < 7; i++) {
+        const mid = (lo + hi) / 2;
+        if (clear(s, box, mid, sx, sy)) lo = mid;
+        else hi = mid;
+      }
+      return lo;
     };
 
     // ink: the theme's (the globe, on its dark band, is always light), or the system text colour in high-contrast mode
@@ -456,33 +566,32 @@ export function mountFigures(canvas: HTMLCanvasElement, opts: SceneOptions): Sce
       const here = spots[at];
       const settled = form > 0.9 && figA === figB;
 
-      // the cursor, in canvas pixels: two followers (one quick, one slow and springy), the gaze and the hover
+      // the cursor, in canvas pixels: its path (each point answers to it on its own, in the shader), the gaze and the hover
       const cx = ptr.x - (opts.layer ? 0 : ox - sx);
       const cy = ptr.y - (opts.layer ? 0 : oy - sy);
-      if (ptr.on && ptr.presence < 0.01) {
-        ptr.fx = ptr.sx = cx;
-        ptr.fy = ptr.sy = cy;
-        ptr.svx = ptr.svy = 0;
+      ptr.presence = damp(ptr.presence, ptr.on ? 1 : 0, 8, dt);
+      if (!path.count || t - path.t[path.head] >= 1 / 90) {
+        path.head = (path.head + 1) % PATH;
+        path.count = Math.min(PATH, path.count + 1);
       }
-      ptr.presence = damp(ptr.presence, ptr.on ? 1 : 0, 6, dt);
-      ptr.fx = damp(ptr.fx, cx, 16, dt);
-      ptr.fy = damp(ptr.fy, cy, 16, dt);
-      ptr.svx += ((cx - ptr.sx) * 70 - ptr.svx * 9) * dt;
-      ptr.svy += ((cy - ptr.sy) * 70 - ptr.svy * 9) * dt;
-      ptr.sx += ptr.svx * dt;
-      ptr.sy += ptr.svy * dt;
+      path.t[path.head] = t;
+      path.x[path.head] = ptr.x + sx;
+      path.y[path.head] = ptr.y + sy;
+      path.on[path.head] = ptr.presence;
+      for (let k = 0; k < TRAIL.taps; k++) tap(k, (k + 0.5) * TRAIL.dt, opts.layer ? sx : ox, opts.layer ? sy : oy);
       boxOf(here, u.uBoxA.value, sx, sy);
       const lean = ptr.on && !press?.moved ? 1 : 0;
       ptr.gx = damp(ptr.gx, lean * GAZE.yaw * clamp((cx - u.uBoxA.value[0]) / (vw * 0.5), -1, 1), 5, dt);
       // (less when the cursor is above: tipped any further back, the figure would be seen edge-on)
       ptr.gy = damp(ptr.gy, lean * GAZE.pitch * clamp((cy - u.uBoxA.value[1]) / (vh * 0.5), -0.6, 1), 5, dt);
-      ptr.open = damp(ptr.open, settled && ptr.over === at ? 1 : 0, 6, dt);
-      if (liveZone.index !== (settled ? at : -1)) {
-        liveZone.index = settled ? at : -1;
-        for (const s of spots) s.zone.toggleAttribute("data-live", spots[liveZone.index] === s && opts.pointer);
+      ptr.open = damp(ptr.open, settled && ptr.over === here.zone ? 1 : 0, 6, dt);
+      const live = settled && opts.pointer ? here.zone : null;
+      if (liveZone !== live) {
+        liveZone = live;
+        for (const z of zones) z.toggleAttribute("data-live", z === live);
       }
 
-      // a released drag: the chip and the chart swing back home; the globe keeps turning and slows down
+      // a released drag: the figure comes back home without a bounce (critically damped); the globe keeps turning and slows down
       for (const s of spots) {
         if (press?.moved && press.spot === s) continue;
         if (s.id === "globe") {
@@ -491,8 +600,9 @@ export function mountFigures(canvas: HTMLCanvasElement, opts: SceneOptions): Sce
           s.vyaw *= Math.exp(-1.4 * dt);
           s.vpitch *= Math.exp(-2.4 * dt);
         } else {
-          s.vyaw += (-34 * s.yaw - 6 * s.vyaw) * dt;
-          s.vpitch += (-34 * s.pitch - 6 * s.vpitch) * dt;
+          const c = 2 * Math.sqrt(HOME);
+          s.vyaw += (-HOME * s.yaw - c * s.vyaw) * dt;
+          s.vpitch += (-HOME * s.pitch - c * s.vpitch) * dt;
           s.yaw += s.vyaw * dt;
           s.pitch += s.vpitch * dt;
         }
@@ -507,19 +617,30 @@ export function mountFigures(canvas: HTMLCanvasElement, opts: SceneOptions): Sce
       waveT += dt * (busy ? 2 : 1);
       const wave = waveT % 4;
       cu.uWave.value = waveT > 4 && wave < 1.5 ? wave * 0.62 - 0.08 : -1;
-      u.uSpread.value = ptr.open * OPEN;
 
       // the gears: a steady turn, faster under the cursor, with the scroll and after a drag
       if (!(press?.moved && press.spot.id === "gears")) gear.vel *= Math.exp(-1.5 * dt);
       gear.phi += dt * (0.32 * rate * (1 + 1.8 * (here.id === "gears" ? ptr.open : 0)) + clamp(scrollVel * 0.0035, -5, 5) + gear.vel);
       spin += dt * 0.14 * rate;
+      // pages, wires and the file out of the funnel: their own pace, faster under the cursor
+      run += dt * rate * (1 + 1.6 * (here.id === "chip" || here.id === "gears" ? 0 : ptr.open));
 
-      rotOf(A, u.uRotA.value);
-      rotOf(B, u.uRotB.value);
       boxOf(A, u.uBoxA.value, sx, sy);
       boxOf(B, u.uBoxB.value, sx, sy);
+      // the chip: only as much tilt and opening as keeps it clear of the text over it
+      const guarded = lintels.length > 0 && figA === CHIP;
+      const share = guarded ? reach(A, u.uBoxA.value, sx, sy) : 1;
+      for (let i = 0; i < 2; i++) {
+        const l = guarded ? lintels[i] : undefined;
+        lintel.set(l ? [l[0] - sx, l[1] - sx, l[2] - sy, 1] : [0, 0, 0, 0], i * 4);
+      }
+      // (not while the sphere is still condensing, nor once the cloud has left for another figure)
+      u.uGuard.value = guarded ? smooth(0.9, 1, form) * smooth(0.85, 1, introT / INTRO) * (figA === figB ? 1 : 1 - smooth(0, 0.3, flight)) : 0;
+      u.uSpread.value = ptr.open * OPEN * share;
+      rotOf(A, u.uRotA.value, share);
+      rotOf(B, u.uRotB.value);
 
-      // the chart: new «data» every so often, and the bars near the cursor rise like an equaliser
+      // the chart: new «data» every so often; each bar settles on its new height without a bounce
       if (BARS_AT >= 0 && (figA === BARS_AT || figB === BARS_AT)) {
         if ((nextData -= dt * rate) <= 0) {
           nextData = 1.7 + Math.random() * 1.2;
@@ -528,12 +649,8 @@ export function mountFigures(canvas: HTMLCanvasElement, opts: SceneOptions): Sce
             barGoal[i] = clamp(BARS.rest[i] * (0.66 + Math.random() * 0.62), 0.22, 1.25);
           }
         }
-        const rot = figB === BARS_AT ? u.uRotB.value : u.uRotA.value;
-        const box = figB === BARS_AT ? u.uBoxB.value : u.uBoxA.value;
         for (let i = 0; i < BARS.count; i++) {
-          const [bx, by] = placeXY(0, barH[i] * 0.6, barZ(i), rot, box);
-          const lift = at === BARS_AT ? 0.5 * ptr.presence * Math.exp(-(((cx - bx) / 80) ** 2) - ((cy - by) / 150) ** 2) : 0;
-          barV[i] += ((Math.min(BARS.max, barGoal[i] + lift) - barH[i]) * 60 - barV[i] * 11) * dt;
+          barV[i] += ((barGoal[i] - barH[i]) * 40 - barV[i] * 2 * Math.sqrt(40)) * dt;
           barH[i] += barV[i] * dt;
         }
         trendOf(barH, cu.uTrend.value);
@@ -545,10 +662,7 @@ export function mountFigures(canvas: HTMLCanvasElement, opts: SceneOptions): Sce
       u.uFlight.value = flight;
       u.uForm.value = form;
       u.uIntro.value = Math.min(1, introT / INTRO);
-      u.uMouse.value[0] = ptr.fx;
-      u.uMouse.value[1] = ptr.fy;
-      u.uMouse.value[2] = ptr.sx;
-      u.uMouse.value[3] = ptr.sy;
+      u.uRun.value = run;
       u.uHover.value[0] = ptr.presence;
       u.uHover.value[1] = ptr.open;
       u.uClick.value[0] = click.x - (opts.layer ? sx : ox);
@@ -624,7 +738,7 @@ export function mountFigures(canvas: HTMLCanvasElement, opts: SceneOptions): Sce
       ptr.y = e.clientY;
       ptr.on = true;
       // a pointer that was already resting on a figure when it formed never «entered» it
-      if (ptr.over < 0 && e.target instanceof Element) ptr.over = spots.findIndex((s) => s.zone.contains(e.target as Element));
+      if (!ptr.over && e.target instanceof Element) ptr.over = zones.find((z) => z.contains(e.target as Element)) ?? null;
     };
     const onLeave = () => (ptr.on = false);
     if (opts.pointer) {
@@ -705,8 +819,8 @@ export function mountFigures(canvas: HTMLCanvasElement, opts: SceneOptions): Sce
         if (!press.moved && ready()) click = { x: e.clientX + window.scrollX, y: e.clientY + window.scrollY, at: t, power: CLICK[s.id] };
         release();
       };
-      const enter = (e: PointerEvent) => e.pointerType === "mouse" && (ptr.over = index);
-      const leave = () => ptr.over === index && (ptr.over = -1);
+      const enter = (e: PointerEvent) => e.pointerType === "mouse" && (ptr.over = z);
+      const leave = () => ptr.over === z && (ptr.over = null);
       z.addEventListener("pointerdown", down);
       z.addEventListener("pointermove", move);
       z.addEventListener("pointerup", up);

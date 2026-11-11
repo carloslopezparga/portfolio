@@ -2,11 +2,11 @@ import Image from "next/image";
 import { profile } from "@/content/profile";
 import type { Locale } from "@/content/types";
 import { photoSrc } from "@/lib/assets";
-import { bookingEnabled } from "@/lib/booking";
+import { bookingUrl } from "@/lib/booking";
 import { copy } from "@/lib/copy";
 import { CV_URL } from "@/lib/site";
 import { FigureGap } from "@/components/figures/FigureGap";
-import { BookButton, CopyEmail } from "./ContactActions";
+import { CopyEmail } from "./ContactActions";
 
 const ext = (
   <svg viewBox="0 0 16 16" className="size-4" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
@@ -14,11 +14,17 @@ const ext = (
   </svg>
 );
 
-/** A dark band across the full width: the question, the email (click to copy) and the ways to follow up; on desktop, the cloud forms a globe in its right half. */
+/**
+ * A dark band across the full width: the question, the email (click to copy)
+ * and the ways to follow up. «Book 15 min» opens NEXT_PUBLIC_BOOKING_URL (a
+ * Google Calendar appointment page) in a new tab; without it, no button. On
+ * the right, the portrait in public/photos/carlos.(jpg|webp|png) or, until it
+ * exists, the globe the cloud forms on desktop.
+ */
 export function Contact({ lang }: { lang: Locale }) {
   const t = copy.contact;
   const portrait = photoSrc("carlos");
-  const booking = bookingEnabled();
+  const booking = bookingUrl();
   return (
     <section id="contact" className="band-dark section">
       <div className="wrap relative grid gap-12 md:grid-cols-[minmax(0,1fr)_auto] md:items-end">
@@ -30,7 +36,12 @@ export function Contact({ lang }: { lang: Locale }) {
             <CopyEmail email={profile.email} copied={t.copied[lang]} hint={t.copyHint[lang]} />
           </div>
           <div className="mt-10 flex flex-wrap items-center gap-2.5">
-            {booking ? <BookButton label={t.book[lang]} /> : null}
+            {booking ? (
+              <a href={booking} target="_blank" rel="noreferrer noopener" data-target-id="booking" className="btn btn-primary" aria-label={`${t.book[lang]} (${t.bookNewTab[lang]})`}>
+                <span className="ai-dot size-2 rounded-full" aria-hidden />
+                {t.book[lang]} {ext}
+              </a>
+            ) : null}
             <a href={CV_URL} download className={`btn ${booking ? "btn-secondary" : "btn-primary"}`}>
               {t.cv[lang]}
               <svg viewBox="0 0 16 16" className="size-4" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" aria-hidden>
@@ -53,7 +64,7 @@ export function Contact({ lang }: { lang: Locale }) {
           </figure>
         ) : (
           // no portrait yet: the right half of the band is the globe's
-          <FigureGap figure="globe" className="fig-gap-globe" />
+          <FigureGap figures={["globe"]} className="fig-gap-globe" />
         )}
       </div>
     </section>

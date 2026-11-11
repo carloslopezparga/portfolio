@@ -1,15 +1,16 @@
 "use client";
 
 import Image from "next/image";
-import { useEffect, useRef, useState, type CSSProperties } from "react";
+import { useEffect, useRef, useState } from "react";
 import type { DomainId, Locale, ProjectId, StackId } from "@/content/types";
-import { StackIcon } from "@/components/ui/icons";
+import { StackIcon, stackColor } from "@/components/ui/icons";
 import { CountUp } from "@/components/ui/CountUp";
 import { LazyCooling, LazyMailFlow, LazyTerminal } from "@/components/demos/lazy";
 import { MediaStrip, type MediaLabels } from "@/components/media/MediaStrip";
-import type { MediaItem } from "@/lib/media";
+import { Carousel } from "@/components/ui/Carousel";
+import type { Clip, MediaItem } from "@/lib/media";
 import { onUI } from "@/lib/ui-bus";
-import { ProjectArt } from "./ProjectArt";
+import { ProjectLoop } from "./ProjectLoop";
 
 export interface ProjectItem {
   id: ProjectId;
@@ -26,6 +27,8 @@ export interface ProjectItem {
   demo: { kind: "terminal"; script: string } | { kind: "mail" } | { kind: "cooling" } | null;
   screenshot: string | null;
   media: MediaItem[];
+  /** the looping clip at the top of the card, per theme (null: the live illustration) */
+  loop: Record<"light" | "dark", Clip | null>;
 }
 
 export interface ProjectLabels {
@@ -39,6 +42,9 @@ export interface ProjectLabels {
   demoSoon: string;
   realFlow: string;
   animated: string;
+  row: string;
+  rowPrev: string;
+  rowNext: string;
   media: MediaLabels;
   mail: { gmail: string; claude: string; digest: string; inbox: string; search: string; telegram: string; tailored: string; building: string; steps: [string, string, string, string] };
   cooling: { illustrative: string; x: string; y: string; baseline: string; best: string; gen: string };
@@ -77,20 +83,21 @@ function Demo({ item, labels }: { item: ProjectItem; labels: ProjectLabels }) {
 }
 
 /**
- * Four large cards (illustration, status, name, problem, figures, stack).
- * Opening one unfolds its demo and case study in a panel under its row on
- * desktop, right under the card on phones (CSS `order`, one panel in the DOM).
+ * The projects in one row that scrolls sideways (scroll-snap; arrows from
+ * tablets up, a swipe on phones). Each card: a short looping clip of the
+ * project on top, then status, name, problem, figures and stack. Opening one
+ * unfolds its demo and case study in a panel under the row.
  */
-export function ProjectsGrid({ items, labels, lang }: { items: ProjectItem[]; labels: ProjectLabels; lang: Locale }) {
+export function ProjectsRow({ items, labels, lang }: { items: ProjectItem[]; labels: ProjectLabels; lang: Locale }) {
   const [open, setOpen] = useState<ProjectId | null>(null);
   const panelRef = useRef<HTMLDivElement>(null);
-  const index = items.findIndex((i) => i.id === open);
-  const item = index >= 0 ? items[index] : null;
+  const item = items.find((i) => i.id === open) ?? null;
 
   useEffect(() => onUI("open_project", (a) => setOpen(a.projectId)), []);
 
   return (
-    <div className="wrap grid gap-4 md:grid-cols-2 md:gap-5">
+    <>
+      <Carousel label={labels.row} labels={{ prev: labels.rowPrev, next: labels.rowNext }} arrows="desktop">
       {items.map((it, i) => {
         const on = it.id === open;
         return (
@@ -98,10 +105,10 @@ export function ProjectsGrid({ items, labels, lang }: { items: ProjectItem[]; la
             key={it.id}
             data-target-id={it.id}
             data-domain={it.domain}
-            suppressHydrationWarning className={`card card-hover reveal flex flex-col ${on ? "shadow-[var(--shadow)]" : ""}`}
-            style={{ order: i * 2 + 1, ["--rd" as string]: `${(i % 2) * 90}ms` } as CSSProperties}
+            suppressHydrationWarning className={`card card-hover reveal flex w-[min(86vw,400px)] flex-col md:w-[460px] lg:w-[520px] ${on ? "shadow-[var(--shadow)]" : ""}`}
+            style={{ ["--rd" as string]: `${Math.min(i, 2) * 90}ms` }}
           >
-            <ProjectArt id={it.id} lang={lang} />
+            <ProjectLoop id={it.id} lang={lang} clips={it.loop} />
             <div className="flex flex-1 flex-col px-6 pb-6 pt-5 md:px-8 md:pb-8">
               <span className="badge self-start">{it.status}</span>
               <h3 className="mt-4 text-[clamp(1.5rem,2.4vw,1.9rem)] leading-tight text-fg">{it.name}</h3>
@@ -122,12 +129,17 @@ export function ProjectsGrid({ items, labels, lang }: { items: ProjectItem[]; la
               <ul className="mt-5 flex flex-wrap gap-1.5">
                 {it.stack.map((s) => (
                   <li key={s.label} data-domain={s.domain ?? undefined} className="chip">
-                    {s.id ? <StackIcon id={s.id} className="size-3.5 text-[var(--d)]" /> : null}
+                    {s.id ? (
+                      <span style={{ color: stackColor(s.id) }}>
+                        <StackIcon id={s.id} className="size-3.5" />
+                      </span>
+                    ) : null}
                     {s.label}
                   </li>
                 ))}
               </ul>
               {it.media.length ? <MediaStrip items={it.media} alt={it.name} labels={labels.media} className="mt-5" /> : null}
+              <span className="h-6 shrink-0" aria-hidden />
               <button
                 type="button"
                 aria-expanded={on}
@@ -136,7 +148,7 @@ export function ProjectsGrid({ items, labels, lang }: { items: ProjectItem[]; la
                   setOpen(on ? null : it.id);
                   if (!on) window.setTimeout(() => panelRef.current?.scrollIntoView({ block: "nearest", behavior: "smooth" }), 60);
                 }}
-                className="btn btn-secondary btn-sm mt-6 self-start"
+                className="btn btn-secondary btn-sm mt-auto self-start"
               >
                 {on ? labels.close : it.demo ? labels.open : labels.openNoDemo}
                 <svg viewBox="0 0 16 16" className={`size-3.5 transition-transform duration-300 ${on ? "rotate-180" : ""}`} fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" aria-hidden>
@@ -147,14 +159,10 @@ export function ProjectsGrid({ items, labels, lang }: { items: ProjectItem[]; la
           </article>
         );
       })}
+      </Carousel>
 
-      <div
-        id="project-panel"
-        ref={panelRef}
-        className="project-panel md:col-span-2 md:[order:var(--row-end)]"
-        style={{ order: index * 2 + 2, "--row-end": (Math.floor(index / 2) * 2 + 1) * 2 + 2, display: item ? undefined : "none" } as CSSProperties}
-        data-domain={item?.domain}
-      >
+      <div className="wrap">
+      <div id="project-panel" ref={panelRef} className="project-panel mt-4 scroll-mt-nav" style={{ display: item ? undefined : "none" }} data-domain={item?.domain}>
         {item ? (
           <div key={item.id} className="clip-up grid gap-6 p-5 md:grid-cols-[minmax(0,1.25fr)_minmax(0,1fr)] md:gap-10 md:p-8">
             {item.demo ? (
@@ -196,6 +204,7 @@ export function ProjectsGrid({ items, labels, lang }: { items: ProjectItem[]; la
           </div>
         ) : null}
       </div>
-    </div>
+      </div>
+    </>
   );
 }

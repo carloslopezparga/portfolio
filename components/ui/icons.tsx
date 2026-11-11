@@ -1,29 +1,9 @@
-import {
-  siC,
-  siClaude,
-  siCursor,
-  siGit,
-  siGithub,
-  siGmail,
-  siGreenhouse,
-  siN8n,
-  siNextdotjs,
-  siPandas,
-  siPytest,
-  siPython,
-  siScikitlearn,
-  siSupabase,
-  siTelegram,
-  siTensorflow,
-  siTypescript,
-  type SimpleIcon,
-} from "simple-icons";
+import { siClaude, siCursor, siGithub, siGmail, siGreenhouse, siN8n, siNextdotjs, siPython, siSupabase, siTelegram, type SimpleIcon } from "simple-icons";
 import type { StackId } from "@/content/types";
 
 export const BRANDS = {
   python: siPython,
   nextjs: siNextdotjs,
-  typescript: siTypescript,
   n8n: siN8n,
   claude: siClaude,
   gmail: siGmail,
@@ -32,12 +12,6 @@ export const BRANDS = {
   github: siGithub,
   supabase: siSupabase,
   cursor: siCursor,
-  git: siGit,
-  pytest: siPytest,
-  tensorflow: siTensorflow,
-  sklearn: siScikitlearn,
-  pandas: siPandas,
-  c: siC,
 } satisfies Record<string, SimpleIcon>;
 export type BrandName = keyof typeof BRANDS;
 
@@ -118,29 +92,20 @@ export function Glyph({ name, className, strokeWidth = 1.5, size }: { name: Glyp
 /** Raw path data, for canvas drawing (Path2D). */
 export const glyphPath = (name: GlyphName) => GLYPHS[name];
 
+/** Each skill's mark: the tool's real logo (simple-icons) where there is one, a glyph of our own where there is not. */
 export const STACK_ICON: Record<StackId, { brand?: BrandName; glyph?: GlyphName }> = {
-  python: { brand: "python" },
-  sql: { glyph: "database" },
-  stats: { glyph: "stats" },
-  nextjs: { brand: "nextjs" },
-  typescript: { brand: "typescript" },
-  n8n: { brand: "n8n" },
   "llm-apis": { glyph: "api" },
   "claude-code": { brand: "claude" },
   cursor: { brand: "cursor" },
-  tensorflow: { brand: "tensorflow" },
-  "excel-vba": { glyph: "spreadsheet" },
-  pandas: { brand: "pandas" },
-  sklearn: { brand: "sklearn" },
-  matlab: { glyph: "matrix" },
-  supabase: { brand: "supabase" },
-  git: { brand: "git" },
-  pytest: { brand: "pytest" },
-  c: { brand: "c" },
   automation: { glyph: "automation" },
+  n8n: { brand: "n8n" },
+  "excel-vba": { glyph: "spreadsheet" },
+  python: { brand: "python" },
+  stats: { glyph: "stats" },
+  nextjs: { brand: "nextjs" },
+  supabase: { brand: "supabase" },
   operations: { glyph: "operations" },
   sales: { glyph: "sales" },
-  negotiation: { glyph: "negotiation" },
 };
 
 export function StackIcon({ id, className, size }: { id: StackId; className?: string; size?: number }) {
@@ -149,7 +114,8 @@ export function StackIcon({ id, className, size }: { id: StackId; className?: st
   return <Glyph name={def.glyph!} className={className} size={size} />;
 }
 
+/** The colour a skill's mark is drawn in: the logo's own (near-black logos follow the theme), or the skill's domain colour for our glyphs. */
 export function stackColor(id: StackId) {
   const def = STACK_ICON[id];
-  return def.brand ? brandColor(BRANDS[def.brand]) : "var(--accent)";
+  return def.brand ? brandColor(BRANDS[def.brand]) : "var(--d)";
 }

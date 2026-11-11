@@ -32,8 +32,8 @@ export function Hero({ lang }: { lang: Locale }) {
   return (
     <section id="top" className="relative overflow-x-clip pt-24 sm:pt-[clamp(96px,12vh,124px)]">
       <div className="wrap">
-        <h1 className="text-center text-[clamp(2.75rem,min(10.5vw,10.5vh),6rem)] leading-[0.98] tracking-[-0.045em] text-fg lg:whitespace-nowrap">{profile.name}</h1>
-        <p className="mt-4 text-center text-[14px] leading-snug md:text-[15px] lg:mt-6">
+        <h1 data-figure-lintel className="text-center text-[clamp(2.75rem,min(10.5vw,10.5vh),6rem)] leading-[0.98] tracking-[-0.045em] text-fg lg:whitespace-nowrap">{profile.name}</h1>
+        <p data-figure-lintel className="mt-4 text-center text-[14px] leading-snug md:text-[15px] lg:mt-6">
           <span className="pulse-dot mr-2" data-accent="green" aria-hidden />
           <span className="font-medium text-fg">{now}</span>
           {later ? (

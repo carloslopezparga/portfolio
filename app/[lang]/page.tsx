@@ -7,18 +7,17 @@ import { MotionToggle } from "@/components/hero/MotionToggle";
 import { Contact } from "@/components/sections/Contact";
 import { Education } from "@/components/sections/Education";
 import { Experience } from "@/components/sections/Experience";
-import { Leadership } from "@/components/sections/Leadership";
+import { HowIWork } from "@/components/sections/HowIWork";
 import { Now } from "@/components/sections/Now";
 import { Projects } from "@/components/sections/Projects";
 import { Skills } from "@/components/sections/Skills";
-import { Stats } from "@/components/sections/Stats";
-import { BookingHost } from "@/components/site/BookingHost";
+import { Volunteering } from "@/components/sections/Volunteering";
 import { Footer } from "@/components/site/Footer";
 import { Header } from "@/components/site/Header";
 import { PaletteLauncher } from "@/components/site/PaletteLauncher";
 import { UIActionHost } from "@/components/site/UIActionHost";
 import { Toaster } from "@/components/ui/Toaster";
-import { parseCalLink } from "@/lib/booking";
+import { bookingUrl } from "@/lib/booking";
 import { copy } from "@/lib/copy";
 import { hasLocale } from "@/lib/i18n";
 import { CV_URL } from "@/lib/site";
@@ -28,13 +27,13 @@ export default async function Home({ params }: PageProps<"/[lang]">) {
   const { lang } = await params;
   if (!hasLocale(lang)) notFound();
   const now = new Date(await today());
-  const cal = parseCalLink();
+  const booking = bookingUrl();
   const sections = SECTIONS.map((id) => ({ id, label: sectionLabels[id][lang] }));
   const p = copy.palette;
 
   return (
     <>
-      <a href="#numbers" className="skip-link">
+      <a href="#how" className="skip-link">
         {copy.nav.skip[lang]}
       </a>
       {/* WCAG 2.2.2: hidden like the skip link, until the keyboard reaches it */}
@@ -59,7 +58,7 @@ export default async function Home({ params }: PageProps<"/[lang]">) {
         {/* Each section is its own Suspense boundary, so React hydrates them in
             separate tasks (the main thread gets breathing room on phones). */}
         <Suspense fallback={null}>
-          <Stats lang={lang} />
+          <HowIWork lang={lang} />
         </Suspense>
         <Suspense fallback={null}>
           <Now lang={lang} now={now} />
@@ -77,7 +76,7 @@ export default async function Home({ params }: PageProps<"/[lang]">) {
           <Skills lang={lang} />
         </Suspense>
         <Suspense fallback={null}>
-          <Leadership lang={lang} />
+          <Volunteering lang={lang} />
         </Suspense>
         <Suspense fallback={null}>
           <Contact lang={lang} />
@@ -85,13 +84,13 @@ export default async function Home({ params }: PageProps<"/[lang]">) {
       </main>
       <Footer lang={lang} year={now.getUTCFullYear()} />
 
-      <UIActionHost />
+      <UIActionHost booking={booking} />
       <AgentHost lang={lang} />
       <PaletteLauncher
         lang={lang}
         sections={sections}
         email={profile.email}
-        booking={!!cal}
+        booking={!!booking}
         labels={{
           placeholder: p.placeholder[lang],
           search: p.search[lang],
@@ -112,7 +111,6 @@ export default async function Home({ params }: PageProps<"/[lang]">) {
           close: copy.nav.close[lang],
         }}
       />
-      {cal ? <BookingHost link={cal.link} origin={cal.origin} labels={{ title: copy.booking.title[lang], note: copy.booking.note[lang], close: copy.booking.close[lang] }} /> : null}
       <Toaster />
     </>
   );
