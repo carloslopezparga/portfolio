@@ -53,6 +53,8 @@ function facts() {
     const used = s.usedIn.map((u) => refLabels[typeof u === "string" ? u : u.id].en).join(", ");
     lines.push(`- [${s.id}] ${s.label.en} (${s.domain}): ${used}`);
   }
+  // the rest of the CV's skills: no node on the page, so nothing to highlight
+  lines.push(`Other skills on his CV (they have no element on the page, so they cannot be highlighted): ${p.alsoKnows.map((k) => (k.usedIn?.length ? `${k.label} (${k.usedIn.map((u) => refLabels[u].en).join(", ")})` : k.label)).join("; ")}.`);
   lines.push(`Languages: ${p.languages.map((l) => `[lang-${l.id}] ${l.name.en} ${l.level.en}`).join(", ")}.`);
 
   lines.push("\n## Volunteering (section: volunteering)");

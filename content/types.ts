@@ -29,11 +29,11 @@ export type Accent = "blue" | "indigo" | "purple" | "pink" | "orange" | "green" 
 
 export type SectionId = "top" | "now" | "experience" | "education" | "projects" | "skills" | "volunteering" | "contact";
 
-/** The key skills: the ones in the graph (about a dozen, the heaviest). Other tools appear only as plain labels on a project. */
-export type StackId = "llm-apis" | "claude-code" | "cursor" | "automation" | "n8n" | "excel-vba" | "python" | "stats" | "nextjs" | "supabase" | "operations" | "sales";
+/** The key skills: the ones in the graph (a dozen, the heaviest). The rest of the CV's skills are in `alsoKnows` (the agent knows them) and may appear as plain labels on a card. */
+export type StackId = "llm-apis" | "claude-code" | "automation" | "n8n" | "excel-vba" | "python" | "stats" | "sql" | "nextjs" | "supabase" | "operations" | "sales";
 
-/** A project's stack entry: a skill from the graph, or a plain label for tools that aren't skills there. */
-export type StackRef = StackId | { label: string };
+/** A chip on a card: a skill from the graph, or a plain label (with its tool's logo, if we have it) for tools that aren't skills there. */
+export type StackRef = StackId | { label: string; brand?: "cursor" };
 
 export type ExperienceId = "prophero" | "grupo-lalala" | "induforum" | "classy-night-society";
 export type ProjectId = "job-hunt-copilot" | "mail-autopilot" | "cooling-agent" | "cs50-ai";
@@ -98,6 +98,8 @@ export interface Brand {
   fixed?: boolean;
   /** "fill": the logo has its own background and fills its tile; "white": it sits on a white tile. */
   tile: "fill" | "white";
+  /** A "white" logo whose file already has a wide white margin of its own: drawn edge to edge in its tile, or it would look tiny. */
+  bleed?: boolean;
 }
 
 export interface Experience {
@@ -120,7 +122,7 @@ export interface Experience {
   /** Real figures, shown in the card in the brand colour. */
   metrics?: Metric[];
   /** Skill chips in this order (default: every skill whose usedIn includes this job). */
-  skills?: StackId[];
+  skills?: StackRef[];
   /** Bigger card with the "Current" badge. */
   featured?: boolean;
 }
@@ -186,6 +188,12 @@ export interface StackItem {
   usedIn: UsedIn[];
 }
 
+/** A skill from the CV that is not a node of the graph: the agent knows it, and where it was used. */
+export interface OtherSkill {
+  label: string;
+  usedIn?: RefId[];
+}
+
 export interface Language {
   id: string;
   name: L;
@@ -246,6 +254,8 @@ export interface Profile {
   future: FuturePlan;
   projects: Project[];
   stack: StackItem[];
+  /** The rest of the CV's skills (not in the graph). */
+  alsoKnows: OtherSkill[];
   languages: Language[];
   volunteering: Volunteering[];
   offTheClock: Hobby[];

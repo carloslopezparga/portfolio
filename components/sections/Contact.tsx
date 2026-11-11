@@ -31,7 +31,10 @@ export function Contact({ lang }: { lang: Locale }) {
         <div suppressHydrationWarning className={`reveal reveal-rise ${portrait ? "" : "fig-beside-globe"}`}>
           <p className="eyebrow">{t.eyebrow[lang]}</p>
           <h2 className="mt-3 text-[clamp(2.75rem,7vw,5rem)] leading-[1] text-fg">{t.title[lang]}</h2>
-          <p className="mt-5 max-w-[56ch] text-[17px] leading-relaxed text-fg md:text-[19px]">{t.intro[lang]}</p>
+          <p className="mt-5 max-w-[56ch] text-[17px] leading-relaxed text-fg md:text-[19px]">
+            {t.intro[lang]}
+            {booking ? t.introBook[lang] : null}.
+          </p>
           <div className="mt-10">
             <CopyEmail email={profile.email} copied={t.copied[lang]} hint={t.copyHint[lang]} />
           </div>

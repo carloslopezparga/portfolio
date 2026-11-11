@@ -1,112 +1,97 @@
-import type { DomainId } from "@/content/types";
-
 /*
- * Layout of the skills graph (desktop): skill nodes grouped by domain, one
- * row per domain, on both sides; projects, jobs and studies as larger nodes
- * in three central columns (the middle one a half step down, like a
- * honeycomb); "used in" links between them. Compact: with a dozen skills it
- * is under 400 units tall. Pure geometry, so the server renders it and the
- * client only adds interaction.
+ * The skills network (desktop): three layers in depth, like a neural
+ * network: the skills (input), the projects (hidden) and the jobs and
+ * studies (output). Each layer is a sheet of nodes; the sheets stand one
+ * behind another, further right each time, and the camera looks at them
+ * turned a little, so they recede. Pure geometry: the server lays the nodes
+ * out in 3D and the client projects them on every frame (SkillsGraph.tsx).
  */
 
-export const GRAPH_W = 1120;
-const COL_DX = 104;
-const ROW_DY = 82;
-const LABEL_H = 26;
-const CLUSTER_GAP = 12;
-const TOP = 14;
-const SIDES: Record<"left" | "right", { x: number[]; domains: DomainId[] }> = {
-  left: { x: [64, 64 + COL_DX, 64 + COL_DX * 2], domains: ["ai", "automation", "ops"] },
-  right: { x: [GRAPH_W - 64 - COL_DX * 2, GRAPH_W - 64 - COL_DX, GRAPH_W - 64], domains: ["data", "software"] },
-};
-const REF_X = [GRAPH_W / 2 - 132, GRAPH_W / 2, GRAPH_W / 2 + 132];
+const DEG = Math.PI / 180;
 
-export interface GSkill {
+export const NET = {
+  /** The stage the view is composed for (px): the network at rest, with a margin. A smaller stage scales everything down. */
+  w: 1136,
+  h: 392,
+  /** The camera: how far it is from the middle sheet (px, so nodes there are drawn at their own size), and its view at rest (rad). */
+  focal: 3200,
+  yaw: 25 * DEG,
+  pitch: 5 * DEG,
+  /** What moves it by itself: a slow sway about that view (rad, and rad/s of its phase)… */
+  sway: 8 * DEG,
+  swaySpeed: 0.3,
+  /** …and how far the cursor over the network turns it (yaw, pitch). */
+  parallax: [3 * DEG, 2 * DEG],
+  /** A drag turns it this much per pixel (the nearest sheet about follows the pointer), and it comes home like a critically damped spring of this stiffness (with the speed it was let go at). */
+  turn: 0.0025,
+  home: 14,
+  /** The sheets: how far apart in depth, where each is across (its middle), and the spacing of its columns; rows are the same everywhere. */
+  depth: 270,
+  x: [-500, 30, 530],
+  col: [100, 112, 150],
+  row: 94,
+  /** A node's half width (its label's) and how far it reaches above and below its middle, for the frame of the view. */
+  node: { half: 54, up: 26, down: 66 },
+  /** How far a lit node comes towards the camera (px). */
+  lift: 130,
+};
+
+export interface NetNode {
   id: string;
-  domain: DomainId;
-  /** ref ids, with a weight (line thickness) */
-  usedIn: { id: string; w: number }[];
-}
-export interface Placed {
-  id: string;
+  /** 0 skills, 1 projects, 2 jobs and studies */
+  layer: number;
   x: number;
   y: number;
+  z: number;
 }
-export interface GraphLayout {
-  w: number;
-  h: number;
-  skills: Placed[];
-  refs: Placed[];
-  clusters: { id: DomainId; x: number; y: number; anchor: "start" | "end" }[];
+export interface NetLayout {
+  nodes: NetNode[];
+  /** the middle of the network as the camera sees it at rest: the stage is centred on it */
+  centre: [number, number];
 }
 
-export function graphLayout(skills: GSkill[], refIds: string[]): GraphLayout {
-  // each side on its own, from y = 0; then both centred on the taller one
-  const sides = (["left", "right"] as const).map((side) => {
-    const { x, domains } = SIDES[side];
-    const nodes: Placed[] = [];
-    const labels: GraphLayout["clusters"] = [];
-    let y = 0;
-    for (const d of domains) {
-      const members = skills.filter((s) => s.domain === d);
-      if (!members.length) continue;
-      labels.push({ id: d, x: side === "left" ? x[0] - 22 : x[2] + 22, y: y + 12, anchor: side === "left" ? "start" : "end" });
-      y += LABEL_H;
-      members.forEach((s, i) => {
-        const col = side === "left" ? i % 3 : 2 - (i % 3);
-        nodes.push({ id: s.id, x: x[col], y: y + 22 + Math.floor(i / 3) * ROW_DY });
-      });
-      y += Math.ceil(members.length / 3) * ROW_DY + CLUSTER_GAP;
-    }
-    return { nodes, labels, height: Math.max(0, y - CLUSTER_GAP) };
+/**
+ * The camera at a yaw and a pitch: a function from a point of the network
+ * (and how far it is lifted towards the camera) to where it is seen (x right,
+ * y down, from the point the camera looks at), how large (1 on the middle
+ * sheet) and how near (larger is nearer).
+ */
+export function camera(yaw: number, pitch: number) {
+  const cy = Math.cos(yaw);
+  const sy = Math.sin(yaw);
+  const cp = Math.cos(pitch);
+  const sp = Math.sin(pitch);
+  return (x: number, y: number, z: number, lift = 0): [number, number, number, number] => {
+    const x1 = x * cy + z * sy;
+    const z1 = -x * sy + z * cy;
+    const near = y * sp + z1 * cp + lift;
+    const k = NET.focal / (NET.focal - near);
+    return [x1 * k, -(y * cp - z1 * sp) * k, k, near];
+  };
+}
+
+/** Three sheets of nodes, each filled by columns of three (a shorter last column is centred). */
+export function netLayout(layers: string[][]): NetLayout {
+  const nodes: NetNode[] = [];
+  layers.forEach((ids, layer) => {
+    const cols = Math.ceil(ids.length / 3);
+    ids.forEach((id, i) => {
+      const c = Math.floor(i / 3);
+      const inCol = Math.min(3, ids.length - c * 3);
+      nodes.push({ id, layer, x: NET.x[layer] + (c - (cols - 1) / 2) * NET.col[layer], y: ((inCol - 1) / 2 - (i % 3)) * NET.row, z: (1 - layer) * NET.depth });
+    });
   });
-  const inner = Math.max(...sides.map((s) => s.height), 300);
-  const placedSkills: Placed[] = [];
-  const clusters: GraphLayout["clusters"] = [];
-  for (const side of sides) {
-    const dy = TOP + (inner - side.height) / 2;
-    side.nodes.forEach((n) => placedSkills.push({ ...n, y: n.y + dy }));
-    side.labels.forEach((l) => clusters.push({ ...l, y: l.y + dy }));
+  const see = camera(NET.yaw, NET.pitch);
+  let x0 = Infinity;
+  let x1 = -Infinity;
+  let y0 = Infinity;
+  let y1 = -Infinity;
+  for (const n of nodes) {
+    const [x, y, k] = see(n.x, n.y, n.z);
+    x0 = Math.min(x0, x - NET.node.half * k);
+    x1 = Math.max(x1, x + NET.node.half * k);
+    y0 = Math.min(y0, y - NET.node.up * k);
+    y1 = Math.max(y1, y + NET.node.down * k);
   }
-  const h = TOP + inner;
-
-  // Each ref goes to the central column nearest its skills, ordered by their height.
-  const pos = new Map(placedSkills.map((p) => [p.id, p]));
-  const stats = refIds.map((id) => {
-    const linked = skills.filter((s) => s.usedIn.some((u) => u.id === id)).map((s) => pos.get(s.id)!);
-    const mx = linked.length ? linked.reduce((a, p) => a + p.x, 0) / linked.length : GRAPH_W / 2;
-    const my = linked.length ? linked.reduce((a, p) => a + p.y, 0) / linked.length : h / 2;
-    return { id, mx, my };
-  });
-  const sorted = [...stats].sort((a, b) => a.mx - b.mx);
-  const outer = Math.ceil(sorted.length / 3);
-  const cols = [sorted.slice(0, outer), sorted.slice(outer, sorted.length - outer), sorted.slice(sorted.length - outer)].map((c) => c.sort((a, b) => a.my - b.my));
-  const refs: Placed[] = [];
-  const first = TOP + 28;
-  const lastY = h - 50;
-  const step = outer > 1 ? (lastY - first) / (outer - 1) : 0;
-  cols.forEach((col, ci) => {
-    // the middle column sits half a step lower, between its neighbours' rows
-    const start = ci === 1 ? first + step / 2 + ((outer - 1 - col.length) * step) / 2 : first + ((outer - col.length) * step) / 2;
-    col.forEach((r, i) => refs.push({ id: r.id, x: REF_X[ci], y: start + i * step }));
-  });
-  // room under the last row for two-line labels
-  return { w: GRAPH_W, h: h + 18, skills: placedSkills, refs, clusters };
+  return { nodes, centre: [(x0 + x1) / 2, (y0 + y1) / 2] };
 }
-
-/** Word wrap into at most two lines: as many words as fit in `max` characters, then the rest. */
-export function wrap(label: string, max = 15): string[] {
-  if (label.length <= max) return [label];
-  const words = label.split(" ");
-  let first = words[0];
-  let i = 1;
-  while (i < words.length && `${first} ${words[i]}`.length <= max) first = `${first} ${words[i++]}`;
-  const rest = words.slice(i).join(" ");
-  return rest ? [first, rest] : [first];
-}
-
-/** A horizontal S-curve between two nodes. */
-export const link = (a: Placed, b: Placed) => {
-  const mx = (a.x + b.x) / 2;
-  return `M${a.x} ${a.y} C${mx} ${a.y} ${mx} ${b.y} ${b.x} ${b.y}`;
-};

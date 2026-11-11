@@ -184,10 +184,12 @@ export const copy = {
     eyebrow: { en: "Contact", es: "Contacto" },
     title: { en: "Shall we talk?", es: "¿Hablamos?" },
     copyHint: { en: "Click to copy", es: "Clic para copiar" },
+    // (the sentence ends here, or goes on with introBook when there is a booking page)
     intro: {
-      en: "Internships in 2027, full-time from January 2028. The fastest way is email — or book 15 minutes.",
-      es: "Prácticas en 2027, tiempo completo desde enero de 2028. Lo más rápido es el email, o reservar 15 minutos.",
+      en: "Internships in 2027, full-time from January 2028. The fastest way is email",
+      es: "Prácticas en 2027, tiempo completo desde enero de 2028. Lo más rápido es el email",
     },
+    introBook: { en: " — or book 15 minutes", es: ", o reservar 15 minutos" },
     copy: { en: "Copy", es: "Copiar" },
     copied: { en: "Email copied", es: "Email copiado" },
     book: { en: "Book 15 min", es: "Reservar 15 min" },

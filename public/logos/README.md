@@ -6,7 +6,7 @@
 | `grupo-lalala.png` | Grupo Lalala | on white |
 | `classy-night-society.png` | Classy Night Society | fills the tile |
 | `upm.png` | ETSII-UPM | fills the tile |
-| `retamar.png` | Colegio Retamar | on white |
+| `retamar.png` | Colegio Retamar | on white, edge to edge (`bleed`: the file has its own margin) |
 | `cs50.png` | CS50 / HarvardX (Harvard shield) | on white (transparent) |
 | `induforum.(svg|png)` | Induforum 2027 | not uploaded yet: the monogram "IF" is shown |
 

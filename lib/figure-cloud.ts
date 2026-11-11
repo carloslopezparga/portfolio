@@ -29,8 +29,10 @@ export const BARS = {
   plate: { x: 0.4, z: 1.78, h: 0.07 },
   /** heights at rest (the posters draw these) */
   rest: [0.36, 0.56, 0.48, 0.78, 0.7, 1.02],
-  /** the tallest a bar gets, the cursor's lift included */
-  max: 1.45,
+  /** how far a bar's height moves about its rest, as a share of it (the frame leaves room for the top of that) */
+  swing: [0.72, 1.12],
+  /** what a bar starts from when the chart forms, as a share of its rest height */
+  seed: 0.12,
   /** how far over the bars the trend line runs */
   lift: 0.22,
 };
@@ -229,16 +231,43 @@ function gearsSlots(rnd: () => number): Slot[] {
 /* --------------------------------- funnel ------------------------------- */
 
 /**
- * A funnel about the y axis: a swarm of loose points over its mouth (what
- * goes in, in no order) and a single, evenly spaced file out of its spout.
- * Points: x, y, z, code. code 0 → fixed; 1 → loose (the scene makes each one
- * circle and bob on its own); 2 → the file, x = its place in it (0..1).
+ * A funnel about the y axis: loose points that circle over its mouth and sink
+ * into it (what goes in, in no order; a few in colour: the finds) and a
+ * single, evenly spaced file out of its spout. Points: x, y, z, code. code 0
+ * → fixed; 1 → loose, and 3 + c → loose and of colour c: x = how far out it
+ * is (0..1 of the swarm's width at its height), y = where it starts on the
+ * way down (0..1), z = its angle (see looseAt); 2 → the file, x = its place
+ * in it (0..1).
  */
-export const FUNNEL = { top: 0.5, neck: -0.28, foot: -0.74, R: 0.98, r: 0.15, file: 8, fall: 0.5, swarm: 0.62 };
+export const FUNNEL = {
+  top: 0.5,
+  neck: -0.28,
+  foot: -0.74,
+  R: 0.98,
+  r: 0.15,
+  file: 8,
+  fall: 0.5,
+  /** how far over the mouth the swarm reaches, and how wide it is up there */
+  swarm: 0.62,
+  cloud: 1.3,
+  /** a loose point's way down: trips per second of the scene's clock, how it eases into the fall, and turns about the axis on the way */
+  pace: 0.11,
+  sink: 1.25,
+  turns: 1.6,
+};
 export const funnelR = (y: number) => (y <= FUNNEL.neck ? FUNNEL.r : FUNNEL.r + (FUNNEL.R - FUNNEL.r) * ((y - FUNNEL.neck) / (FUNNEL.top - FUNNEL.neck)) ** 1.5);
+/** A loose point `u` of the way down (0 over the mouth, 1 at the neck): the shader's funnelDot does the same. */
+export function looseAt(out: number, u: number, angle: number): [number, number, number] {
+  const y = FUNNEL.top + FUNNEL.swarm + (FUNNEL.neck - FUNNEL.top - FUNNEL.swarm) * u ** FUNNEL.sink;
+  const wide = y > FUNNEL.top ? 0.9 * FUNNEL.R + (FUNNEL.cloud - 0.9 * FUNNEL.R) * ((y - FUNNEL.top) / FUNNEL.swarm) : 0.9 * funnelR(y);
+  const th = angle + FUNNEL.turns * 2 * Math.PI * u * (0.4 + u);
+  return [out * wide * Math.cos(th), y, out * wide * Math.sin(th)];
+}
+/** A loose point shows up over the mouth and is gone at the neck. */
+export const looseFade = (u: number) => Math.min(1, u / 0.08) * Math.min(1, (1 - u) / 0.1);
 
 function funnelSlots(rnd: () => number): Slot[] {
-  const d = dots(112);
+  const d = dots(150);
   const RIM = look([[d.s, 0.5], [d.m, 0.42], [d.l, 0.08]]);
   const RING = look([[d.xs, 0.5], [d.s, 0.5]]);
   const WALL = look([[d.xs, 0.92], [d.s, 0.08]], [[0.4, 0.55], [0.75, 0.45]]);
@@ -253,30 +282,26 @@ function funnelSlots(rnd: () => number): Slot[] {
   };
   const { top, neck, foot } = FUNNEL;
   // the mouth (crisp, with a lip just inside), rings down the cone, the neck and the spout
-  ring(top, RIM, 0.03);
-  ring(top - 0.035, RING, 0.04, 0.965);
-  for (let j = 1; j <= 5; j++) ring(top - (j * (top - neck)) / 6, RING, 0.036);
-  ring(neck, RIM, 0.032);
-  for (let j = 1; j <= 2; j++) ring(neck - (j * (neck - foot)) / 3, RING, 0.04);
-  ring(foot, RIM, 0.032);
+  ring(top, RIM, 0.022);
+  ring(top - 0.035, RING, 0.03, 0.965);
+  for (let j = 1; j <= 7; j++) ring(top - (j * (top - neck)) / 8, RING, 0.027);
+  ring(neck, RIM, 0.024);
+  for (let j = 1; j <= 2; j++) ring(neck - (j * (neck - foot)) / 3, RING, 0.03);
+  ring(foot, RIM, 0.024);
   // meridians and a light grain on the wall
-  for (let m = 0; m < 10; m++) {
-    const th = (m / 10) * Math.PI * 2;
-    for (let y = top - 0.03; y > foot; y -= 0.04) add(funnelR(y) * Math.cos(th), y, funnelR(y) * Math.sin(th), 0, WALL);
+  for (let m = 0; m < 12; m++) {
+    const th = (m / 12) * Math.PI * 2;
+    for (let y = top - 0.03; y > foot; y -= 0.03) add(funnelR(y) * Math.cos(th), y, funnelR(y) * Math.sin(th), 0, WALL);
   }
-  for (let j = 0; j < 220; j++) {
+  for (let j = 0; j < 380; j++) {
     const y = foot + (top - foot) * rnd() ** 0.7;
     const th = rnd() * Math.PI * 2;
     add(funnelR(y) * Math.cos(th), y, funnelR(y) * Math.sin(th), 0, WALL);
   }
-  // what goes in: a loose swarm over the mouth and down into it, wider the higher it is
-  for (let j = 0; j < 400; j++) {
-    const t = rnd() ** 0.8;
-    const y = top - 0.2 + t * (FUNNEL.swarm + 0.2);
-    const rad = Math.sqrt(rnd()) * (0.2 + 1.15 * t);
-    const th = rnd() * Math.PI * 2;
-    add(rad * Math.cos(th), y, rad * Math.sin(th) * 0.8, 1, LOOSE);
-  }
+  // what goes in: loose points all the way from over the mouth down to the neck, anywhere across the swarm
+  for (let j = 0; j < 620; j++) add(Math.sqrt(rnd()), rnd(), rnd() * Math.PI * 2, 1, LOOSE);
+  // …a few of them in colour (the finds), larger
+  for (let j = 0; j < 28; j++) out.push({ v: [0.15 + 0.8 * Math.sqrt(rnd()), rnd(), rnd() * Math.PI * 2, 3 + (j % AI.length)], s: j % 3 ? d.l : d.xl, a: 1, tint: j % AI.length });
   // what comes out: one file
   for (let k = 0; k < FUNNEL.file; k++) out.push({ v: [k / FUNNEL.file, 0, 0, 2], s: d.l, a: 1, tint: k % AI.length });
   return out;
@@ -467,7 +492,7 @@ const barsBounds = () => {
   const pts: number[][] = [];
   for (const sx of [-1, 1]) for (const sz of [-1, 1]) for (const y of [0, -plate.h]) pts.push([sx * plate.x, y, sz * plate.z]);
   // room for the bars to grow a good way past their rest heights, and for the trend line over them
-  for (let i = 0; i < BARS.count; i++) for (const sx of [-1, 1]) for (const sz of [-1, 1]) pts.push([sx * half, BARS.rest[i] * 1.12 + BARS.lift + 0.06, barZ(i) + sz * half]);
+  for (let i = 0; i < BARS.count; i++) for (const sx of [-1, 1]) for (const sz of [-1, 1]) pts.push([sx * half, BARS.rest[i] * BARS.swing[1] + BARS.lift + 0.06, barZ(i) + sz * half]);
   return pts;
 };
 const gearsBounds = () => {
@@ -485,7 +510,7 @@ const funnelBounds = () => {
   for (let k = 0; k < 16; k++) {
     const c = Math.cos((k / 16) * Math.PI * 2);
     const s = Math.sin((k / 16) * Math.PI * 2);
-    pts.push([FUNNEL.R * c, FUNNEL.top, FUNNEL.R * s], [1.3 * c, top, 1.05 * s], [FUNNEL.r * c, FUNNEL.foot - FUNNEL.fall, FUNNEL.r * s]);
+    pts.push([FUNNEL.R * c, FUNNEL.top, FUNNEL.R * s], [FUNNEL.cloud * c, top, FUNNEL.cloud * s], [FUNNEL.r * c, FUNNEL.foot - FUNNEL.fall, FUNNEL.r * s]);
   }
   return pts;
 };
@@ -622,8 +647,9 @@ export function figureSVG(id: Exclude<FigureId, "chip">, n: number, part: "ink" 
       pos = gear < 0 ? [a, b, z] : [GEARS.c[gear][0] + a * Math.cos(b + GEARS.phase[gear]), GEARS.c[gear][1] + a * Math.sin(b + GEARS.phase[gear]), z];
     } else if (id === "funnel") {
       const [x, y, z, code] = p.funnel.subarray(i * 4, i * 4 + 4);
-      pos = code === 2 ? [0, FUNNEL.foot - x * FUNNEL.fall, 0] : [x, y, z];
+      pos = code === 2 ? [0, FUNNEL.foot - x * FUNNEL.fall, 0] : code >= 1 ? looseAt(x, y, z) : [x, y, z];
       if (code === 2) alpha *= Math.min(1, x / 0.1) * Math.min(1, (1 - x) / 0.25);
+      else if (code >= 1) alpha *= looseFade(y);
     } else if (id === "flow") {
       const [x, y, z, code] = p.flow.subarray(i * 4, i * 4 + 4);
       if (code >= 10) {

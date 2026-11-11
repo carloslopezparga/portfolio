@@ -96,12 +96,12 @@ export const glyphPath = (name: GlyphName) => GLYPHS[name];
 export const STACK_ICON: Record<StackId, { brand?: BrandName; glyph?: GlyphName }> = {
   "llm-apis": { glyph: "api" },
   "claude-code": { brand: "claude" },
-  cursor: { brand: "cursor" },
   automation: { glyph: "automation" },
   n8n: { brand: "n8n" },
   "excel-vba": { glyph: "spreadsheet" },
   python: { brand: "python" },
   stats: { glyph: "stats" },
+  sql: { glyph: "database" },
   nextjs: { brand: "nextjs" },
   supabase: { brand: "supabase" },
   operations: { glyph: "operations" },

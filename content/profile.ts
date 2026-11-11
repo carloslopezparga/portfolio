@@ -79,7 +79,7 @@ export const profile: Profile = {
           es: "Construyo automatizaciones con IA y herramientas internas con Claude Code y Cursor para quitar trabajo manual del proceso de captación de inmuebles.",
         },
       ],
-      skills: ["nextjs", "supabase", "claude-code", "cursor", "automation"],
+      skills: ["nextjs", "supabase", "claude-code", { label: "Cursor", brand: "cursor" }, "automation"],
       featured: true,
     },
     {
@@ -188,7 +188,8 @@ export const profile: Profile = {
       id: "retamar",
       institution: { en: "Colegio Retamar", es: "Colegio Retamar" },
       short: "Retamar",
-      brand: { logo: "retamar", monogram: "R", color: "#001E60", tile: "white" },
+      // (the file has a wide white margin around the crest)
+      brand: { logo: "retamar", monogram: "R", color: "#001E60", tile: "white", bleed: true },
       degree: { en: "High School Diploma (Science & Technology)", es: "Bachillerato de Ciencias y Tecnología" },
       start: null,
       end: "2023-05",
@@ -304,19 +305,41 @@ export const profile: Profile = {
   ],
 
   // Skills graph: the twelve key skills (weights 3 and 2). weight = importance (1–3); usedIn {id, w} = line thickness.
+  // (Cursor is not one of them: it is a chip on PropHero's card and one of `alsoKnows`.)
   stack: [
     { id: "llm-apis", label: { en: "LLM APIs", es: "APIs de LLMs" }, domain: "ai", weight: 3, usedIn: ["mail-autopilot", "cooling-agent", "this-site"] },
     { id: "claude-code", label: { en: "Claude Code", es: "Claude Code" }, domain: "ai", weight: 3, usedIn: ["prophero", "job-hunt-copilot", "this-site"] },
-    { id: "cursor", label: { en: "Cursor", es: "Cursor" }, domain: "ai", weight: 2, usedIn: ["prophero"] },
     { id: "automation", label: { en: "Process automation", es: "Automatización de procesos" }, domain: "automation", weight: 3, usedIn: ["prophero", "mail-autopilot", "job-hunt-copilot"] },
     { id: "n8n", label: { en: "n8n", es: "n8n" }, domain: "automation", weight: 2, usedIn: ["mail-autopilot"] },
     { id: "excel-vba", label: { en: "Excel/VBA", es: "Excel/VBA" }, domain: "automation", weight: 2, usedIn: ["classy-night-society"] },
     { id: "python", label: { en: "Python", es: "Python" }, domain: "data", weight: 3, usedIn: ["job-hunt-copilot", "cooling-agent", "cs50-ai", "cs50"] },
     { id: "stats", label: { en: "Statistics & regression", es: "Estadística y regresión" }, domain: "data", weight: 2, usedIn: ["giti"] },
+    { id: "sql", label: { en: "SQL", es: "SQL" }, domain: "data", weight: 2, usedIn: ["cs50"] },
     { id: "nextjs", label: { en: "Next.js", es: "Next.js" }, domain: "software", weight: 2, usedIn: ["prophero", "this-site"] },
     { id: "supabase", label: { en: "Supabase", es: "Supabase" }, domain: "software", weight: 2, usedIn: ["prophero"] },
     { id: "operations", label: { en: "Operations", es: "Operaciones" }, domain: "ops", weight: 3, usedIn: ["grupo-lalala", "classy-night-society"] },
     { id: "sales", label: { en: "Sales", es: "Ventas" }, domain: "ops", weight: 2, usedIn: ["grupo-lalala", "induforum"] },
+  ],
+
+  // The rest of the CV's «Skills» lines (plus TypeScript, this site's language): not nodes of the graph, but the agent knows them.
+  alsoKnows: [
+    { label: "Cursor", usedIn: ["prophero"] },
+    { label: "C", usedIn: ["giti"] },
+    { label: "MATLAB", usedIn: ["giti"] },
+    { label: "LaTeX" },
+    { label: "TypeScript", usedIn: ["this-site"] },
+    { label: "pandas", usedIn: ["cs50-ai"] },
+    { label: "NumPy", usedIn: ["cs50-ai"] },
+    { label: "scikit-learn", usedIn: ["cs50-ai"] },
+    { label: "TensorFlow/Keras", usedIn: ["cs50-ai"] },
+    { label: "OpenCV", usedIn: ["cs50-ai"] },
+    { label: "NLTK", usedIn: ["cs50-ai"] },
+    { label: "Transformers", usedIn: ["cs50-ai"] },
+    { label: "Playwright" },
+    { label: "pytest", usedIn: ["job-hunt-copilot"] },
+    { label: "Git/GitHub", usedIn: ["job-hunt-copilot"] },
+    { label: "REST APIs", usedIn: ["job-hunt-copilot"] },
+    { label: "CI", usedIn: ["job-hunt-copilot"] },
   ],
 
   languages: [

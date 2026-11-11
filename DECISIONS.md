@@ -1,8 +1,8 @@
 # Decisiones
 
-Lo aprobado, lo que he decidido yo al construir (para que lo revises) y lo que falta. Última actualización: 11-11-2026. Incluye las tres fases (contenido y CV, dirección visual Apple × Evolve, piezas visuales), el pulido estético (rama `claude/design-polish`), el hero definitivo con el chip de partículas (rama `claude/hero-asymmetric`), la nube de partículas con presencia y figuras (rama `claude/particle-figures`), la carga, la interacción y la pausa del chip (rama `claude/chip-interaction`) y la ronda del 11-11 (rama `claude/nice-keller-emmje9`): partículas una a una, «Cómo trabajo», carruseles, vídeos de proyecto, Skills compacto y reserva con Google Calendar.
+Lo aprobado, lo que he decidido yo al construir (para que lo revises) y lo que falta. Última actualización: 11-11-2026. Incluye las tres fases (contenido y CV, dirección visual Apple × Evolve, piezas visuales), el pulido estético (rama `claude/design-polish`), el hero definitivo con el chip de partículas (rama `claude/hero-asymmetric`), la nube de partículas con presencia y figuras (rama `claude/particle-figures`), la carga, la interacción y la pausa del chip (rama `claude/chip-interaction`), la ronda del 11-11 (rama `claude/nice-keller-emmje9`): partículas una a una, «Cómo trabajo», carruseles, vídeos de proyecto, Skills compacto y reserva con Google Calendar; y la segunda ronda del 11-11 (rama `claude/tender-faraday-k93q2e`): física real por partícula, «Cómo trabajo» más abajo y rediseñada, Skills como red en 3D y cinco ajustes.
 
-Lo que esa última ronda cambia está en «Ronda del 11-11», al final de la sección 1; los apartados anteriores se han corregido donde ya no eran verdad.
+Lo que cambia la última ronda está en «Segunda ronda del 11-11», al final de la sección 1; los apartados anteriores se han corregido donde ya no eran verdad.
 
 ## 1. Aprobado (hecho)
 
@@ -43,9 +43,9 @@ Lo que esa última ronda cambia está en «Ronda del 11-11», al final de la sec
 - **Fuera:** auroras, nebulosa, retícula, números de lámina, cajetín, cotas y engranaje de progreso. En oscuro queda un estrellado muy sutil y quieto.
 - **Estructura:**
   1. Hero: nombre centrado arriba; debajo, texto a la izquierda y chip a la derecha (centrado en el móvil).
-  2. Cómo trabajo: 3 pasos (desde el 11-11; antes, «Cifras»).
-  3. Ahora mismo.
-  4. Experiencia y Formación como timeline con logos, con la línea dibujándose al hacer scroll.
+  2. Ahora mismo.
+  3. Experiencia y Formación como timeline con logos, con la línea dibujándose al hacer scroll.
+  4. Cómo trabajo: 3 pasos (desde el 11-11; hasta la segunda ronda iba justo bajo el hero).
   5. Proyectos: una fila de tarjetas con desplazamiento horizontal; case study y demo debajo de la fila.
   6. Skills.
   7. Voluntariado: fila de tarjetas (de foto para las entradas con foto, tipográficas para el resto), más «Off the clock».
@@ -64,11 +64,11 @@ Lo que esa última ronda cambia está en «Ronda del 11-11», al final de la sec
   - Agente de refrigeración: gráfica de generaciones con la etiqueta «Ilustrativo».
   - Proyectos de IA (CS50): clasificación de una señal y tablero de Nim.
 - **Monte Carlo 2027 → 2028:** retirado el 11-11 (la fila final de Formación). El Erasmus sigue como línea de la tarjeta de la ETSII.
-- **Grafo de skills** (compactado el 11-11; ver «Ronda del 11-11»):
-  - Nodos blancos con el logo real de la herramienta y anillo de su dominio, agrupados por dominio.
-  - Proyectos, trabajos y estudios como nodos mayores en el centro, con sus logos.
+- **Grafo de skills** (red en 3D desde la segunda ronda del 11-11; ver ese apartado):
+  - Nodos blancos con el logo real de la herramienta y anillo de su dominio.
+  - Proyectos, trabajos y estudios como nodos mayores, con sus logos.
   - Líneas «usado en» siempre visibles, muy tenues, que se colorean al hover.
-  - Recorrido automático cada 3,2 s, que se detiene al interactuar; además, cada nodo flota.
+  - Recorrido automático cada 3,2 s, que se detiene al interactuar.
   - El inspector de debajo nunca está vacío.
   - En el móvil, lista por dominio con hoja inferior.
 
@@ -117,15 +117,15 @@ Grupo (a) completo, del 1 al 16, y el reveal del grupo (b). Capturas antes/despu
   - En escritorio ocupa un cuadrado de 512 px a 1440 × 900 y de 496 px a 1280 × 800 (antes 374 y 366); el dibujo mide 486 × 480 y 470 × 465 px. Sigue centrado con la columna de texto y el hero cabe en la primera pantalla.
   - Puntos opacos y con jerarquía de tamaños, como en evolve.es: grano fino en las caras, aristas nítidas y puntos grandes en esquinas, núcleos y bolas (una por bola).
   - Núcleos y paquetes de datos más grandes; siguen siendo el único color.
-- **Cursor y vida en reposo:** rehechos el 11-11 (partículas una a una, figura rígida): ver «Ronda del 11-11».
+- **Cursor y vida en reposo:** rehechos el 11-11 (partículas una a una, figura rígida) y otra vez en la segunda ronda (física real por partícula): ver esos apartados.
 - **Scroll:** la figura empieza a formarse cuando se ve el 25 % de su hueco, sin esperar a que pare el scroll, y sigue montada hasta que queda menos del 15 %; depende de dónde están los huecos en pantalla, no de píxeles de scroll, y nunca se queda a medias.
 - **La misma nube forma más figuras (solo desde 1024 px), en el hueco a la derecha del título:**
-  - **Cómo trabajo:** embudo, flujo o barras, según el paso activo.
+  - **Cómo trabajo:** embudo, flujo o barras, según el paso activo (desde la segunda ronda, en su propia columna).
   - **Experiencia:** tres engranajes engranados que giran con sus relaciones reales; se aceleran con el scroll y con el cursor, y al arrastrar giran con inercia.
   - **Formación:** un libro abierto cuyas hojas pasan solas.
   - **Contacto:** esfera de puntos claros (370 px) en la mitad derecha de la banda. Gira despacio, se puede girar y un clic la dispersa.
   - Proyectos, Skills y Voluntariado no llevan figura.
-- **Transiciones:** del chip a la figura de «Cómo trabajo» la nube vuela directa (los dos huecos se ven a la vez), y también entre embudo, flujo y barras; en el resto se deshace en bruma y se condensa en el siguiente hueco. Al subir, igual al revés.
+- **Transiciones:** entre embudo, flujo y barras la nube vuela directa; en el resto se deshace en bruma y se condensa en el siguiente hueco. Al subir, igual al revés.
 - **Móvil y tablet (< 1024 px):** solo el chip, siempre montado mientras esté en pantalla, con la misma vida en reposo. La primera vez que entra en pantalla (con el 35 % a la vista) se forma solo desde la esfera, sin tocarlo. Tocarlo lanza la onda; no se arrastra, para no frenar el scroll.
 - **Separación:** ninguna figura queda a menos de 39 px de un texto o un control a 1024, 1280, 1440 y 1920 px. Los huecos son decorativos (`aria-hidden`) y el lienzo no recibe clics.
 
@@ -133,16 +133,16 @@ Grupo (a) completo, del 1 al 16, y el reveal del grupo (b). Capturas antes/despu
 
 **1. Partículas una a una (todas las figuras)**
 - **La figura es rígida.** Gira entera (vaivén del chip, giro de la esfera, arrastre), pero nada en ella se estira ni se balancea: fuera las capas que flotaban, las ondas y el latido de la esfera, y las barras que subían bajo el cursor como un ecualizador.
-- **Cada punto reacciona al cursor por separado:** se aparta (radio ~140 px) y vuelve con amortiguación crítica, a su propio ritmo, sin rebote ni oscilación. El shader recibe por dónde ha pasado el cursor en los últimos 0,7 s y cada punto lo pondera con la respuesta de un muelle críticamente amortiguado; como todos los pesos son positivos, no puede pasarse de largo.
-- **Deriva por partícula:** cada punto se mueve ~1,5–2,5 px alrededor de su sitio, con fases y ritmo propios.
+- **Cada punto reacciona al cursor por separado:** se aparta (radio ~140 px) y vuelve con amortiguación crítica, a su propio ritmo, sin rebote ni oscilación. El shader recibe por dónde ha pasado el cursor en los últimos 0,7 s y cada punto lo pondera con la respuesta de un muelle críticamente amortiguado; como todos los pesos son positivos, no puede pasarse de largo. (Desde la segunda ronda esto solo queda para el móvil y para equipos sin texturas float: con ratón hay una simulación con estado.)
+- **Deriva:** hasta la segunda ronda, cada punto se movía por su cuenta; ahora es un flujo que comparten los vecinos.
 - **Lo que hace la figura entera, sin rebote:** al soltar un arrastre vuelve a su sitio con amortiguación crítica (antes oscilaba); las barras cambian de altura igual. La inclinación hacia el cursor queda en un gesto leve (unos 14° a los lados y 10° en vertical; antes ~34°).
 - **Se mantiene:** el clic lanza una onda que dispersa los puntos y se recompone en ~1 s; al pasar por encima, el chip separa sus capas y enciende los núcleos; engranajes, hojas del libro y flujo se aceleran bajo el cursor.
 
 **2. «Cómo trabajo» en lugar de «Cifras»**
 - Fuera la sección de las 4 tarjetas. Las cifras siguen en las tarjetas de experiencia, proyectos y voluntariado.
-- Tres pasos en fila (columna en el móvil), con los textos que diste: **Detecto** (tareas manuales e ineficiencias en operaciones), **Automatizo** (con código, low-code e IA) y **Mido** (tiempo ahorrado, errores y volumen procesado). Sin cifras.
+- Tres pasos (stepper vertical en escritorio desde la segunda ronda; tarjetas en el móvil), con los textos que diste: **Detecto** (tareas manuales e ineficiencias en operaciones), **Automatizo** (con código, low-code e IA) y **Mido** (tiempo ahorrado, errores y volumen procesado). Sin cifras.
 - **La figura cambia con el paso activo:** embudo con un enjambre de puntos sueltos encima y una fila ordenada saliendo por abajo → flujo de cuatro nodos unidos por cables por los que avanzan puntos equidistantes → barras con su línea de tendencia.
-- **Paso activo:** el que está bajo el ratón. Sin ratón encima, lo decide el scroll: en columna, el más centrado; en fila (escritorio), el primero al entrar la fila y el segundo y el tercero según sube.
+- **Paso activo:** hasta la segunda ronda lo decidía el scroll; ahora avanza solo (ver «Segunda ronda del 11-11»).
 
 **3. Formación**
 - **Libro de partículas** junto al título: abierto, con sus líneas de texto, y hojas que pasan solas de derecha a izquierda (una cada ~3,3 s; más rápido con el cursor encima). Misma gramática de cursor que el resto.
@@ -159,14 +159,13 @@ Grupo (a) completo, del 1 al 16, y el reveal del grupo (b). Capturas antes/despu
 
 **5. Proyectos**
 - Una sola fila con desplazamiento horizontal: scroll-snap, flechas desde 768 px y arrastre con el dedo en el móvil. El panel de demo y case study se abre debajo de la fila.
-- **Vídeo en bucle arriba de cada tarjeta** (mudo, autoplay, playsInline, con póster): 7 s, grabado con Playwright de los fragmentos animados de la propia tarjeta, en webm y mp4, uno por idioma y por tema (16 vídeos y 16 pósters en `public/media/projects/<id>/`).
+- **Vídeo en bucle arriba de cada tarjeta, desde 768 px** (mudo, autoplay, playsInline, con póster; en el móvil, el fragmento principal en HTML): 7 s, grabado con Playwright de los fragmentos animados de la propia tarjeta, en webm y mp4, uno por idioma y por tema (16 vídeos y 16 pósters en `public/media/projects/<id>/`).
 - job-hunt-copilot se llama **Shortlist** en la web y para el agente; el `id` interno, la carpeta y el enlace al repositorio no cambian. La imagen OG no nombra proyectos.
 
 **6. Skills**
 - 12 skills (antes 22): las de peso 3 y 2.
-- Grafo e inspector juntos ocupan 501 px a 1440 × 900 (el 56 % del alto); en pantallas más bajas el grafo se encoge para no pasar del 60 %.
+- Grafo e inspector juntos no pasan del 60 % del alto de la pantalla.
 - Cada skill lleva el logo real de su herramienta en su color (simple-icons) o un glifo propio; empresas y centros, sus logos de `public/logos`.
-- Los nodos flotan despacio, cada uno a su ritmo, además del recorrido automático.
 
 **7. Reunión**
 - Botón «Reservar 15 min» / «Book 15 min» que abre `NEXT_PUBLIC_BOOKING_URL` en una pestaña nueva: en Contacto, en ⌘K (y el menú del móvil) y como `open_booking` del agente.
@@ -177,22 +176,114 @@ Grupo (a) completo, del 1 al 16, y el reveal del grupo (b). Capturas antes/despu
 
 **9. Separación del chip:** al pasar el ratón, arrastrar o hacer clic, ningún punto del chip queda a menos de 24 px del nombre ni de la línea de disponibilidad. Medido en «Resultados».
 
+### Segunda ronda del 11-11 (rama `claude/tender-faraday-k93q2e`, fusionada en `main`)
+
+**1. Partículas: física real por partícula (con ratón)**
+- **Cada punto tiene estado propio:** cuánto se ha apartado de su sitio y a qué velocidad se mueve, en píxeles. Vive en una textura float (un texel por punto) y avanza en la GPU, con dos texturas que se alternan (WebGL2). Sin texturas float ni half-float, se queda el método anterior.
+- **Las fuerzas actúan donde está el punto,** no en su sitio de reposo:
+  - **Muelle** hacia su sitio, con amortiguación crítica y frecuencia propia (1 Hz ± 20 %): vuelve en 0,6–1 s, sin rebote.
+  - **Repulsión del cursor:** alcance de 130 px, caída suave y hueco limpio de ~60 px de radio.
+  - **Arrastre:** cerca del cursor los puntos heredan parte de su velocidad; es la estela.
+  - **Clic:** un frente que sale a 1.000 px/s y empuja cada punto al pasar; se recompone en ~1 s.
+- **Los puntos rodean el cursor, no lo cruzan:** el centro del hueco es un muro que se mueve con él y barre todo el tramo recorrido entre dos pasos; un movimiento rápido tampoco los atraviesa.
+- **Paso de tiempo fijo:** subpasos de 1/120 s, 4 por frame como mucho. Velocidad acotada (4.000 px/s).
+- **El estado no se reinicia** al cambiar de figura: los puntos conservan su inercia en los vuelos.
+- **Un solo GLSL para el sitio de cada punto:** el paso de simulación usa el mismo código que el de dibujo (figura, vuelo, bruma y deriva).
+- **Se mantienen:** la guarda bajo el nombre, el giro al arrastrar y la apertura del chip al pasar el ratón.
+- **Deriva:** un flujo lento y coherente (el rotacional de un ruido suave sobre la posición) en lugar de que cada punto vaya por su cuenta. Los vecinos se mueven parecido, 2–5 px: respira, no tiembla.
+- **Móvil:** sin simulación (no hay cursor). El método anterior, con la deriva nueva.
+- **Panel de ajuste** (`?tune=1` en la URL): deslizadores para radio y fuerza de la repulsión, arrastre, frecuencia y amortiguación del muelle, y amplitud y velocidad de la deriva. Botones «Copiar valores» (JSON) y «Restablecer». Los valores por defecto están solo en `lib/particle-config.ts`.
+
+**2. «Cómo trabajo»: más abajo y rediseñada**
+- **Sitio:** después de Formación y antes de Proyectos. Tras el hero viene «Ahora mismo».
+- **Escritorio, dos columnas que caben en una pantalla** (la sección mide 702 px a 1440 × 900):
+  - Izquierda: el título y los tres pasos como stepper vertical (punto, número, título y su línea), con una línea de progreso.
+  - Derecha: el hueco de la figura, de 460 × 400 px (400 × 350 entre 1024 y 1279 px).
+- **No depende del scroll:**
+  - Con la sección visible al 50 % avanza sola: 3,5 s por paso, en bucle, y la línea se va llenando.
+  - El ratón o el foco del teclado sobre un paso lo selecciona y detiene el avance; al salir, sigue.
+- **Las figuras nunca se quedan quietas:**
+  - **Detecto:** puntos sueltos que giran sobre la boca del embudo y caen por él, más rápido según se estrecha. 28, de color, son las tareas detectadas; salen en fila por abajo.
+  - **Automatizo:** los puntos recorren en orden los cables del flujo, con un paquete de color por cable.
+  - **Mido:** las barras crecen desde la base, una tras otra, mientras llegan los puntos; después cambian de altura cada ~2 s, con su línea de tendencia.
+  - De una a otra, los mismos puntos vuelan (0,6 s).
+- **Movimiento reducido:** sin avance; el paso 1 con su póster, y los pasos se pueden seleccionar.
+- **Móvil y tablet:** los pasos como tarjetas (en columna, o en fila en tablet), sin figura.
+
+**3. Skills: red neuronal en 3D**
+- **Tres capas en profundidad:** skills (delante), proyectos (en medio) y experiencia y formación (al fondo), en perspectiva y giradas 25°.
+- **Profundidad:** los nodos de delante se dibujan entre un 14 y un 19 % más grandes; los del fondo, un 13 % más pequeños y más tenues. El más cercano se pinta encima.
+- **Vida:**
+  - vaivén de ±8°, un ciclo cada 21 s;
+  - paralaje con el cursor (±3°);
+  - arrastrar orbita la red, con inercia; al soltar vuelve sola a su vista.
+- **Impulsos:** dos puntos de luz por conexión, sin parar, de cada skill hacia donde se usó, en el color de su dominio.
+- **Hover o foco en un nodo:**
+  - sus conexiones se encienden en su color y sus impulsos van 2,6 veces más rápido;
+  - el nodo y los conectados se acercan a cámara (un 5 % más grandes) y el resto se atenúa;
+  - el inspector, igual que antes.
+- **Técnica:** los nodos son botones HTML colocados cada frame con la proyección; conexiones e impulsos van en un canvas 2D detrás. Sin WebGL. El bucle se para fuera de pantalla.
+- **Accesibilidad:** una sola parada de tabulador, flechas, Inicio y Fin, y los mismos nombres accesibles. axe 4.14, sin incidencias.
+- **Altura:** red e inspector ocupan 508 px a 1440 × 900 (el 56 %) y el 60 % a 1280 × 800.
+- **Movimiento reducido:** la vista 3D quieta, sin vaivén, impulsos ni órbita.
+- Mismos datos, mismo inspector y misma lista en el móvil.
+
+**4. Ajustes**
+- **Agente:** conoce todas las skills del CV. Las que no están en el grafo van en `alsoKnows` (`content/profile.ts`), con dónde se usaron: Cursor, C, MATLAB, LaTeX, TypeScript, pandas, NumPy, scikit-learn, TensorFlow/Keras, OpenCV, NLTK, Transformers, Playwright, pytest, Git/GitHub, REST APIs y CI.
+- **Grafo:** SQL (usado en CS50) en lugar de Cursor. Siguen siendo 12. Cursor sigue como chip en PropHero, con su logo.
+- **Proyectos en el móvil (< 768 px):** el fragmento principal en HTML, legible (12,5 px el texto más pequeño). El vídeo, solo desde 768 px; en el móvil ni se descarga.
+- **Contacto:** «, o reservar 15 minutos» solo aparece con `NEXT_PUBLIC_BOOKING_URL`. Sin ella, la frase termina en «Lo más rápido es el email.».
+- **Escudo de Retamar:** se ve. Dos cambios para que no vuelva a salir en blanco: ver «Segunda ronda del 11-11 (revisar)».
+
 ## 2. Decidido por mí (revisar)
+
+### Segunda ronda del 11-11 (revisar)
+
+**Partículas**
+- **La «fuerza» de la repulsión es el radio del hueco, en píxeles** (60). Es lo que se ve; la fuerza se calcula para que justo ahí se equilibre con el muelle.
+- **El muro es el 75 % del hueco** (45 px). Entre el muro y el borde del hueco, los puntos se apartan por la fuerza, no por un tope duro: el borde no es un círculo perfecto.
+- **Lo que queda delante del cursor resbala hacia los lados** (no estaba en tu lista). Sin esto, el muro empujaba los puntos por delante como una pala. Cruzando el chip a 800 px/s, 6 puntos de 6.000 se alejan más de 120 px de su sitio.
+- **La estela tiene tope:** por rápido que vaya el cursor, los puntos lo toman por 2.500 px/s como mucho. Un salto del ratón no los lanza.
+- **Con el cursor encima de la figura la repulsión ya no se suaviza** (antes sí): el hueco es el mismo dentro y fuera.
+- **Los paquetes de datos del chip también tienen estado,** así que se apartan con los puntos de alrededor.
+- **La guarda bajo el nombre se aplica al dibujar,** como antes, no dentro de la simulación.
+- **El panel de ajuste** está siempre en español y solo se descarga con `?tune=1`.
+
+**«Cómo trabajo»**
+- **En el móvil el paso activo también avanza solo** (antes lo elegía el scroll): un único comportamiento en todos los tamaños.
+- **Un clic o un toque selecciona el paso sin detener el avance.** Lo detienen el ratón encima o el foco del teclado.
+- **Los números de los pasos pasan a gris de texto** (contraste AA). Antes iban en el gris decorativo, y axe los marcaba.
+- **Fuera el vuelo directo del chip a esta sección** (ya no son vecinos) y la regla por la que el chip cedía pronto al bajar.
+
+**Red de skills**
+- **«Esta web» va en la capa de proyectos.**
+- **Sin rótulos de dominio** (IA, Automatización…) sobre la red: el dominio se lee en el color del anillo y en el inspector.
+- **El vaivén se detiene mientras el ratón o el foco están en la red,** para que un nodo no se escape de debajo del cursor.
+- **Los nodos apagados no bajan de 0,65 de opacidad,** para que sus rótulos mantengan el contraste AA.
+- **En los extremos del vaivén, los nodos de fuera sobresalen** hasta 43 px de la columna de contenido (nunca de la pantalla).
+- **Intro o Espacio sobre un nodo con tarjeta lleva a su tarjeta,** igual que el clic.
+
+**Ajustes**
+- **Agente:** LaTeX y Playwright van sin «usado en», porque el CV no lo dice. TypeScript no está en el CV; lo añado porque lo pediste (esta web).
+- **En la tarjeta de CS50 salen ahora dos chips:** Python y SQL.
+- **Logos sin carga diferida.** Pesan 1–2 kB cada uno. Con carga diferida, un logo de una sección que el navegador aún no había pintado empezaba a descargarse cuando ya mirabas su casilla en blanco; es lo más probable que pasara con el escudo.
+- **El escudo de Retamar se dibuja a sangre en su casilla** (`bleed` en `content/profile.ts`): el archivo trae mucho margen blanco y a 32 px el escudo medía 13 × 21 px. Ahora mide 18 × 28.
+- **En el móvil solo se compila el código del chip** (el resto de figuras no se ven ahí). Sin esto, el shader nuevo sumaba 0,7 s de bloqueo en Lighthouse.
 
 ### Ronda del 11-11 (revisar)
 - **«No toques el agente»:** no he tocado su interfaz, su ruta ni sus reglas. Sí lo que lee, porque sale de los mismos datos que la web y lo pedías en tres puntos: ya no conoce la especialidad, llama Shortlist al proyecto, la sección es `volunteering` y el Programa Mentor le llega como línea de la ETSII (lo puede resaltar igual). `open_booking` ya existía; ahora abre la pestaña.
-- **Skills que salen:** TensorFlow/Keras, pandas/NumPy, scikit-learn, SQL, MATLAB, TypeScript, Git, pytest, C y Negociación con patrocinadores. TensorFlow, scikit-learn, pytest y Git siguen como etiquetas en sus proyectos; **SQL, MATLAB, C, TypeScript y pandas ya no aparecen en la web ni las conoce el agente.** Si alguna debe volver, se añade en `stack` de `content/profile.ts`.
+- **Skills que salieron del grafo:** TensorFlow/Keras, pandas/NumPy, scikit-learn, SQL, MATLAB, TypeScript, Git, pytest, C y Negociación con patrocinadores. Desde la segunda ronda, SQL vuelve al grafo (por Cursor) y el agente conoce todas las del CV (`alsoKnows`).
 - **«Off the clock»** (batería, DJ, golf, vela) sigue al final de Voluntariado, aunque no es voluntariado. Dime si lo muevo o lo quito.
 - **«Ahora mismo»:** donde iba la especialidad ahora pone «ETSII · Universidad Politécnica de Madrid», para no dejar el hueco.
 - **Fondos de sección:** cuenta lo que está directamente en la carpeta de la sección, no en las de las tarjetas, para que elijas tú qué se ve (en Voluntariado, vídeos sin caras). Si hay vídeo, las fotos se ignoran; varios vídeos se reproducen uno detrás de otro.
 - **Vídeos de proyecto:**
   - Como los fragmentos apenas se movían, el clip añade el paralaje del puntero dando una vuelta a la tarjeta; el bucle no tiene costura.
   - Pesan 3,0 MB en total entre los 16 (832 × 522 px, 24 fps; cada uno, entre 50 y 140 KB). Solo se descarga el del idioma y el tema que se ven, y solo cuando la tarjeta se acerca a la pantalla.
-  - En el móvil se ve el mismo clip, así que el texto de los fragmentos queda pequeño (antes ahí se veía un solo fragmento ampliado). Si lo prefieres, grabo una versión para móvil.
+  - En el móvil no se usa el clip: desde la segunda ronda vuelve el fragmento principal en HTML.
   - Con las animaciones en pausa, sin JavaScript o hasta que carga, se ve el póster.
   - Para poner un vídeo real de un proyecto: `loop.mp4` en su carpeta (ver `public/media/README.md`). Para regrabar los actuales: `node scripts/record-project-loops.mjs`.
 - **Reserva desde el agente:** un navegador solo deja abrir una pestaña justo después de un clic o una tecla, y la respuesta del agente puede llegar más tarde. Si la bloquea, la página baja a Contacto y resalta el botón.
-- **Paso activo de «Cómo trabajo» en el móvil:** se resalta el paso más centrado, pero no hay figura (las figuras siguen siendo solo de escritorio, salvo el chip).
+- **«Cómo trabajo» en el móvil:** no hay figura (las figuras siguen siendo solo de escritorio, salvo el chip).
 - **Límite del chip:** no es un tope fijo de ángulo. En cada fotograma el chip toma toda la inclinación y la apertura que caben sin acercarse a menos de 35 px de los textos; los puntos que empuja el cursor se comprimen en los 5 px siguientes y ninguno cruza los 30 px (24 más el radio del punto más grande). La apertura al pasar el ratón baja además de 0,20 a 0,16.
 - **Tarjetas de la fila de proyectos:** 520 px de ancho en escritorio (se ven dos y el borde de la tercera), 460 px en tablet y el 86 % del ancho en el móvil; todas con la misma altura.
 
@@ -240,12 +331,12 @@ Grupo (a) completo, del 1 al 16, y el reveal del grupo (b). Capturas antes/despu
 - **El hero crece un poco:** para que el chip quede centrado con el texto y a más de 32 px del nombre, la fila mide el alto del chip menos 72 px. El texto baja unos 30 px y el hero termina a 721 px en 1440 × 900 (el chip, a 757) y a 679 px en 1280 × 800 (el chip, a 715).
 - **6.000 puntos en escritorio (antes 8.000):** con el chip nítido sobraban; así el póster pesa menos.
 - **En el móvil el lienzo va dentro del chip, no a pantalla completa:** así se mueve con la página sin retraso al hacer scroll con el dedo. En escritorio sí es un único lienzo fijo a pantalla completa. En los dos casos hay un solo contexto WebGL.
-- **Cuándo cambia de figura:** gana el hueco más visible (25 % para entrar, 15 % para mantenerse) y, si hay empate, el más centrado. El chip cede pronto al bajar: la figura de «Cómo trabajo» se forma en cuanto su hueco se ve entero. La franja de la navegación no cuenta como visible.
+- **Cuándo cambia de figura:** gana el hueco más visible (25 % para entrar, 15 % para mantenerse) y, si hay empate, el más centrado. La franja de la navegación no cuenta como visible.
 - **Las transiciones duran un tiempo fijo** (bruma 0,3 s, condensar 0,5 s, vuelo 0,6 s) en vez de seguir al scroll: así nunca se quedan a medias. Si el equipo va lento, el tiempo perdido se recupera por tramos (la figura tarda lo mismo con pocos fotogramas) y, si sigue lento en una pantalla de alta densidad, el lienzo baja a densidad 1.
-- **Hueco de «Cómo trabajo» más grande** (440 × 264 px; 400 × 250 entre 1024 y 1279) que el de los engranajes y el libro (380 × 240; 320 × 210), porque su título es corto y deja más sitio.
+- **Huecos:** el de los engranajes y el libro mide 380 × 240 px (320 × 210 entre 1024 y 1279). El de «Cómo trabajo» es una columna propia de 460 × 400 (400 × 350).
 - **Experiencia entre 1024 y 1279 px:** la frase de introducción pasa de dos líneas a tres para dejar sitio a los engranajes. El texto no cambia.
 - **La esfera solo sale si no hay retrato en Contacto.** Cuando subas `public/photos/carlos`, el retrato ocupa ese hueco y habrá que decidir dónde va la esfera.
-- **Con el cursor encima de la figura, la repulsión se suaviza:** los puntos se apartan menos, para que se vea cómo se abre.
+- **Con el cursor encima de la figura, la repulsión se suaviza:** solo en el método sin estado (móvil). Con la simulación, el hueco es siempre el mismo.
 - **Formación entre 1024 y 1279 px:** como en Experiencia, la introducción deja sitio al libro.
 
 ### Técnicas
@@ -258,7 +349,9 @@ Grupo (a) completo, del 1 al 16, y el reveal del grupo (b). Capturas antes/despu
 - **En móvil no se construye el grafo SVG.** three.js sí se carga para el chip, pero tarde (ver «Hero definitivo»).
 - **Pósters del chip:** `lib/chip-cloud.ts` genera la nube de forma determinista. El mismo código prerenderiza en el build unos SVG del primer frame (`app/chip/[file]`), que la página pinta como máscaras CSS: no mueven el layout ni cuentan como LCP. El primer frame de WebGL coincide con el póster, así que el cambio no se nota. Sin JavaScript, sin WebGL o con movimiento reducido se ve un póster del chip montado.
 - **Nube de partículas** (`components/figures`, `lib/figure-cloud.ts`):
-  - Todo lo que hace un punto (cambiar de figura, derivar, apartarse del cursor y volver, la onda del clic, abrirse, girar) se calcula en el vertex shader a partir de unos pocos valores, entre ellos el recorrido reciente del cursor (12 muestras); no hay simulación por partícula.
+  - Dónde va cada punto (su figura, el vuelo, la bruma, la deriva, la apertura, el giro) se calcula en el vertex shader a partir de unos pocos valores.
+  - Con ratón, cuánto lo aparta el cursor sale de una simulación por partícula en la GPU: el estado está en una textura float de 128 × 48 y cada paso dibuja los mismos puntos, con el mismo shader, cada uno en su texel. Sin ratón o sin texturas float, sale del recorrido reciente del cursor (12 muestras), sin estado.
+  - Los números de esa física están en `lib/particle-config.ts`.
   - Un hueco puede turnarse entre varias figuras (`data-figure-set`); `data-figure` dice cuál toca y la nube vuela de una a otra.
   - Las posiciones de los huecos se guardan y solo se vuelven a medir cuando cambia el tamaño de la página; por frame no se lee layout.
   - El bucle se para cuando no hay figura en pantalla o la pestaña está oculta. El lienzo usa como mucho DPR 2 y ~4 megapíxeles.
@@ -267,11 +360,10 @@ Grupo (a) completo, del 1 al 16, y el reveal del grupo (b). Capturas antes/despu
 - **Filas con desplazamiento horizontal** (`components/ui/Carousel.tsx`): scroll nativo con scroll-snap. Un gesto horizontal sobre la fila no lo intercepta el scroll suave de la página. Si el agente, ⌘K o un enlace señalan una tarjeta que no se ve, la fila la trae.
 - **Vídeos de proyecto y fondos de sección:** el servidor mira las carpetas al construir; el navegador no monta ningún `<video>` hasta que su tarjeta o su sección se acercan a la pantalla, y solo reproduce mientras se ven.
 - **Reveals:** pueden marcar un elemento antes de que React hidrate su sección (con el hero más corto, la sección siguiente ya está en la primera pantalla). Cada `.reveal` lleva `suppressHydrationWarning`, así que React lo espera y no avisa.
-- **Grafo de skills:** el nombre accesible de cada nodo es su `aria-label`, y tiene que contener el texto que se ve en el nodo (WCAG 2.5.3).
-  - Las etiquetas de dos líneas llevan en el DOM el espacio que separa una línea de la otra. SVG no lo pinta, pero así el nodo se lee «piloto automático» y no «pilotoautomático».
-  - El monograma «IF» se dibuja con `<use>`, como un logo: es una imagen del nodo, no parte de su texto (se leía «IF Induforum 2027»).
-  - Los textos visibles siguen siendo `aria-hidden`, pero eso ya no basta: desde la versión 4.12, axe no lo tiene en cuenta en esta regla, y la 4.14 la pasa por defecto.
-  - Comprobado en Chromium que no cambia nada a la vista: las capturas del grafo de antes y de después son idénticas píxel a píxel (en reposo y con cada nodo con foco y con el ratón encima; en claro y oscuro; en `/` y `/es`; a 1× y a 2×). El teclado y el árbol de accesibilidad (lo que recibe un lector de pantalla) tampoco cambian.
+- **Red de skills** (`lib/graph.ts`, `components/sections/skillsNet.ts`):
+  - El servidor coloca los nodos en 3D; el navegador los proyecta en cada frame y mueve cada botón con `transform`. Tamaño, opacidad y orden de pintado salen de la profundidad.
+  - El nombre accesible de cada nodo es su `aria-label`, y tiene que contener el texto que se ve en él (WCAG 2.5.3). El monograma «IF» es contenido generado por CSS: es una imagen del nodo, no parte de su texto (si no, se leería «IF Induforum 2027»).
+  - Las flechas del teclado van al nodo más cercano en esa dirección según la vista en reposo.
 - **El tamaño de los logos** (`LogoMark`) se puede fijar desde CSS con `--logo`. El timeline lo usa para tener 32 px en el móvil.
 - **Desarrollo local:** a veces `next dev` deja de recoger los cambios de `globals.css`. Se arregla parando el servidor y borrando `.next/dev`.
 
@@ -279,6 +371,7 @@ Grupo (a) completo, del 1 al 16, y el reveal del grupo (b). Capturas antes/despu
 
 | Lighthouse | Rendimiento | Accesibilidad | Buenas prácticas | SEO |
 | --- | --- | --- | --- | --- |
+| Móvil, `/` (11-11, 1 pasada, segunda ronda; máquina más lenta: `main` da 75 en ella) | 75 | 100 | 100 | 66* |
 | Móvil, `/` (10-11, 1 pasada, rama de la nube de partículas) | 90 | 100 | 100 | 66* |
 | Móvil, `/` (04-11, 6 pasadas, rama del pulido) | 86–92 (mediana 87,5) | 100 | 100 | 66* |
 | Móvil, `/` (04-11, 6 pasadas, `main`, alternando con la rama) | 84–90 (mediana 87,5) | 100 | 100 | 66* |
@@ -297,6 +390,20 @@ Grupo (a) completo, del 1 al 16, y el reveal del grupo (b). Capturas antes/despu
   - **Proyectos:** los cuatro vídeos se reproducen mudos y en bucle, con póster, y cambian con el tema; la flecha avanza una tarjeta (540 px) y encaja; `open_project` trae la tarjeta y abre el panel. En 390 × 844 la fila encaja al deslizar y la página no se desborda a lo ancho.
   - **Fondos y reserva:** probados con un vídeo temporal en cada carpeta (opacidad 0,1, en gris, reproduciéndose solo en pantalla) y con una URL de prueba (botón en Contacto, entrada en ⌘K, `open_booking` abre la pestaña y, si el navegador la bloquea, resalta el botón). Retirados después: en `main` no hay fondos ni botón hasta que subas los archivos y pongas la variable.
   - **Sin repetir en esta ronda** (presupuesto de comprobaciones): Lighthouse y axe. Las capturas de verificación han sido 8. Conviene pasar axe y Lighthouse antes del lanzamiento: hay secciones nuevas y vídeo en las tarjetas.
+- **Segunda ronda del 11-11 (build local de producción, Chromium sin GPU):**
+  - `npm run lint` y `npm run build`, sin errores. `/` y `/es`, recorridas enteras en escritorio y en móvil, sin errores de consola ni peticiones fallidas.
+  - **Simulación, con ratón real (Playwright) sobre el chip:**
+    - En reposo, ningún punto está desplazado. Con el cursor parado en el centro, 1.600 puntos se apartan.
+    - Al irse el cursor, el punto más apartado vuelve sin pasarse: 8,5 px a los 0,23 s, 3,5 a los 0,43, 1,3 a los 0,63 y 0,2 al segundo. En toda la nube, a los 0,83 s quedan 3 puntos a más de 5 px y al segundo, ninguno.
+    - Clic: hasta 198 px a los 0,22 s; al segundo y medio solo quedan apartados los que rodean el cursor.
+    - Cruzando el chip a 300, 800 y 2.000 px/s: 0,5 s después de salir, ningún punto a más de 26 px de su sitio; al segundo, ninguno a más de 2.
+  - **Lighthouse móvil (una pasada final):** 75 / 100 / 100 / 66. LCP 0,9 s, TBT 1.400 ms, CLS 0. En esta máquina `main` da 75 (TBT 1.310 ms) y accesibilidad 96; la rama, antes de aligerar el shader del móvil, daba 71–72.
+  - **axe 4.14:** 0 incidencias en `/` y `/es`, claro y oscuro, escritorio (1440 × 900) y móvil (390 × 844). En `main` marcaba los números de los pasos de «Cómo trabajo» (contraste).
+  - **«Cómo trabajo»:** 702 px de alto a 1440 × 900 y a 1280 × 800; 692 a 1024 × 768. Cambia de figura cada 3,5 s; con el ratón sobre un paso, se queda en él.
+  - **Skills:** red de 1136 × 392 px; con el inspector, 508 px (56,4 % de 900). Ningún rótulo pisa a otro nodo en todo el vaivén. Arrastrando 200 px, un nodo de delante se mueve 282 px y vuelve a su sitio en 2,5 s.
+  - **Proyectos en 390 × 844:** fragmento de 305 × 122 px, texto de 12,5 px o más, y ninguna petición a los vídeos ni a sus pósters. A 800 px de ancho, el vídeo.
+  - **Sin desbordes a lo ancho** en 390, 1024, 1280 y 1440 px.
+  - Capturas de verificación: 9.
 - **axe:** 0 incidencias en claro y oscuro, escritorio y móvil (04-11).
 - **axe 4.14 (10-11):** 0 incidencias en `/` y `/es`, en claro y oscuro, en escritorio (1440 × 900, tras recorrer toda la página) y en móvil (390 × 844).
   - Esta versión pasa por defecto una regla más, `label-content-name-mismatch`, que marcaba 7 nodos del grafo de skills en `/es` y 4 en `/`: leía pegadas las dos líneas de una etiqueta («pilotoautomático») y el monograma «IF» junto al nombre. Arreglado: ver «Grafo de skills» en «Técnicas».
@@ -326,6 +433,8 @@ Grupo (a) completo, del 1 al 16, y el reveal del grupo (b). Capturas antes/despu
 - `UPSTASH_REDIS_REST_URL` y `UPSTASH_REDIS_REST_TOKEN` (o las `KV_*`).
 - `NEXT_PUBLIC_BOOKING_URL`: la URL pública de tu página de citas de Google Calendar (`https://…`). Sustituye a `NEXT_PUBLIC_CALCOM_LINK`, que ya no se usa y se puede borrar. Sin ella no hay botón de reserva.
 - `NEXT_PUBLIC_SITE_URL`.
+
+**Partículas:** si ajustas el movimiento con `?tune=1`, pega el JSON de «Copiar valores» en `PARTICLE_DEFAULTS` (`lib/particle-config.ts`), o pásamelo.
 
 **Propuestas de diseño:** no queda ninguna abierta. El patrón de secciones se queda como está (Contacto ya lo rompe con su banda oscura).
 

@@ -40,7 +40,7 @@ Lo que subas **directamente** a `education/` o a `volunteering/` (a la carpeta d
 
 ## Vídeo en bucle de cada proyecto
 
-Arriba de cada tarjeta de proyecto hay un vídeo corto (7 s), mudo y en bucle. Están en la carpeta del proyecto y su nombre empieza por `loop`:
+Arriba de cada tarjeta de proyecto hay un vídeo corto (7 s), mudo y en bucle, desde 768 px de ancho. En el móvil no se carga: ahí se ve el fragmento principal de la ilustración, en HTML y a tamaño legible. Los vídeos están en la carpeta del proyecto y su nombre empieza por `loop`:
 
 - `loop-es-light.webm`, `loop-es-light.mp4` y `loop-es-light.poster.jpg` (y lo mismo con `en` y con `dark`): uno por idioma y por tema.
 - Para poner un vídeo tuyo, basta `loop.mp4` (y, si quieres, `loop.webm` y `loop.poster.jpg`) y borrar los `loop-…` de esa carpeta. También valen `loop-light.*` / `loop-dark.*` (uno por tema) o `loop-es.*` / `loop-en.*` (uno por idioma). Formato 16:10; lo que sobre se recorta.

@@ -33,7 +33,7 @@ export default async function Home({ params }: PageProps<"/[lang]">) {
 
   return (
     <>
-      <a href="#how" className="skip-link">
+      <a href="#now" className="skip-link">
         {copy.nav.skip[lang]}
       </a>
       {/* WCAG 2.2.2: hidden like the skip link, until the keyboard reaches it */}
@@ -58,9 +58,6 @@ export default async function Home({ params }: PageProps<"/[lang]">) {
         {/* Each section is its own Suspense boundary, so React hydrates them in
             separate tasks (the main thread gets breathing room on phones). */}
         <Suspense fallback={null}>
-          <HowIWork lang={lang} />
-        </Suspense>
-        <Suspense fallback={null}>
           <Now lang={lang} now={now} />
         </Suspense>
         <Suspense fallback={null}>
@@ -68,6 +65,9 @@ export default async function Home({ params }: PageProps<"/[lang]">) {
         </Suspense>
         <Suspense fallback={null}>
           <Education lang={lang} now={now} />
+        </Suspense>
+        <Suspense fallback={null}>
+          <HowIWork lang={lang} />
         </Suspense>
         <Suspense fallback={null}>
           <Projects lang={lang} />
