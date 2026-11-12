@@ -42,9 +42,13 @@ Lo que subas **directamente** a `education/` o a `volunteering/` (a la carpeta d
 
 Arriba de cada tarjeta de proyecto hay un vídeo corto (7 s), mudo y en bucle, desde 768 px de ancho. En el móvil no se carga: ahí se ve el fragmento principal de la ilustración, en HTML y a tamaño legible. Los vídeos están en la carpeta del proyecto y su nombre empieza por `loop`:
 
-- `loop-es-light.webm`, `loop-es-light.mp4` y `loop-es-light.poster.jpg` (y lo mismo con `en` y con `dark`): uno por idioma y por tema.
-- Para poner un vídeo tuyo, basta `loop.mp4` (y, si quieres, `loop.webm` y `loop.poster.jpg`) y borrar los `loop-…` de esa carpeta. También valen `loop-light.*` / `loop-dark.*` (uno por tema) o `loop-es.*` / `loop-en.*` (uno por idioma). Formato 16:10; lo que sobre se recorta.
-- Los que hay ahora están grabados de las propias ilustraciones de la web. Para volver a grabarlos: `node scripts/record-project-loops.mjs` (lo explica el propio script).
+- `loop-es-light.webm`, `loop-es-light.mp4` y `loop-es-light.poster.jpg` (y lo mismo con `en` y con `dark`): uno por idioma y por tema. Así son los de Shortlist, Correo en piloto automático y el agente de refrigeración, porque llevan texto.
+- `loop-light.*` y `loop-dark.*`: uno por tema, el mismo en los dos idiomas. Así es el de Proyectos de IA (CS50), que no lleva texto.
+- Para poner un vídeo tuyo, basta `loop.mp4` (y, si quieres, `loop.webm` y `loop.poster.jpg`) y borrar los `loop-…` de esa carpeta. También vale `loop-es.*` / `loop-en.*` (uno por idioma). Formato 16:10 (los de ahora miden 832 × 520 px); lo que sobre se recorta, así que deja lo importante en el centro.
+- Si en una carpeta hay varios, gana el más específico: primero `loop-<idioma>-<tema>`, después `loop-<tema>`, `loop-<idioma>` y `loop`.
+- De dónde salen los de ahora:
+  - **Proyectos de IA (CS50):** es una escena dibujada con código, `scripts/loops/cs50-ai.html` (una red que aprende a ver señales de tráfico; se puede abrir en el navegador). Para volver a grabarla: `node scripts/loops/record.mjs cs50-ai`.
+  - **Los otros tres:** están grabados de las propias ilustraciones de la web. Para volver a grabarlos: `node scripts/record-project-loops.mjs` (lo explica el propio script; se salta los proyectos que tienen escena propia en `scripts/loops/`).
 - Los archivos `loop…` no salen en la tira de fotos y vídeos de la tarjeta.
 - Si un proyecto no tiene vídeo, su tarjeta muestra la ilustración animada de antes.
 

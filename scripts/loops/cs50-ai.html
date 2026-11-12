@@ -1,0 +1,597 @@
+<!doctype html>
+<!--
+  The looping clip at the top of the "AI projects (CS50)" card: a network that
+  learns to see. Dots form a traffic sign (a stop octagon, then a yield
+  triangle) in front of three layers of nodes in perspective; the sign falls
+  apart into the input layer, a wave crosses the network and a different
+  output node lights up for each sign.
+
+  Canvas 2D, no dependencies, no assets. Deterministic (seeded) and periodic:
+  every frame is a function of one phase, 0 to 1, so the last frame meets the
+  first. The look is the hero chip's (lib/chip-cloud.ts): crisp dots in a
+  hierarchy of sizes, ink plus one accent.
+
+    cs50-ai.html                 plays, light theme
+    cs50-ai.html?theme=dark      plays, dark theme
+    cs50-ai.html?phase=0.25      one still
+    cs50-ai.html?safe            outlines the central 80 % (what a cropped card still shows)
+
+  Recorded by scripts/loops/record.mjs, which also brings the colours below up
+  to date from app/globals.css.
+-->
+<html lang="en" data-theme="light">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>cs50-ai · loop</title>
+    <style>
+      /* The site's tokens (app/globals.css), under their own names. */
+      :root {
+        --card: #f5f5f7;
+        --fg-rgb: 29 29 31;
+        --purple-rgb: 175 82 222;
+        /* .frag-stage: the tint at the top of a project card */
+        --tint: 0.14;
+      }
+      [data-theme="dark"] {
+        --card: #1c1c1e;
+        --fg-rgb: 245 245 247;
+        --purple-rgb: 191 90 242;
+        --tint: 0.22;
+      }
+      html,
+      body {
+        margin: 0;
+        background: var(--card);
+      }
+      #stage {
+        position: relative;
+        width: 832px;
+        height: 520px;
+        overflow: hidden;
+        /* the card's own background: its grey and, on top, .frag-stage's tint */
+        background: radial-gradient(90% 80% at 50% 0%, rgb(var(--purple-rgb) / var(--tint)), transparent 70%), var(--card);
+      }
+      canvas {
+        position: absolute;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="stage"><canvas id="scene"></canvas></div>
+    <script>
+      "use strict";
+      const W = 832;
+      const H = 520;
+      const SECONDS = 7;
+      const FPS = 24;
+      const query = new URLSearchParams(location.search);
+      if (query.get("theme") === "dark") document.documentElement.dataset.theme = "dark";
+
+      /* ---------------- randomness (same generator as lib/chip-cloud.ts) ---------------- */
+      function mulberry32(seed) {
+        let a = seed >>> 0;
+        return () => {
+          a = (a + 0x6d2b79f5) >>> 0;
+          let t = a;
+          t = Math.imul(t ^ (t >>> 15), t | 1);
+          t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+          return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+        };
+      }
+      const rnd = mulberry32(20261112);
+      function pick(pairs) {
+        let r = rnd() * pairs.reduce((s, p) => s + p[1], 0);
+        for (const [v, w] of pairs) if ((r -= w) < 0) return v;
+        return pairs[pairs.length - 1][0];
+      }
+
+      const TAU = Math.PI * 2;
+      const clamp = (x, a = 0, b = 1) => Math.min(b, Math.max(a, x));
+      const mix = (a, b, t) => a + (b - a) * t;
+      const smooth = (a, b, x) => {
+        const t = clamp((x - a) / (b - a));
+        return t * t * (3 - 2 * t);
+      };
+
+      /* ---------------- camera ---------------- */
+      /*
+       * World: x is the way the signal travels (sign, input, hidden, output),
+       * y is up and z runs across each layer. The camera stands front-left
+       * and a little above, so the sign is the nearest thing and the output
+       * the farthest: v' = Rx(tilt) · Ry(yaw) · v, then perspective.
+       *
+       * The camera does not move. A sway, however slight, shifts every dot a
+       * fraction of a pixel per frame: the encoder then redraws the whole
+       * picture each time, softer than its first frame, and the loop shows a
+       * beat where it starts again (and weighs a third more).
+       */
+      const CAM = { yaw: 0.9, tilt: 0.17, dist: 13, focal: 1840, cx: 495, cy: 210 };
+      /** px per world unit at the distance of the scene's middle: dot sizes are given in px there */
+      const UNIT = CAM.focal / CAM.dist;
+
+      const cosY = Math.cos(CAM.yaw);
+      const sinY = Math.sin(CAM.yaw);
+      const cosT = Math.cos(CAM.tilt);
+      const sinT = Math.sin(CAM.tilt);
+      /** world → [screen x, screen y, px per world unit, distance from the camera] */
+      function project(x, y, z, out) {
+        const x1 = cosY * x + sinY * z;
+        const z1 = -sinY * x + cosY * z;
+        const y2 = cosT * y - sinT * z1;
+        const depth = CAM.dist - (sinT * y + cosT * z1);
+        const s = CAM.focal / depth;
+        out[0] = CAM.cx + x1 * s;
+        out[1] = CAM.cy - y2 * s;
+        out[2] = s;
+        out[3] = depth;
+        return out;
+      }
+      /** far things are fainter as well as smaller */
+      const haze = (depth) => mix(1, 0.55, smooth(CAM.dist - 2.4, CAM.dist + 2.8, depth));
+
+      /* ---------------- the look: dot sizes and mixes ---------------- */
+      // Diameters in px at the middle distance: many fine, some medium, a few large.
+      const DOT = { xs: 2.1 / UNIT, s: 3.1 / UNIT, m: 4.7 / UNIT, l: 7.0 / UNIT, xl: 9.6 / UNIT };
+      const look = (sizes, alphas = [[1, 1]]) => ({ sizes, alphas });
+      const EDGE = look([[DOT.s, 0.56], [DOT.m, 0.38], [DOT.l, 0.06]]);
+      const RIM = look([[DOT.xs, 0.5], [DOT.s, 0.5]]);
+      const CORNER = look([[DOT.l, 1]]);
+      const FACE = look([[DOT.xs, 0.74], [DOT.s, 0.22], [DOT.m, 0.04]], [[0.6, 0.22], [1, 0.78]]);
+      const POST = look([[DOT.xs, 0.55], [DOT.s, 0.45]]);
+      const FRAME = look([[DOT.xs, 0.8], [DOT.s, 0.2]], [[0.55, 1]]);
+      const DUST = look([[DOT.xs, 0.6], [DOT.s, 0.27], [DOT.m, 0.11], [DOT.l, 0.02]], [[0.6, 0.4], [1, 0.6]]);
+
+      /* ---------------- the network ---------------- */
+      const X = { sign: -3.0, input: -1.0, hidden: 1.4, output: 3.1 };
+      const INPUT = { n: 10, half: 0.74 };
+      const HIDDEN = { n: 5, half: 0.5 };
+      const OUTPUT = { n: 5, gap: 0.2 };
+      /** which output answers to each sign (0: the octagon, 1: the triangle), counted from the bottom */
+      const ANSWER = [3, 1];
+
+      const cell = (L, i) => -L.half + ((i + 0.5) * 2 * L.half) / L.n;
+      const inputNodes = [];
+      for (let j = 0; j < INPUT.n; j++) for (let i = 0; i < INPUT.n; i++) inputNodes.push({ p: [X.input, cell(INPUT, j), cell(INPUT, i)], size: DOT.m });
+      const hiddenNodes = [];
+      for (let j = 0; j < HIDDEN.n; j++) for (let i = 0; i < HIDDEN.n; i++) hiddenNodes.push({ p: [X.hidden, cell(HIDDEN, j), cell(HIDDEN, i)], size: DOT.l });
+      const outputNodes = [];
+      for (let j = 0; j < OUTPUT.n; j++) outputNodes.push({ p: [X.output, (j - (OUTPUT.n - 1) / 2) * OUTPUT.gap, 0], size: DOT.xl });
+
+      // Wires. Input to hidden: each hidden node gathers a 2 × 2 patch (a small
+      // receptive field), so the hidden layer ends up holding a coarse copy of
+      // the sign. Hidden to output: every hidden node to every output.
+      const wiresIn = inputNodes.map((_, k) => {
+        const i = k % INPUT.n;
+        const j = Math.floor(k / INPUT.n);
+        return { a: k, b: Math.floor(j / 2) * HIDDEN.n + Math.floor(i / 2), seed: rnd() };
+      });
+      const wiresOut = [];
+      hiddenNodes.forEach((_, a) => outputNodes.forEach((_, b) => wiresOut.push({ a, b, seed: rnd() })));
+
+      // The planes' edges: a fine dotted frame around each layer, a larger dot on each corner.
+      const frames = [];
+      function frame(x, halfY, halfZ) {
+        const corners = [[-halfY, -halfZ], [-halfY, halfZ], [halfY, halfZ], [halfY, -halfZ]];
+        corners.forEach(([y, z], c) => {
+          const [y1, z1] = corners[(c + 1) % 4];
+          const count = Math.max(1, Math.round(Math.hypot(y1 - y, z1 - z) / 0.045));
+          for (let i = 0; i < count; i++) {
+            const t = (i + 0.5 + (rnd() - 0.5) * 0.3) / count;
+            frames.push({ p: [x, mix(y, y1, t), mix(z, z1, t)], size: pick(FRAME.sizes), alpha: pick(FRAME.alphas) });
+          }
+          frames.push({ p: [x, y, z], size: DOT.m, alpha: 0.9 });
+        });
+      }
+      frame(X.input, INPUT.half + 0.09, INPUT.half + 0.09);
+      frame(X.hidden, HIDDEN.half + 0.1, HIDDEN.half + 0.1);
+      frame(X.output, ((OUTPUT.n - 1) / 2) * OUTPUT.gap + 0.16, 0.13);
+
+      /* ---------------- the signs ---------------- */
+      /*
+       * Each sign is drawn on the plane x = X.sign, in (u, v) = (z, y − SIGN_Y):
+       * a dense outer edge, a finer inner rim, a light grain inside and a
+       * post. Every dot also knows the input node it falls into: the one
+       * straight behind it, as if the sign were projected on the layer.
+       */
+      const SIGN_Y = (2 * INPUT.half) / INPUT.n; // one input row up: the sign covers whole rows of the grid, and the post reaches its bottom
+      const POST_END = -1.08;
+      const octagon = Array.from({ length: 8 }, (_, k) => {
+        const a = ((22.5 + 45 * k) * Math.PI) / 180;
+        return [0.628 * Math.cos(a), 0.628 * Math.sin(a)];
+      });
+      const triangle = [[-0.68, 0.52], [0.68, 0.52], [0, -0.658]]; // a yield sign: equilateral, point down
+
+      const centroid = (poly) => poly.reduce((c, p) => [c[0] + p[0] / poly.length, c[1] + p[1] / poly.length], [0, 0]);
+      /** the polygon shrunk towards its centre so that its sides move in by `inset` (regular polygons only) */
+      function shrink(poly, inset) {
+        const c = centroid(poly);
+        const m = [(poly[0][0] + poly[1][0]) / 2, (poly[0][1] + poly[1][1]) / 2];
+        const apothem = Math.hypot(m[0] - c[0], m[1] - c[1]);
+        const k = (apothem - inset) / apothem;
+        return poly.map((p) => [c[0] + (p[0] - c[0]) * k, c[1] + (p[1] - c[1]) * k]);
+      }
+      function inside(poly, u, v) {
+        let sign = 0;
+        for (let i = 0; i < poly.length; i++) {
+          const a = poly[i];
+          const b = poly[(i + 1) % poly.length];
+          const cross = (b[0] - a[0]) * (v - a[1]) - (b[1] - a[1]) * (u - a[0]);
+          if (cross !== 0) {
+            if (sign !== 0 && Math.sign(cross) !== sign) return false;
+            sign = Math.sign(cross);
+          }
+        }
+        return true;
+      }
+
+      function buildSign(poly, rimInset) {
+        const dots = [];
+        const add = (u, v, lk, alpha = 1) => {
+          const i = clamp(Math.floor((u + INPUT.half) / ((2 * INPUT.half) / INPUT.n)), 0, INPUT.n - 1);
+          const j = clamp(Math.floor((v + SIGN_Y + INPUT.half) / ((2 * INPUT.half) / INPUT.n)), 0, INPUT.n - 1);
+          const heading = rnd() * TAU;
+          dots.push({
+            p: [X.sign, v + SIGN_Y, u],
+            size: pick(lk.sizes),
+            alpha: pick(lk.alphas) * alpha,
+            node: j * INPUT.n + i,
+            // where it comes from as the sign forms: a little way off, mostly across the plane
+            from: [(rnd() - 0.5) * 0.9, Math.sin(heading), Math.cos(heading)],
+            reach: 0.14 + 0.4 * rnd(),
+            seed: [rnd(), rnd(), rnd()],
+          });
+        };
+        const line = (a, b, lk, pitch) => {
+          const count = Math.max(1, Math.round(Math.hypot(b[0] - a[0], b[1] - a[1]) / pitch));
+          for (let i = 0; i < count; i++) {
+            const t = (i + 0.5 + (rnd() - 0.5) * 0.3) / count;
+            add(mix(a[0], b[0], t), mix(a[1], b[1], t), lk);
+          }
+        };
+        const outline = (pts, lk, pitch) => pts.forEach((p, k) => line(p, pts[(k + 1) % pts.length], lk, pitch));
+
+        outline(poly, EDGE, 0.034);
+        poly.forEach((p) => add(p[0], p[1], CORNER));
+        const rim = shrink(poly, rimInset);
+        outline(rim, RIM, 0.034);
+        // grain: a loose grid, regular enough to read as a face, never ruled
+        const field = shrink(poly, rimInset + 0.07);
+        const gap = 0.09;
+        for (let u = -0.75; u < 0.75; u += gap)
+          for (let v = -0.75; v < 0.75; v += gap) {
+            const gu = u + (rnd() - 0.5) * gap * 0.7;
+            const gv = v + (rnd() - 0.5) * gap * 0.7;
+            if (inside(field, gu, gv)) add(gu, gv, FACE);
+          }
+        // post: two fine columns from the sign's lowest point, fading out at the bottom
+        const low = Math.min(...poly.map((p) => p[1]));
+        const count = Math.round((low - POST_END) / 0.036);
+        for (const u of [-0.026, 0.026])
+          for (let i = 0; i < count; i++) {
+            const t = (i + 0.5 + (rnd() - 0.5) * 0.3) / count;
+            add(u, mix(low - 0.02, POST_END, t), POST, 1 - smooth(0.55, 1, t) * 0.8);
+          }
+        return dots;
+      }
+      const signs = [buildSign(octagon, 0.085), buildSign(triangle, 0.13)];
+
+      /* ---------------- what each sign does to the network ---------------- */
+      /*
+       * Times in seconds within a sign's own cycle (the two signs are half a
+       * loop apart): it forms, holds, falls into the input layer, and the
+       * wave it starts crosses to the hidden layer and then to its output.
+       */
+      const T = {
+        form: [0, 1.0],
+        fall: 2.2, // the first dots leave
+        fallSpread: 0.6, // …and the last ones this much later
+        flight: 0.65,
+        inputFade: [3.6, 4.2],
+        wave1: 3.3,
+        wave1Spread: 0.3,
+        travel1: 0.7,
+        hiddenFade: [4.6, 5.2],
+        wave2: 4.35,
+        wave2Spread: 0.25,
+        travel2: 0.65,
+        // (everything is over before the cycle ends: nothing to carry across the seam)
+        outputFade: [6.1, 6.85],
+      };
+      /** the loop starts with the octagon formed and still, and the triangle's output lit */
+      const START = 1.9;
+
+      const plans = signs.map((dots, s) => {
+        // when each dot leaves: mostly at random (the sign crumbles), the side nearest the layer a little earlier
+        for (const d of dots) d.leave = T.fall + T.fallSpread * (0.72 * d.seed[0] + 0.28 * (1 - (d.p[2] + 0.7) / 1.4));
+        const input = inputNodes.map(() => ({ level: 0, at: Infinity }));
+        const weight = inputNodes.map(() => 0);
+        for (const d of dots) {
+          weight[d.node] += d.alpha * (d.size / DOT.s);
+          input[d.node].at = Math.min(input[d.node].at, d.leave + T.flight);
+        }
+        input.forEach((n, k) => (n.level = weight[k] > 0 ? clamp(0.35 + weight[k] * 0.11) : 0));
+        const hidden = hiddenNodes.map(() => ({ level: 0, at: Infinity }));
+        const beads1 = [];
+        for (const w of wiresIn) {
+          if (input[w.a].level === 0) continue;
+          const leave = T.wave1 + T.wave1Spread * w.seed;
+          beads1.push({ wire: w, leave, level: input[w.a].level });
+          hidden[w.b].level += input[w.a].level / 4;
+          hidden[w.b].at = Math.min(hidden[w.b].at, leave + T.travel1);
+        }
+        for (const n of hidden) n.level = n.level < 0.3 ? 0 : clamp(n.level * 1.25);
+        const beads2 = [];
+        let at = Infinity;
+        for (const w of wiresOut) {
+          if (w.b !== ANSWER[s] || hidden[w.a].level === 0) continue;
+          const leave = T.wave2 + T.wave2Spread * w.seed;
+          beads2.push({ wire: w, leave, level: hidden[w.a].level });
+          at = Math.min(at, leave + T.travel2);
+        }
+        return { input, hidden, beads1, beads2, outputAt: at };
+      });
+
+      /* ---------------- impulses that never stop ---------------- */
+      // A bead and its tail on some of the wires, each with a whole number of
+      // laps per loop (so the loop closes) and its own offset.
+      const TAIL = 3;
+      const ambient = [];
+      for (const w of wiresIn) if (rnd() < 0.24) ambient.push({ wire: w, stage: 0, laps: rnd() < 0.5 ? 2 : 3, offset: rnd() });
+      for (const w of wiresOut) if (rnd() < 0.16) ambient.push({ wire: w, stage: 1, laps: rnd() < 0.5 ? 2 : 3, offset: rnd() });
+
+      /* ---------------- dust ---------------- */
+      const dust = [];
+      while (dust.length < 180) {
+        const p = [mix(-4.4, 4.4, rnd()), (rnd() + rnd() - 1) * 1.8, (rnd() + rnd() - 1) * 2.4];
+        // keep the space the network occupies almost clear
+        const inNet = Math.abs(p[1]) < 1.05 && Math.abs(p[2]) < 1.05 && p[0] > -3.4 && p[0] < 3.4;
+        if (inNet && rnd() > 0.12) continue;
+        // (a third of it wanders; the rest stays put)
+        dust.push({ p, size: pick(DUST.sizes), alpha: pick(DUST.alphas), seed: rnd(), laps: rnd() < 0.7 ? 1 : 2, amp: rnd() < 0.3 ? 0.05 : 0 });
+      }
+
+      /* ---------------- drawing ---------------- */
+      const canvas = document.getElementById("scene");
+      const ctx = canvas.getContext("2d");
+      const dpr = Math.min(2, window.devicePixelRatio || 1);
+      canvas.width = W * dpr;
+      canvas.height = H * dpr;
+
+      const css = getComputedStyle(document.documentElement);
+      const rgbOf = (name) => css.getPropertyValue(name).trim().split(/\s+/).map(Number);
+      const dark = document.documentElement.dataset.theme === "dark";
+      let INK = rgbOf("--fg-rgb");
+      let ACCENT = rgbOf("--purple-rgb");
+      /** the hero's ink: solid on light, 85 % on dark (components/figures/scene.ts) */
+      const INK_ALPHA = dark ? 0.85 : 1;
+      const WIRE_ALPHA = dark ? 0.2 : 0.17;
+
+      /** A speck of dust's slow wander: a small loop of its own, a whole number of times per clip (so it closes). */
+      function wander(d, phase, out) {
+        const a = TAU * (phase * d.laps + d.seed);
+        out[0] = d.p[0] + d.amp * 0.6 * Math.sin(a + 1.1);
+        out[1] = d.p[1] + d.amp * Math.sin(a);
+        out[2] = d.p[2] + d.amp * Math.cos(a);
+        return out;
+      }
+
+      const sprites = [];
+      const v3 = [0, 0, 0];
+      const scr = [0, 0, 0, 0];
+      /** queue a dot: world position, world diameter, opacity, how purple (0 ink … 1 accent), and its halo */
+      function dot(p, size, alpha, hue = 0, glow = 0) {
+        if (alpha <= 0.004) return;
+        project(p[0], p[1], p[2], scr);
+        // (what is lit keeps most of its strength in the distance: it is the signal)
+        sprites.push({ x: scr[0], y: scr[1], r: (size * scr[2]) / 2, a: alpha * mix(haze(scr[3]), 1, hue * 0.7), hue, glow, depth: scr[3] });
+      }
+      const along = (a, b, u, out) => {
+        out[0] = mix(a[0], b[0], u);
+        out[1] = mix(a[1], b[1], u);
+        out[2] = mix(a[2], b[2], u);
+        return out;
+      };
+
+      // (the network is rigid, as the hero's figures are: its nodes stay where they were built)
+      const place = { input: inputNodes.map((n) => n.p), hidden: hiddenNodes.map((n) => n.p), output: outputNodes.map((n) => n.p) };
+      const lit = { input: new Float32Array(inputNodes.length), hidden: new Float32Array(hiddenNodes.length), output: new Float32Array(outputNodes.length) };
+
+      function render(phase) {
+        phase = ((phase % 1) + 1) % 1;
+        sprites.length = 0;
+        const seconds = phase * SECONDS;
+        const tOf = (s) => (seconds + START + s * (SECONDS / 2)) % SECONDS;
+
+        // how lit each node is
+        lit.input.fill(0);
+        lit.hidden.fill(0);
+        lit.output.fill(0);
+        plans.forEach((plan, s) => {
+          const t = tOf(s);
+          const inFade = 1 - smooth(T.inputFade[0], T.inputFade[1], t);
+          plan.input.forEach((n, k) => n.level && (lit.input[k] = Math.max(lit.input[k], n.level * smooth(n.at - 0.12, n.at + 0.22, t) * inFade)));
+          const hidFade = 1 - smooth(T.hiddenFade[0], T.hiddenFade[1], t);
+          plan.hidden.forEach((n, k) => n.level && (lit.hidden[k] = Math.max(lit.hidden[k], n.level * smooth(n.at - 0.08, n.at + 0.3, t) * hidFade)));
+          const o = ANSWER[s];
+          lit.output[o] = Math.max(lit.output[o], smooth(plan.outputAt - 0.05, plan.outputAt + 0.45, t) * (1 - smooth(T.outputFade[0], T.outputFade[1], t)));
+        });
+
+        ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+        ctx.clearRect(0, 0, W, H);
+
+        // wires, behind everything: hairlines in ink
+        const a2 = [0, 0, 0, 0];
+        const b2 = [0, 0, 0, 0];
+        ctx.lineWidth = 1;
+        ctx.lineCap = "round";
+        // (each bundle is one path, stroked once: where wires run over each other they do not add up into a darker line)
+        const wires = (list, from, to, alpha) => {
+          let depth = 0;
+          ctx.beginPath();
+          for (const w of list) {
+            const a = from[w.a];
+            const b = to[w.b];
+            project(a[0], a[1], a[2], a2);
+            project(b[0], b[1], b[2], b2);
+            ctx.moveTo(a2[0], a2[1]);
+            ctx.lineTo(b2[0], b2[1]);
+            depth += (a2[3] + b2[3]) / 2 / list.length;
+          }
+          ctx.strokeStyle = `rgb(${INK[0]} ${INK[1]} ${INK[2]} / ${(alpha * INK_ALPHA * haze(depth)).toFixed(3)})`;
+          ctx.stroke();
+        };
+        wires(wiresIn, place.input, place.hidden, WIRE_ALPHA);
+        wires(wiresOut, place.hidden, place.output, WIRE_ALPHA * 0.62);
+
+        // dust
+        for (const d of dust) dot(d.amp ? wander(d, phase, v3) : d.p, d.size, d.alpha);
+
+        // the layers: frames and nodes
+        for (const f of frames) dot(f.p, f.size, f.alpha);
+        inputNodes.forEach((n, k) => dot(place.input[k], n.size * (1 + 0.5 * lit.input[k]), 1, lit.input[k], lit.input[k]));
+        hiddenNodes.forEach((n, k) => dot(place.hidden[k], n.size * (1 + 0.42 * lit.hidden[k]), 1, lit.hidden[k], lit.hidden[k]));
+        outputNodes.forEach((n, k) => dot(place.output[k], n.size * (1 + 0.7 * lit.output[k]), 1, lit.output[k], lit.output[k] * 2));
+
+        // impulses: the ones that never stop…
+        for (const b of ambient) {
+          const a = b.stage === 0 ? place.input[b.wire.a] : place.hidden[b.wire.a];
+          const c = b.stage === 0 ? place.hidden[b.wire.b] : place.output[b.wire.b];
+          for (let k = 0; k <= TAIL; k++) {
+            const u = (((phase * b.laps + b.offset - k * 0.045) % 1) + 1) % 1;
+            const ends = smooth(0, 0.07, u) * (1 - smooth(0.9, 1, u));
+            dot(along(a, c, u, v3), DOT.m * (1 - k * 0.17), (1 - k * 0.22) * ends, 1, k === 0 ? 0.8 : 0);
+          }
+        }
+        // …and each sign's wave
+        plans.forEach((plan, s) => {
+          const t = tOf(s);
+          const wave = (beads, from, to, travel) => {
+            for (const b of beads) {
+              const a = from[b.wire.a];
+              const c = to[b.wire.b];
+              const eased = (u) => smooth(0, 1, u) * 0.35 + u * 0.65;
+              const head = (t - b.leave) / travel;
+              if (head <= 0 || head >= 1.35) continue;
+              // the wire itself lights up behind the bead
+              const u1 = eased(clamp(head));
+              const u0 = eased(clamp(head - 0.34));
+              const fade = smooth(0, 0.12, head) * (1 - smooth(1, 1.35, head));
+              project(mix(a[0], c[0], u0), mix(a[1], c[1], u0), mix(a[2], c[2], u0), a2);
+              project(mix(a[0], c[0], u1), mix(a[1], c[1], u1), mix(a[2], c[2], u1), b2);
+              if (Math.hypot(b2[0] - a2[0], b2[1] - a2[1]) > 0.5) {
+                const trail = ctx.createLinearGradient(a2[0], a2[1], b2[0], b2[1]);
+                trail.addColorStop(0, `rgb(${ACCENT[0]} ${ACCENT[1]} ${ACCENT[2]} / 0)`);
+                trail.addColorStop(1, `rgb(${ACCENT[0]} ${ACCENT[1]} ${ACCENT[2]} / ${(0.75 * mix(0.6, 1, b.level) * fade).toFixed(3)})`);
+                ctx.strokeStyle = trail;
+                ctx.lineWidth = 1.5;
+                ctx.beginPath();
+                ctx.moveTo(a2[0], a2[1]);
+                ctx.lineTo(b2[0], b2[1]);
+                ctx.stroke();
+              }
+              if (head < 1) {
+                const ends = smooth(0, 0.1, head) * (1 - smooth(0.9, 1, head));
+                dot(along(a, c, u1, v3), DOT.m * 1.25, mix(0.75, 1, b.level) * ends, 1, 1);
+              }
+            }
+          };
+          wave(plan.beads1, place.input, place.hidden, T.travel1);
+          wave(plan.beads2, place.hidden, place.output, T.travel2);
+        });
+
+        // the signs
+        signs.forEach((dots, s) => {
+          const t = tOf(s);
+          if (t > T.fall + T.fallSpread + T.flight) return;
+          const form = clamp((t - T.form[0]) / (T.form[1] - T.form[0]));
+          for (const d of dots) {
+            // forming, as the hero's figures do: each dot arrives from a little way off (here it also grows: a fine dust that sets)
+            const f = smooth(0, 1, clamp(form * 1.4 - d.seed[1] * 0.4));
+            const gone = 1 - f;
+            v3[0] = d.p[0];
+            v3[1] = d.p[1];
+            v3[2] = d.p[2];
+            const off = d.reach * gone * gone;
+            v3[0] += d.from[0] * off;
+            v3[1] += d.from[1] * off;
+            v3[2] += d.from[2] * off;
+            let size = d.size * (1 - 0.4 * gone);
+            let alpha = d.alpha * f * Math.sqrt(f);
+            let hue = 0;
+            // falling into the input layer
+            const u = clamp((t - d.leave) / T.flight);
+            if (u > 0) {
+              const e = u * u * (3 - 2 * u);
+              const node = place.input[d.node];
+              along(v3, node, e, v3);
+              // a slight arc, so the stream does not look ruled
+              v3[1] += Math.sin(Math.PI * e) * 0.05 * (d.seed[2] - 0.5);
+              size = mix(size, DOT.s, e);
+              alpha *= 1 - smooth(0.78, 1, u);
+              hue = smooth(0.1, 0.6, u);
+            }
+            dot(v3, size, alpha, hue);
+          }
+        });
+
+        // far to near
+        sprites.sort((a, b) => b.depth - a.depth);
+        for (const sp of sprites) {
+          const r = Math.round(mix(INK[0], ACCENT[0], sp.hue));
+          const g = Math.round(mix(INK[1], ACCENT[1], sp.hue));
+          const b = Math.round(mix(INK[2], ACCENT[2], sp.hue));
+          const a = sp.a * mix(INK_ALPHA, 1, sp.hue);
+          if (sp.glow > 0.01) {
+            // a bead of colour with a soft halo, as the chip's packets have
+            const R = sp.r * (2.4 + 0.5 * Math.max(0, sp.glow - 1));
+            const halo = ctx.createRadialGradient(sp.x, sp.y, sp.r * 0.75, sp.x, sp.y, R);
+            halo.addColorStop(0, `rgb(${ACCENT[0]} ${ACCENT[1]} ${ACCENT[2]} / ${(0.32 * Math.min(1, sp.glow) * sp.a).toFixed(3)})`);
+            halo.addColorStop(1, `rgb(${ACCENT[0]} ${ACCENT[1]} ${ACCENT[2]} / 0)`);
+            ctx.fillStyle = halo;
+            ctx.beginPath();
+            ctx.arc(sp.x, sp.y, R, 0, TAU);
+            ctx.fill();
+          }
+          ctx.fillStyle = `rgb(${r} ${g} ${b} / ${a.toFixed(3)})`;
+          ctx.beginPath();
+          ctx.arc(sp.x, sp.y, Math.max(0.35, sp.r), 0, TAU);
+          ctx.fill();
+        }
+
+        if (query.has("safe")) {
+          ctx.strokeStyle = "rgb(255 0 80 / 0.7)";
+          ctx.lineWidth = 1;
+          ctx.strokeRect(W * 0.1 + 0.5, H * 0.1 + 0.5, W * 0.8, H * 0.8);
+        }
+      }
+
+      /** what scripts/loops/record.mjs drives: the clip's size and length, and one frame per phase */
+      window.loop = {
+        width: W,
+        height: H,
+        seconds: SECONDS,
+        fps: FPS,
+        render,
+        /** the recorder calls this after setting the site's current tokens on <html> */
+        retheme() {
+          INK = rgbOf("--fg-rgb");
+          ACCENT = rgbOf("--purple-rgb");
+        },
+      };
+
+      if (query.has("phase")) render(Number(query.get("phase")) || 0);
+      else {
+        const t0 = performance.now();
+        const tick = (now) => {
+          render((now - t0) / 1000 / SECONDS);
+          requestAnimationFrame(tick);
+        };
+        requestAnimationFrame(tick);
+      }
+    </script>
+  </body>
+</html>
