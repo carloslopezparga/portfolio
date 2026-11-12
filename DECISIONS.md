@@ -252,7 +252,7 @@ Grupo (a) completo, del 1 al 16, y el reveal del grupo (b). Capturas antes/despu
 - **Bordes densos y con un punto grande en cada vértice; caras con grano fino,** como las placas del chip.
 - **Profundidad:** la señal es lo más cercano y la salida lo más lejano, un 33 % más pequeña y hasta un 45 % más tenue. Alrededor, 180 puntos de polvo a distintas distancias; un tercio deambula despacio.
 - **Un solo acento:** el morado del dominio IA (`--purple`, el de `--d-rgb` en `app/globals.css`): #AF52DE en claro y #BF5AF2 en oscuro. Tinta #1D1D1F en claro y #F5F5F7 al 85 % en oscuro. Sin texto ni logos.
-- **Fondo:** el gris de la tarjeta (`--card`) con el tinte de `.frag-stage` encima, pintado con el mismo CSS.
+- **Fondo:** el gris de la tarjeta (`--card`) con el tinte de `.frag-stage` encima. La escena enlaza `app/globals.css` y lo pinta con las reglas de la propia web.
 
 **Formato**
 - 7 s, 24 fps (168 fotogramas), 832 × 520 px, sin audio. La acción cabe en el 80 % central.
@@ -260,8 +260,8 @@ Grupo (a) completo, del 1 al 16, y el reveal del grupo (b). Capturas antes/despu
 - **Determinista y periódica:** semilla fija y todo en función de una fase de 0 a 1; el último fotograma enlaza con el primero.
 
 **Cómo se graba**
-- `node scripts/loops/record.mjs cs50-ai`: fotograma a fotograma con Playwright y ffmpeg. El grabador es genérico: vale para cualquier escena `scripts/loops/<id>.html`.
-- **Misma codificación que los otros clips.** Los ajustes estaban dentro de `scripts/record-project-loops.mjs`; ahora viven en `scripts/loops/encode.mjs` y los usan los dos grabadores.
+- `node scripts/loops/record.mjs cs50-ai cs50-ai` (escena y carpeta del proyecto): fotograma a fotograma con Playwright y ffmpeg, con los ajustes de codificación de `scripts/record-project-loops.mjs`.
+- **El grabador es el de los PR #8 (Shortlist) y #9 (refrigeración), sin cambiar una línea.** En `main` no hay ninguno en `scripts/loops/`; lo he traído tal cual de esos PR, junto con su cambio en `scripts/record-project-loops.mjs`, y la escena sigue su contrato (`window.loop` con `draw(fase)`, tema por `?theme=`).
 
 **Móvil:** sin cambios. Por debajo de 768 px la tarjeta sigue mostrando su fragmento en HTML.
 
@@ -280,10 +280,12 @@ Grupo (a) completo, del 1 al 16, y el reveal del grupo (b). Capturas antes/despu
 - **El webm pesa más que el mp4:** 432 kB (claro) y 359 kB (oscuro), frente a 327 y 295. Con los ajustes del script (VP9, CRF 40) esta escena de puntos comprime peor que en H.264, y Chrome y Firefox eligen el webm, que va primero. No lo he tocado porque pediste esos ajustes y el tope era para el mp4. Con CRF 44 el claro quedaría en 340 kB. Dime si lo cambio solo para este clip.
 - **Pesa más que el clip anterior:** antes se descargaban entre 51 y 95 kB por visita; ahora, entre 295 y 432 kB. Sigue cargándose solo cuando la tarjeta se acerca a la pantalla, y nunca en el móvil.
 - **Fondo tras codificar:** el de la escena es exacto. En Chromium, el clip oscuro sale idéntico a la tarjeta (28, 28, 30) y el claro se va un nivel de 255 en rojo y azul (246, 245, 248 frente a 245, 245, 247). Es el redondeo del vídeo a 8 bits, el mismo de los otros clips; no se ve.
-- **Los colores se leen de `app/globals.css` al grabar** (los dos bloques de tokens y la opacidad del tinte de `.frag-stage`). Si cambias el gris de la tarjeta o el morado, basta con volver a grabar. Las copias que hay dentro del HTML solo sirven para abrirlo a mano.
-- **El grabador de las ilustraciones se salta los proyectos con escena propia** en `scripts/loops/`. Si no, al regrabar volvería a crear los `loop-es-*` y `loop-en-*` de CS50, que tienen preferencia sobre `loop-light` y `loop-dark`.
+- **Los colores salen de `app/globals.css`,** que la escena enlaza: el gris de la tarjeta, el tinte de `.frag-stage` y el morado del dominio. Si los cambias, basta con volver a grabar.
+- **Empecé con un grabador propio y lo retiré.** Al ir a abrir el PR vi que los PR #8 y #9 ya traían uno; para que los tres no choquen en el código, uso ese, idéntico. Al cambiar, la escena se reproducía sola mientras el grabador capturaba y los fotogramas salían mezclados (los mp4 no coincidían con los ya revisados); corregido como en las otras dos escenas: bajo automatización no se autorreproduce. Tras el arreglo, los mp4 y los pósters son idénticos byte a byte a los que había revisado.
+- **Este PR choca en el texto con los PR #8 y #9, no en el código.** Los tres tocan los mismos párrafos de `DECISIONS.md`, `README.md` y `public/media/README.md`; al fusionar el segundo y el tercero habrá que unirlos a mano. El grabador y `record-project-loops.mjs` son idénticos en los tres.
+- **El grabador de las ilustraciones se salta los proyectos con vídeo propio** (`loop.*`, `loop-light.*` o `loop-dark.*`). Si no, al regrabar volvería a crear los `loop-es-*` y `loop-en-*` de CS50, que tienen preferencia.
 - **La ilustración antigua de la tarjeta** (CNN · GTSRB con «Stop / Ceda el paso / Prohibido el paso», y Nim) no se ha tocado: es lo que se ve en el móvil y lo que saldría si faltara el vídeo.
-- **Los webm no salen idénticos byte a byte** entre dos grabaciones: el codificador VP9 reparte el trabajo en hilos. Los fotogramas, los mp4 y los pósters, sí.
+- **Los webm no salen idénticos byte a byte** entre dos grabaciones, aunque el vídeo que llevan dentro sí lo es: el contenedor guarda un identificador aleatorio en la cabecera. Los mp4 y los pósters son idénticos.
 
 ### Segunda ronda del 11-11 (revisar)
 
@@ -329,7 +331,7 @@ Grupo (a) completo, del 1 al 16, y el reveal del grupo (b). Capturas antes/despu
   - Los 12 grabados de las ilustraciones pesan 2,4 MB en total con sus pósters (832 × 522 px, 24 fps; cada vídeo, entre 36 y 140 KB). Solo se descarga el del idioma y el tema que se ven, y solo cuando la tarjeta se acerca a la pantalla. El de CS50 pesa más: ver «Vídeo de Proyectos de IA (CS50) (revisar)».
   - En el móvil no se usa el clip: desde la segunda ronda vuelve el fragmento principal en HTML.
   - Con las animaciones en pausa, sin JavaScript o hasta que carga, se ve el póster.
-  - Para poner un vídeo real de un proyecto: `loop.mp4` en su carpeta (ver `public/media/README.md`). Para regrabar los actuales: `node scripts/record-project-loops.mjs` (y `node scripts/loops/record.mjs cs50-ai` para el de CS50).
+  - Para poner un vídeo real de un proyecto: `loop.mp4` en su carpeta (ver `public/media/README.md`). Para regrabar los actuales: `node scripts/record-project-loops.mjs` (y `node scripts/loops/record.mjs cs50-ai cs50-ai` para el de CS50).
 - **Reserva desde el agente:** un navegador solo deja abrir una pestaña justo después de un clic o una tecla, y la respuesta del agente puede llegar más tarde. Si la bloquea, la página baja a Contacto y resalta el botón.
 - **«Cómo trabajo» en el móvil:** no hay figura (las figuras siguen siendo solo de escritorio, salvo el chip).
 - **Límite del chip:** no es un tope fijo de ángulo. En cada fotograma el chip toma toda la inclinación y la apertura que caben sin acercarse a menos de 35 px de los textos; los puntos que empuja el cursor se comprimen en los 5 px siguientes y ninguno cruza los 30 px (24 más el radio del punto más grande). La apertura al pasar el ratón baja además de 0,20 a 0,16.
@@ -460,8 +462,8 @@ Grupo (a) completo, del 1 al 16, y el reveal del grupo (b). Capturas antes/despu
     - En el mp4: del último al primero, 1,0; la mediana del bucle es 0,8 y el máximo, 3,1 (cuando la señal se deshace). En el webm: 1,2, con mediana 0,8 y máximo 2,9.
   - **Acción en el 80 % central:** señales y capas van de 94 a 740 px a lo ancho y de 93 a 432 a lo alto; el 80 % central va de 83 a 749 y de 52 a 468.
   - **Tarjeta a 1440 × 900,** claro y oscuro, en `/` y `/es`: carga `loop-<tema>.webm` y su póster, se reproduce mudo y en bucle a 520 × 325 px. Ninguna petición a los archivos borrados y ningún error de consola.
-  - **Determinista:** dos grabaciones seguidas dan mp4 y pósters idénticos byte a byte.
-  - **Grabador de las ilustraciones,** tras compartir la codificación: graba los otros tres proyectos y se salta este. No he subido esas regrabaciones.
+  - **Determinista:** dos grabaciones seguidas dan mp4 y pósters idénticos byte a byte, y el mismo vídeo dentro de los webm.
+  - **Grabador de las ilustraciones** (el archivo de los PR #8 y #9), ejecutado entero en esta rama: graba los otros tres proyectos y se salta este («skipped: it has its own clip»). No he subido esas regrabaciones.
   - **Revisado a ojo:** seis fotogramas repartidos de cada mp4, el último junto al primero, y la tarjeta en los dos temas (también a 2×).
   - **Sin repetir:** Lighthouse y axe. El cambio no toca componentes ni estilos de la web; solo archivos de vídeo y scripts.
 - **axe:** 0 incidencias en claro y oscuro, escritorio y móvil (04-11).

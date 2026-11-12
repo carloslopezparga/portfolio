@@ -1,67 +1,68 @@
 <!doctype html>
 <!--
   The looping clip at the top of the "AI projects (CS50)" card: a network that
-  learns to see. Dots form a traffic sign (a stop octagon, then a yield
-  triangle) in front of three layers of nodes in perspective; the sign falls
-  apart into the input layer, a wave crosses the network and a different
-  output node lights up for each sign.
+  learns to see.
 
-  Canvas 2D, no dependencies, no assets. Deterministic (seeded) and periodic:
-  every frame is a function of one phase, 0 to 1, so the last frame meets the
-  first. The look is the hero chip's (lib/chip-cloud.ts): crisp dots in a
-  hierarchy of sizes, ink plus one accent.
+  Dots form a traffic sign on its post (a stop octagon, then a yield triangle,
+  no lettering) in front of three layers of nodes in perspective, joined by
+  hairlines that impulses of colour run along, left to right, all the time.
+  The sign falls apart into the input layer, a wave crosses the network and a
+  different output node lights up for each sign.
 
-    cs50-ai.html                 plays, light theme
-    cs50-ai.html?theme=dark      plays, dark theme
-    cs50-ai.html?phase=0.25      one still
-    cs50-ai.html?safe            outlines the central 80 % (what a cropped card still shows)
+  The look is the hero chip's (lib/chip-cloud.ts): crisp dots in a hierarchy of
+  sizes, the far ones smaller and fainter, ink plus one accent. Colours and
+  background come from the site's own stylesheet, linked below: the card's
+  grey, .frag-stage's tint and the "ai" domain's purple.
 
-  Recorded by scripts/loops/record.mjs, which also brings the colours below up
-  to date from app/globals.css.
+  Deterministic (seeded) and periodic: a frame depends only on a phase from 0
+  to 1, and phase 1 draws the same picture as phase 0. The camera and the
+  network never move (see CAM). Open it in a browser to watch it (add
+  ?theme=dark, ?phase=0.25 for one still, or ?safe to outline the central 80 %
+  that a cropped card still shows), or record it:
+
+    node scripts/loops/record.mjs cs50-ai cs50-ai
 -->
 <html lang="en" data-theme="light">
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>cs50-ai · loop</title>
+    <title>AI projects (CS50) · loop</title>
+    <script>
+      document.documentElement.dataset.theme = new URLSearchParams(location.search).get("theme") === "dark" ? "dark" : "light";
+    </script>
+    <link rel="stylesheet" href="../../app/globals.css" />
     <style>
-      /* The site's tokens (app/globals.css), under their own names. */
-      :root {
-        --card: #f5f5f7;
-        --fg-rgb: 29 29 31;
-        --purple-rgb: 175 82 222;
-        /* .frag-stage: the tint at the top of a project card */
-        --tint: 0.14;
-      }
-      [data-theme="dark"] {
-        --card: #1c1c1e;
-        --fg-rgb: 245 245 247;
-        --purple-rgb: 191 90 242;
-        --tint: 0.22;
-      }
       html,
       body {
         margin: 0;
+        overflow: hidden;
         background: var(--card);
       }
+      /* the card (its grey, its domain's colour)… */
+      #card {
+        flex: none;
+        width: 832px;
+        height: 520px;
+        background: var(--card);
+      }
+      /* …and the top of it: .frag-stage paints the tint */
       #stage {
         position: relative;
         width: 832px;
         height: 520px;
-        overflow: hidden;
-        /* the card's own background: its grey and, on top, .frag-stage's tint */
-        background: radial-gradient(90% 80% at 50% 0%, rgb(var(--purple-rgb) / var(--tint)), transparent 70%), var(--card);
       }
       canvas {
         position: absolute;
         inset: 0;
+        display: block;
         width: 100%;
         height: 100%;
       }
     </style>
   </head>
   <body>
-    <div id="stage"><canvas id="scene"></canvas></div>
+    <div id="card" data-domain="ai">
+      <div id="stage" class="frag-stage"><canvas id="scene"></canvas></div>
+    </div>
     <script>
       "use strict";
       const W = 832;
@@ -69,7 +70,6 @@
       const SECONDS = 7;
       const FPS = 24;
       const query = new URLSearchParams(location.search);
-      if (query.get("theme") === "dark") document.documentElement.dataset.theme = "dark";
 
       /* ---------------- randomness (same generator as lib/chip-cloud.ts) ---------------- */
       function mulberry32(seed) {
@@ -361,11 +361,12 @@
       canvas.width = W * dpr;
       canvas.height = H * dpr;
 
-      const css = getComputedStyle(document.documentElement);
+      // the site's ink and the card's domain colour (--d-rgb: the purple, on #card[data-domain="ai"]), as "r g b"
+      const css = getComputedStyle(document.getElementById("stage"));
       const rgbOf = (name) => css.getPropertyValue(name).trim().split(/\s+/).map(Number);
       const dark = document.documentElement.dataset.theme === "dark";
-      let INK = rgbOf("--fg-rgb");
-      let ACCENT = rgbOf("--purple-rgb");
+      const INK = rgbOf("--fg-rgb");
+      const ACCENT = rgbOf("--d-rgb");
       /** the hero's ink: solid on light, 85 % on dark (components/figures/scene.ts) */
       const INK_ALPHA = dark ? 0.85 : 1;
       const WIRE_ALPHA = dark ? 0.2 : 0.17;
@@ -570,28 +571,20 @@
       }
 
       /** what scripts/loops/record.mjs drives: the clip's size and length, and one frame per phase */
-      window.loop = {
-        width: W,
-        height: H,
-        seconds: SECONDS,
-        fps: FPS,
-        render,
-        /** the recorder calls this after setting the site's current tokens on <html> */
-        retheme() {
-          INK = rgbOf("--fg-rgb");
-          ACCENT = rgbOf("--purple-rgb");
-        },
-      };
+      window.loop = { width: W, height: H, seconds: SECONDS, fps: FPS, draw: render };
 
+      // One still (?phase=…), or the clip in real time for whoever opens the file. Under automation
+      // (the recorder) it does not play by itself: a frame drawn on its own between draw() and the
+      // screenshot would end up in the clip.
       if (query.has("phase")) render(Number(query.get("phase")) || 0);
-      else {
+      else if (!navigator.webdriver) {
         const t0 = performance.now();
         const tick = (now) => {
           render((now - t0) / 1000 / SECONDS);
           requestAnimationFrame(tick);
         };
         requestAnimationFrame(tick);
-      }
+      } else render(0);
     </script>
   </body>
 </html>
