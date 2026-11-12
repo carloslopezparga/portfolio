@@ -1,8 +1,8 @@
 # Decisiones
 
-Lo aprobado, lo que he decidido yo al construir (para que lo revises) y lo que falta. Última actualización: 11-11-2026. Incluye las tres fases (contenido y CV, dirección visual Apple × Evolve, piezas visuales), el pulido estético (rama `claude/design-polish`), el hero definitivo con el chip de partículas (rama `claude/hero-asymmetric`), la nube de partículas con presencia y figuras (rama `claude/particle-figures`), la carga, la interacción y la pausa del chip (rama `claude/chip-interaction`), la ronda del 11-11 (rama `claude/nice-keller-emmje9`): partículas una a una, «Cómo trabajo», carruseles, vídeos de proyecto, Skills compacto y reserva con Google Calendar; y la segunda ronda del 11-11 (rama `claude/tender-faraday-k93q2e`): física real por partícula, «Cómo trabajo» más abajo y rediseñada, Skills como red en 3D y cinco ajustes.
+Lo aprobado, lo que he decidido yo al construir (para que lo revises) y lo que falta. Última actualización: 12-11-2026. Incluye las tres fases (contenido y CV, dirección visual Apple × Evolve, piezas visuales), el pulido estético (rama `claude/design-polish`), el hero definitivo con el chip de partículas (rama `claude/hero-asymmetric`), la nube de partículas con presencia y figuras (rama `claude/particle-figures`), la carga, la interacción y la pausa del chip (rama `claude/chip-interaction`), la ronda del 11-11 (rama `claude/nice-keller-emmje9`): partículas una a una, «Cómo trabajo», carruseles, vídeos de proyecto, Skills compacto y reserva con Google Calendar; y la segunda ronda del 11-11 (rama `claude/tender-faraday-k93q2e`): física real por partícula, «Cómo trabajo» más abajo y rediseñada, Skills como red en 3D y cinco ajustes; y el vídeo de Shortlist hecho con código (rama `claude/cool-wozniak-1p9zt8`).
 
-Lo que cambia la última ronda está en «Segunda ronda del 11-11», al final de la sección 1; los apartados anteriores se han corregido donde ya no eran verdad.
+Lo último está en «Vídeo de Shortlist hecho con código», al final de la sección 1; los apartados anteriores se han corregido donde ya no eran verdad.
 
 ## 1. Aprobado (hecho)
 
@@ -159,7 +159,7 @@ Grupo (a) completo, del 1 al 16, y el reveal del grupo (b). Capturas antes/despu
 
 **5. Proyectos**
 - Una sola fila con desplazamiento horizontal: scroll-snap, flechas desde 768 px y arrastre con el dedo en el móvil. El panel de demo y case study se abre debajo de la fila.
-- **Vídeo en bucle arriba de cada tarjeta, desde 768 px** (mudo, autoplay, playsInline, con póster; en el móvil, el fragmento principal en HTML): 7 s, grabado con Playwright de los fragmentos animados de la propia tarjeta, en webm y mp4, uno por idioma y por tema (16 vídeos y 16 pósters en `public/media/projects/<id>/`).
+- **Vídeo en bucle arriba de cada tarjeta, desde 768 px** (mudo, autoplay, playsInline, con póster; en el móvil, el fragmento principal en HTML): 7 s, grabado con Playwright de los fragmentos animados de la propia tarjeta, en webm y mp4, uno por idioma y por tema (16 vídeos y 16 pósters en `public/media/projects/<id>/`). Desde el 12-11 el de Shortlist es una escena hecha con código (más abajo) y los grabados son 12.
 - job-hunt-copilot se llama **Shortlist** en la web y para el agente; el `id` interno, la carpeta y el enlace al repositorio no cambian. La imagen OG no nombra proyectos.
 
 **6. Skills**
@@ -235,7 +235,51 @@ Grupo (a) completo, del 1 al 16, y el reveal del grupo (b). Capturas antes/despu
 - **Contacto:** «, o reservar 15 minutos» solo aparece con `NEXT_PUBLIC_BOOKING_URL`. Sin ella, la frase termina en «Lo más rápido es el email.».
 - **Escudo de Retamar:** se ve. Dos cambios para que no vuelva a salir en blanco: ver «Segunda ronda del 11-11 (revisar)».
 
+### Vídeo de Shortlist hecho con código (rama `claude/cool-wozniak-1p9zt8`; pendiente de tu OK)
+
+- **Qué cambia:** el clip de arriba de la tarjeta de Shortlist ya no es la grabación de su ilustración. Es una escena dibujada con código (canvas 2D), sin generadores de vídeo ni recursos externos: `scripts/loops/shortlist.html`.
+- **La escena, el embudo de ofertas:**
+  - **Izquierda:** entra sin parar una nube desordenada de puntos, las ofertas (1.071 en todo el recorrido; a la vez se ven unos 880).
+  - **Centro:** siete líneas verticales finas, los siete factores. Tras cada línea el punto da un paso hacia su sitio y después avanza recto hasta la siguiente.
+  - **Derecha:** salen en 12 filas ordenadas por tamaño, de mayor a menor, como una lista. Las dos primeras (63 puntos, el 6 %) se encienden en azul línea a línea y suben.
+- **Estilo del chip:**
+  - Puntos nítidos en cinco tamaños: 59 % finos, 24 % pequeños, 12 % medianos y 6 % grandes.
+  - Profundidad: en la nube, el lado lejano es hasta un 30 % más pequeño y más tenue; en la lista, las filas de abajo van más juntas y más tenues.
+  - Un solo color: el azul del dominio de la tarjeta.
+- **Colores, del CSS de la propia web:** la escena enlaza `app/globals.css` y pinta con sus reglas: el fondo es `--card`, el tinte es el degradado de `.frag-stage` y el azul es `--d-rgb` de `data-domain="automation"`. La tinta es `--fg`: #1D1D1F en claro y #F5F5F7 al 85 % en oscuro.
+- **Formato:** 7 s, 24 fps, 832 × 520 px, sin audio. Un vídeo por tema, `loop-light` y `loop-dark`, cada uno en `.mp4` (H.264), `.webm` (VP9) y `.poster.jpg` (primer fotograma). Sin texto: vale para los dos idiomas.
+- **Peso:** mp4 de 372 kB (claro) y 347 kB (oscuro); el límite era 400.
+- **Bucle sin salto:** todo depende de una fase de 0 a 1, con semilla fija; la fase 1 dibuja lo mismo que la 0, píxel a píxel.
+- **Grabador nuevo y reutilizable:** `scripts/loops/record.mjs` (en `scripts/loops/` no había ninguno). Playwright fotograma a fotograma y ffmpeg, con los mismos ajustes que `scripts/record-project-loops.mjs`. Uso: `node scripts/loops/record.mjs shortlist job-hunt-copilot`.
+- **Borrados** los 12 archivos `loop-en-*` y `loop-es-*` de `public/media/projects/job-hunt-copilot/`.
+- **En el móvil no cambia nada:** sigue el fragmento principal en HTML.
+
 ## 2. Decidido por mí (revisar)
+
+### Vídeo de Shortlist (revisar)
+
+**Movimiento**
+- **Velocidad: 2 px por fotograma** (48 px/s en el vídeo; 30 px/s en la tarjeta). Un punto tarda 21 s en cruzar: tres vueltas del bucle.
+- **Por qué cierra el bucle:** cada punto tiene dos gemelos en su mismo camino, a un tercio y a dos tercios. Al acabar la vuelta cada uno está donde estaba el siguiente.
+- **Píxeles enteros:** en su fila, y entre una línea y la siguiente, un punto se mueve 2 px exactos por fotograma. Se dibuja igual en todos (nítido) y al códec no le cuesta nada. Con todos los puntos moviéndose sin parar, el mp4 pesaba entre 524 y 568 kB.
+- **No todos los puntos dan siete pasos.** Cada uno da los que necesita (uno por cada 30 px que le separan de su fila, siete como mucho) y queda en su sitio tras una línea distinta. Así las filas se van llenando línea a línea, en vez de aparecer todas tras la séptima. Los mejores sí dan los siete: su subida es continua.
+- **Un paso dura el 58 % del tramo entre dos líneas** (0,5 s); el resto, el punto va recto.
+- **La mitad lejana de la nube solo avanza.** La cercana gira despacio (0,85 rad en todo el tramo) y deriva con un flujo que comparten los vecinos (9 px). Con toda la nube girando, el mp4 pesaba 385 kB.
+- **El giro y la deriva se calman antes de la primera línea** (entre 140 y 24 px antes).
+
+**Composición**
+- **Los mejores entran por la mitad de abajo y por el lado cercano de la nube:** se ven grandes y su camino es siempre una subida.
+- **Las líneas se acortan como el embudo** (de 408 a 268 px de alto) y un énfasis suave pasa de una a la siguiente, una por segundo.
+- **Halo en los mejores:** un 13 % de azul alrededor, para que encenderse se note también en claro.
+- **Tamaños de punto:** 2,8 · 4 · 6 · 9 · 12,2 px en el vídeo; en la tarjeta (520 px de ancho), 1,75 · 2,5 · 3,75 · 5,6 · 7,6 px.
+- **Bordes:** los puntos aparecen y se van en los 78 px de cada lado (el 9 %). Las líneas y la lista quedan dentro del 80 % central.
+
+**Archivos y scripts**
+- **El webm pesa algo más que el mp4** (404 y 362 kB) con los ajustes de siempre, y la web sirve el webm primero. No lo he tocado.
+- **El tinte tiene el mismo bandeado leve que los otros clips** (se ve forzando el contraste): es de la compresión, no de la escena. Se quita bajando el CRF, que no he tocado.
+- **`scripts/record-project-loops.mjs` se salta ahora los proyectos con vídeo propio** (`loop.*`, `loop-light.*`, `loop-dark.*`). Si no, al regrabar las ilustraciones volvería a crear los `loop-es-*` de Shortlist, que tienen preferencia.
+- **El grabador nuevo termina con error si un mp4 pasa de 400 kB.**
+- **Si cambian `--card`, el tinte o el azul en `globals.css`, hay que regrabar:** el vídeo lleva los colores dentro.
 
 ### Segunda ronda del 11-11 (revisar)
 
@@ -278,7 +322,7 @@ Grupo (a) completo, del 1 al 16, y el reveal del grupo (b). Capturas antes/despu
 - **Fondos de sección:** cuenta lo que está directamente en la carpeta de la sección, no en las de las tarjetas, para que elijas tú qué se ve (en Voluntariado, vídeos sin caras). Si hay vídeo, las fotos se ignoran; varios vídeos se reproducen uno detrás de otro.
 - **Vídeos de proyecto:**
   - Como los fragmentos apenas se movían, el clip añade el paralaje del puntero dando una vuelta a la tarjeta; el bucle no tiene costura.
-  - Pesan 3,0 MB en total entre los 16 (832 × 522 px, 24 fps; cada uno, entre 50 y 140 KB). Solo se descarga el del idioma y el tema que se ven, y solo cuando la tarjeta se acerca a la pantalla.
+  - Pesan 3,0 MB en total entre los 16 (832 × 522 px, 24 fps; cada uno, entre 50 y 140 KB). Desde el 12-11: 2,0 MB los 12 grabados y 1,6 MB los 2 de Shortlist. Solo se descarga el del idioma y el tema que se ven, y solo cuando la tarjeta se acerca a la pantalla.
   - En el móvil no se usa el clip: desde la segunda ronda vuelve el fragmento principal en HTML.
   - Con las animaciones en pausa, sin JavaScript o hasta que carga, se ve el póster.
   - Para poner un vídeo real de un proyecto: `loop.mp4` en su carpeta (ver `public/media/README.md`). Para regrabar los actuales: `node scripts/record-project-loops.mjs`.
@@ -404,6 +448,13 @@ Grupo (a) completo, del 1 al 16, y el reveal del grupo (b). Capturas antes/despu
   - **Proyectos en 390 × 844:** fragmento de 305 × 122 px, texto de 12,5 px o más, y ninguna petición a los vídeos ni a sus pósters. A 800 px de ancho, el vídeo.
   - **Sin desbordes a lo ancho** en 390, 1024, 1280 y 1440 px.
   - Capturas de verificación: 9.
+- **Vídeo de Shortlist (12-11, build local de producción, Chromium):**
+  - `npm run lint` y `npm run build`, sin errores.
+  - **Archivos:** H.264 y VP9, 832 × 520 px, 24 fps, 168 fotogramas, 7 s, una sola pista (sin audio). mp4: 372 kB (claro) y 347 kB (oscuro).
+  - **Bucle:** en la escena, la fase 1 y la fase 0 dan la misma imagen (ningún byte distinto). En el mp4, del último fotograma al primero cambia lo mismo que entre dos seguidos cualesquiera (un 5 % más, por el fotograma clave) y el fondo no salta.
+  - **Nada tiembla:** siguiendo 17 puntos durante 2 s, el centro de cada uno en el mp4 se aparta del original 0,13 px como mucho (rms).
+  - **Tarjeta a 1440 × 900, en claro y en oscuro, con el webm y con el mp4:** el vídeo se reproduce a 520 × 325 px (16:10, sin recorte). Fondo del vídeo frente al de la tarjeta: en oscuro, idéntico (28, 28, 30); en claro, (246, 245, 248) frente a (245, 245, 247), un nivel de diferencia por el redondeo del vídeo. El póster, idéntico en los dos temas.
+  - **Revisión a ojo, sobre el mp4:** seis fotogramas repartidos por tema y el último junto al primero.
 - **axe:** 0 incidencias en claro y oscuro, escritorio y móvil (04-11).
 - **axe 4.14 (10-11):** 0 incidencias en `/` y `/es`, en claro y oscuro, en escritorio (1440 × 900, tras recorrer toda la página) y en móvil (390 × 844).
   - Esta versión pasa por defecto una regla más, `label-content-name-mismatch`, que marcaba 7 nodos del grafo de skills en `/es` y 4 en `/`: leía pegadas las dos líneas de una etiqueta («pilotoautomático») y el monograma «IF» junto al nombre. Arreglado: ver «Grafo de skills» en «Técnicas».

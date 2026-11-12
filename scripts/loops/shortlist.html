@@ -1,0 +1,302 @@
+<!doctype html>
+<!--
+  Shortlist's looping clip (the top of its project card): the funnel of postings.
+
+  A loose cloud of points (the postings) comes in from the left without end.
+  Seven thin vertical lines stand across the middle (the seven factors of the
+  score): past each one the points are a step closer to their place. They
+  leave on the right in rows, sorted from the highest score to the lowest like
+  a list; the few best light up in the card's blue and climb to the first rows.
+
+  The look is the hero chip's (lib/chip-cloud.ts): crisp dots in a hierarchy of
+  sizes, some depth, one accent colour. Colours and background come from the
+  site's own stylesheet, linked below: the card's grey, .frag-stage's tint and
+  the "automation" domain's blue.
+
+  Deterministic (seeded) and periodic: a frame depends only on a phase from 0
+  to 1, and phase 1 draws the same picture as phase 0. Open it in a browser to
+  watch it (add ?theme=dark, or ?phase=0.25 for one still), or record it:
+
+    node scripts/loops/record.mjs shortlist job-hunt-copilot
+-->
+<html lang="en" data-theme="light">
+  <head>
+    <meta charset="utf-8" />
+    <title>Shortlist · loop</title>
+    <script>
+      document.documentElement.dataset.theme = new URLSearchParams(location.search).get("theme") === "dark" ? "dark" : "light";
+    </script>
+    <link rel="stylesheet" href="../../app/globals.css" />
+    <style>
+      html,
+      body {
+        margin: 0;
+        overflow: hidden;
+        background: var(--card);
+      }
+      /* the card (its grey, its domain's colour)… */
+      #card {
+        width: 832px;
+        height: 520px;
+        background: var(--card);
+      }
+      /* …and the top of it: .frag-stage paints the tint */
+      #stage {
+        position: relative;
+        width: 832px;
+        height: 520px;
+      }
+      canvas {
+        position: absolute;
+        inset: 0;
+        display: block;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="card" data-domain="automation">
+      <div id="stage" class="frag-stage"><canvas id="scene" width="832" height="520"></canvas></div>
+    </div>
+    <script>
+      "use strict";
+      /* ------------------------------ the clip ------------------------------ */
+      const W = 832;
+      const H = 520;
+      const SECONDS = 7;
+      const FPS = 24;
+
+      /* ----------------------------- the journey ---------------------------- */
+      // A point crosses SPAN px, from X0, in TRIPS loops of the clip. Every point has TRIPS - 1 twins on the same
+      // path, evenly ahead of it, so after one loop each stands where a twin stood: the picture repeats.
+      // The span is 2 px per frame (48 px a second; on the card, 30): once in its row a point moves by whole
+      // pixels, so every frame draws it the same (crisp, and next to nothing for the video codec).
+      const TRIPS = 3;
+      const SPAN = 2 * SECONDS * FPS * TRIPS;
+      const X0 = (W - SPAN) / 2 + 0.5;
+      const MID = 262.5;
+
+      // the seven lines, about the middle of the frame
+      const GATES = 7;
+      const GAP = 40;
+      const gateX = (k) => W / 2 + (k - (GATES - 1) / 2) * GAP;
+      // Past a line a point takes a step towards its place in its row. A step takes this share of the way to the
+      // next line; the rest of it the point holds its lane and only travels (by whole pixels: see above).
+      const STEP = 0.58;
+      // No step is longer than this (px, up or down): a point far from its row needs all seven lines, one that
+      // is near, a couple of them. Which ones, each point's own: after every line more of them are in place.
+      const STRIDE = 30;
+      /** how tall the lines are: half the height of the first and of the last (px); they taper like the funnel */
+      const TAPER = [204, 134];
+
+      /* ------------------------------ the points ---------------------------- */
+      // Dot diameters, in the clip's pixels (the card shows it at 520 px: divide by 1.6): the hero's hierarchy.
+      const DOT = { xs: 2.8, s: 4, m: 6, l: 9, xl: 12.2 };
+      // The list, first row on top: dot size, how far apart the row's points are (px: all a whole fraction of
+      // 48, so the rows line up in columns too), the gap to the next row and the row's opacity. Sorted: the
+      // larger the dot, the higher its score. Further down the rows are closer and fainter, like a page laid back.
+      const ROWS = [
+        { d: DOT.xl, pitch: 48, gap: 31, a: 1, best: true },
+        { d: DOT.l, pitch: 24, gap: 28, a: 1, best: true },
+        { d: DOT.m, pitch: 16, gap: 24, a: 1 },
+        { d: DOT.m, pitch: 16, gap: 23, a: 1 },
+        { d: DOT.s, pitch: 12, gap: 21, a: 1 },
+        { d: DOT.s, pitch: 12, gap: 20, a: 0.94 },
+        { d: DOT.s, pitch: 12, gap: 20, a: 0.88 },
+        { d: DOT.xs, pitch: 8, gap: 18, a: 0.86 },
+        { d: DOT.xs, pitch: 8, gap: 17, a: 0.76 },
+        { d: DOT.xs, pitch: 8, gap: 17, a: 0.66 },
+        { d: DOT.xs, pitch: 8, gap: 16, a: 0.56 },
+        { d: DOT.xs, pitch: 8, gap: 0, a: 0.46 },
+      ];
+      // The cloud: a slowly turning roll about the direction of travel. Its near side turns and drifts; the far
+      // side, small and faint, only travels (a backdrop the near side moves against: that is what gives it depth,
+      // and what only travels is free in the video). The turn and the drift die down over the last `calm` px
+      // before the first line: from there on a point only changes lane at the lines.
+      const CLOUD = {
+        calm: [140, 24],
+        /** how wide it is (px): most points within this of its axis, none further than `reach` times it */
+        r: 92,
+        reach: 2.1,
+        /** how far it turns (rad) on the way to the first line */
+        turn: 0.85,
+        /** each point's own place along the way is off by up to this (px) */
+        jitter: 16,
+        /** the drift, a slow flow that neighbours share (px) */
+        drift: 9,
+        /** the far side: this much smaller, and this faint */
+        shrink: 0.3,
+        fog: 0.44,
+      };
+      /** the points fade in and out over this many pixels at the frame's sides */
+      const EDGE = 78;
+
+      function mulberry32(seed) {
+        let a = seed >>> 0;
+        return () => {
+          a = (a + 0x6d2b79f5) >>> 0;
+          let t = a;
+          t = Math.imul(t ^ (t >>> 15), t | 1);
+          t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+          return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+        };
+      }
+      const clamp = (v, lo = 0, hi = 1) => Math.min(hi, Math.max(lo, v));
+      const smooth = (a, b, v) => {
+        const t = clamp((v - a) / (b - a));
+        return t * t * (3 - 2 * t);
+      };
+      const smoother = (t) => t * t * t * (t * (t * 6 - 15) + 10);
+      const mix = (a, b, t) => a + (b - a) * t;
+
+      const rnd = mulberry32(20261112);
+      const height = ROWS.reduce((s, r) => s + r.gap, 0);
+      let rowY = Math.round(MID - height / 2) + 0.5;
+      const points = [];
+      ROWS.forEach((row, r) => {
+        const n = SPAN / row.pitch;
+        const unique = n / TRIPS;
+        if (!Number.isInteger(unique)) throw new Error(`row ${r}: ${row.pitch} px does not fit the journey`);
+        const own = [];
+        for (let j = 0; j < unique; j++) {
+          // Where in the cloud, across the roll: a dense core that thins out (a bell). The angle 0 is the bottom
+          // of the roll, and up to π its near side. The best reach the lines on the near side (large) and from
+          // the middle down: all of them have a climb ahead to the first rows.
+          const rad = row.best ? 0.4 + 1.4 * rnd() : Math.min(CLOUD.reach, Math.sqrt(-2 * Math.log(1 - rnd())));
+          const angle = row.best ? 0.15 + 1.75 * rnd() - CLOUD.turn : rnd() * Math.PI * 2;
+          const turns = row.best || Math.sin(angle) > 0.1;
+          // Its steps: as many as its way to the row asks for (the best, all seven: a steady climb), at
+          // consecutive lines, the last of them any line from there on. `steps[k]` is its share at line k.
+          const away = Math.abs(MID + CLOUD.r * rad * Math.cos(angle + (turns ? CLOUD.turn : 0)) - rowY);
+          const count = row.best ? GATES : clamp(Math.ceil(away / STRIDE), 1, GATES);
+          const last = count - 1 + Math.floor(rnd() * (GATES - count + 1));
+          const steps = Array.from({ length: GATES }, (_, k) => (k > last - count && k <= last ? 1 / count : 0));
+          own.push({ rad, angle, turns, steps, jitter: rnd() * 2 - 1, faint: row.best || rnd() > 0.3 ? 1 : 0.7 });
+        }
+        for (let j = 0; j < n; j++) points.push({ ...own[j % unique], y: rowY, d: row.d, a: row.a, best: !!row.best, at: j / n });
+        rowY += row.gap;
+      });
+
+      /* ------------------------------- the frame ---------------------------- */
+      // How far from its place a point with these steps still is at x: 1 up to its first line, 0 past its last.
+      function leftAt(steps, x) {
+        let left = 1;
+        for (let k = 0; k < GATES; k++) if (steps[k] > 0) left -= steps[k] * smoother(clamp((x - gateX(k)) / (GAP * STEP)));
+        return Math.max(0, left);
+      }
+      // How lively the cloud is at x (1, and down to 0 just before the first line), and how far the roll has turned (0..1).
+      const CALM0 = gateX(0) - CLOUD.calm[0];
+      const CALM1 = gateX(0) - CLOUD.calm[1];
+      const livelyAt = (x) => 1 - smooth(CALM0, CALM1, x);
+      function turnedAt(x) {
+        const t = clamp((x - CALM0) / (CALM1 - CALM0));
+        // (the integral of livelyAt)
+        return (Math.min(x, CALM0) - X0 + (CALM1 - CALM0) * (t - t ** 3 + t ** 4 / 2)) / (CALM0 - X0 + (CALM1 - CALM0) / 2);
+      }
+      // The drift: the curl of three slow waves (so nothing piles up), each a whole number of cycles per loop.
+      const WAVES = [
+        [0.0131, 0.0093, 1, 0.4],
+        [-0.0072, 0.0157, -1, 2.1],
+        [0.0188, -0.0061, 2, 4.4],
+      ];
+      function drift(x, y, phase) {
+        let dx = 0;
+        let dy = 0;
+        for (const [kx, ky, n, at] of WAVES) {
+          const c = Math.cos(kx * x + ky * y + 2 * Math.PI * n * phase + at) / Math.hypot(kx, ky);
+          dx += ky * c;
+          dy -= kx * c;
+        }
+        return [(dx * CLOUD.drift) / WAVES.length, (dy * CLOUD.drift) / WAVES.length];
+      }
+
+      const canvas = document.getElementById("scene");
+      const ctx = canvas.getContext("2d");
+      const css = getComputedStyle(document.getElementById("card"));
+      const dark = document.documentElement.dataset.theme === "dark";
+      // ink: the page's text colour (in the dark, at 85 %, like the hero's cloud); accent: the card's domain
+      const ink = css.getPropertyValue("--fg-rgb").trim().split(/\s+/).map(Number);
+      const inkAlpha = dark ? 0.85 : 1;
+      const accent = css.getPropertyValue("--d-rgb").trim().split(/\s+/).map(Number);
+      if (![...ink, ...accent].every(Number.isFinite) || ink.length + accent.length !== 6) throw new Error("no colours: app/globals.css did not load, or its tokens changed");
+      const rgba = (c, a) => `rgb(${c[0]} ${c[1]} ${c[2]} / ${a.toFixed(3)})`;
+
+      function draw(phase) {
+        ctx.clearRect(0, 0, W, H);
+
+        // the seven lines: hairlines that follow the funnel's taper, and a slow emphasis that passes from one to the next
+        for (let k = 0; k < GATES; k++) {
+          const x = Math.round(gateX(k)) + 0.5;
+          const half = mix(TAPER[0], TAPER[1], (k / (GATES - 1)) ** 0.7);
+          const turn = ((phase - k / GATES) % 1 + 1) % 1;
+          const glow = Math.max(0, Math.cos(2 * Math.PI * (turn > 0.5 ? turn - 1 : turn))) ** 3;
+          const g = ctx.createLinearGradient(0, MID - half, 0, MID + half);
+          const a = (0.3 + 0.25 * glow) * inkAlpha;
+          g.addColorStop(0, rgba(ink, 0));
+          g.addColorStop(0.16, rgba(ink, a));
+          g.addColorStop(0.84, rgba(ink, a));
+          g.addColorStop(1, rgba(ink, 0));
+          ctx.strokeStyle = g;
+          ctx.lineWidth = 1;
+          ctx.beginPath();
+          ctx.moveTo(x, MID - half);
+          ctx.lineTo(x, MID + half);
+          ctx.stroke();
+        }
+
+        const seen = [];
+        for (const p of points) {
+          const u = (phase / TRIPS + p.at) % 1;
+          const base = X0 + SPAN * u;
+          // in the cloud: on a roll that turns as it advances, carried by the drift
+          const angle = p.angle + (p.turns ? CLOUD.turn * turnedAt(base) : 0);
+          const lively = p.turns ? livelyAt(base) : 0;
+          const [dx, dy] = lively > 0 ? drift(base, MID + CLOUD.r * p.rad * Math.cos(angle), phase) : [0, 0];
+          const ox = p.jitter * CLOUD.jitter + dx * lively;
+          const oy = MID + CLOUD.r * p.rad * Math.cos(angle) + dy * lively - p.y;
+          // past each line, a step closer to its place in its row (x = base + left(x) · ox, solved by iteration)
+          let left = 1;
+          let x = base + ox;
+          if (x > gateX(0)) for (let i = 0; i < 12; i++) x = base + (left = leftAt(p.steps, x)) * ox;
+          const y = p.y + oy * left;
+          const z = clamp((p.rad / CLOUD.reach) * 1.6 * Math.sin(angle), -1, 1) * left;
+          const lit = p.best ? smooth(0.05, 0.95, 1 - left) : 0;
+          const far = smooth(0.7, -1, z);
+          const size = p.d * (1 + CLOUD.shrink * z) * (1 + 0.08 * lit);
+          const edge = smooth(-10, EDGE, x) * (1 - smooth(W - EDGE, W + 10, x));
+          const alpha = mix(p.a, p.faint * mix(1, CLOUD.fog, far), left) * edge;
+          if (alpha > 0.004) seen.push({ x, y, z, size, alpha, lit, best: p.best });
+        }
+        // far ones first; the best over everything
+        seen.sort((a, b) => Number(a.best) - Number(b.best) || a.z - b.z);
+        for (const s of seen) {
+          const colour = s.lit > 0 ? ink.map((c, i) => Math.round(mix(c, accent[i], s.lit))) : ink;
+          const alpha = s.alpha * mix(inkAlpha, 1, s.lit);
+          if (s.lit > 0.02) {
+            ctx.fillStyle = rgba(accent, 0.13 * s.lit * s.alpha);
+            ctx.beginPath();
+            ctx.arc(s.x, s.y, s.size * 0.86, 0, Math.PI * 2);
+            ctx.fill();
+          }
+          ctx.fillStyle = rgba(colour, alpha);
+          ctx.beginPath();
+          ctx.arc(s.x, s.y, s.size / 2, 0, Math.PI * 2);
+          ctx.fill();
+        }
+      }
+
+      // What the recorder uses: the clip's size and length, and one frame at a phase.
+      window.loop = { width: W, height: H, seconds: SECONDS, fps: FPS, draw };
+
+      const still = new URLSearchParams(location.search).get("phase");
+      if (still !== null) draw(Number(still));
+      else if (!navigator.webdriver) {
+        const from = performance.now();
+        const tick = (now) => {
+          draw((((now - from) / 1000 / SECONDS) % 1 + 1) % 1);
+          requestAnimationFrame(tick);
+        };
+        requestAnimationFrame(tick);
+      } else draw(0);
+    </script>
+  </body>
+</html>

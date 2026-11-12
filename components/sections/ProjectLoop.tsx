@@ -12,12 +12,13 @@ import { ProjectArt } from "./ProjectArt";
  * muted and in a loop (public/media/projects/<id>/loop…, one per theme; see
  * lib/media.ts). Until the card is near the screen, and with reduced motion
  * or without JavaScript, only its poster shows (painted by CSS, in the
- * page's theme); the clip plays only while the card is on screen. Phones: the
- * clip is a recording of the desktop card and cannot be read at that size, so
- * they get the live illustration instead (its main fragment, large: see
+ * page's theme); the clip plays only while the card is on screen. Phones: a
+ * clip recorded from the desktop card cannot be read at that size, so they
+ * get the live illustration instead (its main fragment, large: see
  * .frag-main), and never load the clip or its poster. No clip for a theme:
  * the live illustration everywhere. `?live-art` in the address always shows
- * it (scripts/record-project-loops.mjs records the clips from it).
+ * it (scripts/record-project-loops.mjs records the clips from it; Shortlist's
+ * is a scene drawn in code: scripts/loops/).
  */
 export function ProjectLoop({ id, lang, clips }: { id: ProjectId; lang: Locale; clips: Record<"light" | "dark", Clip | null> }) {
   const box = useRef<HTMLDivElement>(null);
