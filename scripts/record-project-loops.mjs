@@ -4,6 +4,10 @@
 // public/media/projects/<id>/ (loop-<lang>-<theme>.*). The site then shows the clip
 // instead of the live illustration (lib/media.ts, projectLoop).
 //
+// A project whose clip is drawn by a scene of its own (scripts/loops/<id>.html,
+// recorded by scripts/loops/record.mjs) is left alone here: a loop-<lang>-<theme>
+// clip would take the place of that one on its card.
+//
 //   npm run build && npm run start          (in another terminal)
 //   node scripts/record-project-loops.mjs   [http://localhost:3000]
 //
@@ -11,25 +15,21 @@
 // dependency of the site. Frame by frame, not in real time: every frame sets the
 // animations' clock and the pointer's parallax and takes a still, so the clip is
 // sharp and loops without a seam whatever the machine's speed.
-import { execFileSync } from "node:child_process";
-import { mkdirSync, mkdtempSync, rmSync } from "node:fs";
+import { existsSync, mkdirSync, mkdtempSync, rmSync } from "node:fs";
 import { createRequire } from "node:module";
 import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
+import { encode, FPS, frameFile, SECONDS } from "./loops/encode.mjs";
 
 const { chromium } = createRequire(import.meta.url)("playwright");
 const BASE = (process.argv[2] ?? "http://localhost:3000").replace(/\/$/, "");
-const OUT = join(dirname(fileURLToPath(import.meta.url)), "..", "public", "media", "projects");
-const SECONDS = 7;
-const FPS = 24;
+const HERE = dirname(fileURLToPath(import.meta.url));
+const OUT = join(HERE, "..", "public", "media", "projects");
 // the illustration is 520 × 325 CSS px on a desktop card: 1.6× gives 832 × 520, sharp enough on a 2× screen at half the weight
 const SCALE = 1.6;
 const LANGS = [["en", "/"], ["es", "/es"]];
 const THEMES = ["light", "dark"];
-// BT.709, limited range, and tagged as such: the clip's flat background has to match the card's own colour
-const VIDEO = ["-vf", "scale=iw:ih:out_color_matrix=bt709:out_range=tv,format=yuv420p", "-colorspace", "bt709", "-color_primaries", "bt709", "-color_trc", "bt709", "-color_range", "tv", "-an"];
-const ffmpeg = (...args) => execFileSync("ffmpeg", ["-y", "-loglevel", "error", ...args], { stdio: "inherit" });
 
 const browser = await chromium.launch();
 for (const [lang, path] of LANGS) {
@@ -45,6 +45,7 @@ for (const [lang, path] of LANGS) {
     await page.addStyleTag({ content: `.frag { animation-duration: ${SECONDS / 2}s !important; transition: none !important } .reveal { opacity: 1 !important; transition: none !important } header, .fig-layer, .skip-link { visibility: hidden !important }` });
     const ids = await page.$$eval("#projects article[data-target-id]", (els) => els.map((el) => el.dataset.targetId));
     for (const id of ids) {
+      if (existsSync(join(HERE, "loops", `${id}.html`))) continue;
       const stage = page.locator(`#projects article[data-target-id="${id}"] .frag-stage`);
       await stage.scrollIntoViewIfNeeded();
       await page.waitForTimeout(500);
@@ -64,15 +65,11 @@ for (const [lang, path] of LANGS) {
           },
           [i / FPS, SECONDS],
         );
-        await stage.screenshot({ path: join(frames, `f_${String(i).padStart(4, "0")}.png`) });
+        await stage.screenshot({ path: join(frames, frameFile(i)) });
       }
       const dir = join(OUT, id);
       mkdirSync(dir, { recursive: true });
-      const base = join(dir, `loop-${lang}-${theme}`);
-      const input = ["-framerate", String(FPS), "-i", join(frames, "f_%04d.png")];
-      ffmpeg(...input, ...VIDEO, "-c:v", "libx264", "-preset", "veryslow", "-crf", "27", "-movflags", "+faststart", `${base}.mp4`);
-      ffmpeg(...input, ...VIDEO, "-c:v", "libvpx-vp9", "-crf", "40", "-b:v", "0", "-deadline", "good", "-cpu-used", "1", "-row-mt", "1", `${base}.webm`);
-      ffmpeg("-i", join(frames, "f_0000.png"), "-frames:v", "1", "-q:v", "4", `${base}.poster.jpg`);
+      encode(frames, join(dir, `loop-${lang}-${theme}`));
       rmSync(frames, { recursive: true, force: true });
       console.log(`${id}  ${lang}  ${theme}`);
     }

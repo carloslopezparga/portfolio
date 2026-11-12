@@ -1,8 +1,8 @@
 # Decisiones
 
-Lo aprobado, lo que he decidido yo al construir (para que lo revises) y lo que falta. Última actualización: 11-11-2026. Incluye las tres fases (contenido y CV, dirección visual Apple × Evolve, piezas visuales), el pulido estético (rama `claude/design-polish`), el hero definitivo con el chip de partículas (rama `claude/hero-asymmetric`), la nube de partículas con presencia y figuras (rama `claude/particle-figures`), la carga, la interacción y la pausa del chip (rama `claude/chip-interaction`), la ronda del 11-11 (rama `claude/nice-keller-emmje9`): partículas una a una, «Cómo trabajo», carruseles, vídeos de proyecto, Skills compacto y reserva con Google Calendar; y la segunda ronda del 11-11 (rama `claude/tender-faraday-k93q2e`): física real por partícula, «Cómo trabajo» más abajo y rediseñada, Skills como red en 3D y cinco ajustes.
+Lo aprobado, lo que he decidido yo al construir (para que lo revises) y lo que falta. Última actualización: 12-11-2026. Incluye las tres fases (contenido y CV, dirección visual Apple × Evolve, piezas visuales), el pulido estético (rama `claude/design-polish`), el hero definitivo con el chip de partículas (rama `claude/hero-asymmetric`), la nube de partículas con presencia y figuras (rama `claude/particle-figures`), la carga, la interacción y la pausa del chip (rama `claude/chip-interaction`), la ronda del 11-11 (rama `claude/nice-keller-emmje9`): partículas una a una, «Cómo trabajo», carruseles, vídeos de proyecto, Skills compacto y reserva con Google Calendar; la segunda ronda del 11-11 (rama `claude/tender-faraday-k93q2e`): física real por partícula, «Cómo trabajo» más abajo y rediseñada, Skills como red en 3D y cinco ajustes; y el vídeo de «Correo en piloto automático» dibujado con código (rama `claude/upbeat-volta-y0qcrm`).
 
-Lo que cambia la última ronda está en «Segunda ronda del 11-11», al final de la sección 1; los apartados anteriores se han corregido donde ya no eran verdad.
+Lo que cambia la última ronda está en «Vídeo de Correo en piloto automático», al final de la sección 1; los apartados anteriores se han corregido donde ya no eran verdad.
 
 ## 1. Aprobado (hecho)
 
@@ -159,7 +159,7 @@ Grupo (a) completo, del 1 al 16, y el reveal del grupo (b). Capturas antes/despu
 
 **5. Proyectos**
 - Una sola fila con desplazamiento horizontal: scroll-snap, flechas desde 768 px y arrastre con el dedo en el móvil. El panel de demo y case study se abre debajo de la fila.
-- **Vídeo en bucle arriba de cada tarjeta, desde 768 px** (mudo, autoplay, playsInline, con póster; en el móvil, el fragmento principal en HTML): 7 s, grabado con Playwright de los fragmentos animados de la propia tarjeta, en webm y mp4, uno por idioma y por tema (16 vídeos y 16 pósters en `public/media/projects/<id>/`).
+- **Vídeo en bucle arriba de cada tarjeta, desde 768 px** (mudo, autoplay, playsInline, con póster; en el móvil, el fragmento principal en HTML): 7 s, grabado con Playwright de los fragmentos animados de la propia tarjeta, en webm y mp4, uno por idioma y por tema (16 vídeos y 16 pósters en `public/media/projects/<id>/`). Desde el 12-11 quedan 12: el de «Correo en piloto automático» es una escena propia (ver «Vídeo de Correo en piloto automático»).
 - job-hunt-copilot se llama **Shortlist** en la web y para el agente; el `id` interno, la carpeta y el enlace al repositorio no cambian. La imagen OG no nombra proyectos.
 
 **6. Skills**
@@ -235,7 +235,36 @@ Grupo (a) completo, del 1 al 16, y el reveal del grupo (b). Capturas antes/despu
 - **Contacto:** «, o reservar 15 minutos» solo aparece con `NEXT_PUBLIC_BOOKING_URL`. Sin ella, la frase termina en «Lo más rápido es el email.».
 - **Escudo de Retamar:** se ve. Dos cambios para que no vuelva a salir en blanco: ver «Segunda ronda del 11-11 (revisar)».
 
+### Vídeo de «Correo en piloto automático» (12-11; rama `claude/upbeat-volta-y0qcrm`, PR contra `main`, pendiente de tu OK)
+
+- **Qué es:** el clip de arriba de la tarjeta ya no es una grabación de su ilustración, sino un vídeo de fondo dibujado con código: del ruido al resumen.
+  - Por la izquierda llegan sobres pequeños hechos de puntos, cada uno a su ritmo (entre 3,2 y 5 s de vuelo).
+  - Convergen en un anillo central que late en morado cada 3,5 s. Al entrar, cada sobre se deshace en polvo.
+  - Del anillo sale por la derecha una sola hoja. Sus líneas de puntos se escriben de arriba abajo, en tres grupos, y la hoja se va para dejar sitio a la siguiente.
+- **Estilo:** el de la nube del hero. Puntos nítidos en cuatro tamaños (muchos finos, algunos medianos, pocos grandes), profundidad (los sobres lejanos, más pequeños y tenues; el anillo y la hoja, en perspectiva) y un solo acento: el morado del dominio de la tarjeta. Sin texto ni logos. Entre 850 y 1.200 puntos por fotograma.
+- **Fondo y colores:** el fondo es el de la tarjeta en cada tema, con el tinte de arriba de `.frag-stage`. Tinta `#1D1D1F` en claro y `#F5F5F7` al 85 % en oscuro.
+- **Formato:** 7 s, 24 fps, 832 × 520 px, sin audio, bucle sin salto. Un vídeo por tema (`loop-light` y `loop-dark`), cada uno en `.mp4` (H.264), `.webm` (VP9) y `.poster.jpg` (el primer fotograma). Los `loop-en-*` y `loop-es-*` de esa carpeta están borrados.
+- **Cómo se hace:** una escena en canvas 2D en un HTML suelto, `scripts/loops/mail-autopilot.html`, con semilla fija y periódica: todo depende de una fase de 0 a 1. `node scripts/loops/record.mjs mail-autopilot` la graba fotograma a fotograma con Playwright y ffmpeg, con los ajustes de codificación de los demás clips.
+- Los otros tres proyectos siguen con el clip grabado de su ilustración.
+
 ## 2. Decidido por mí (revisar)
+
+### Vídeo de «Correo en piloto automático» (revisar)
+- **Qué morado:** el de relleno del dominio (`--d-rgb` de `[data-domain="ai"]`: `#AF52DE` en claro y `#BF5AF2` en oscuro), que es también el del tinte de la tarjeta. El otro morado del dominio (`--d`) es el de texto: más oscuro en claro y más pálido en oscuro.
+- **El fondo no está dibujado en el canvas.** La escena enlaza `app/globals.css` y el navegador pinta el color de la tarjeta y la regla `.frag-stage` de verdad; la tinta y el acento se leen de los mismos tokens. Si cambias un token, basta con regrabar. Lo que ese archivo tiene de Tailwind, el navegador lo ignora.
+- **El anillo y la hoja en reposo no se mueven; en el anillo se mueve el color.** Una ola morada entra por su izquierda, lo llena cuando la hoja empieza a salir y se vacía hacia la derecha.
+  - En la primera versión las cuentas del anillo giraban, la hoja se mecía y los colores se fundían despacio.
+  - Con la codificación de los clips (H.264, CRF 27), los puntos pequeños que se mueven menos de un píxel por fotograma salían emborronados y los fundidos lentos se quedaban a medias. Al cerrar el bucle, el primer fotograma lo corregía todo de golpe y se notaba.
+  - Quietos, los puntos quedan nítidos y el `.mp4` pesa un 30 % menos (en claro, de 367 a 249 kB).
+- **Las líneas de la hoja se escriben en tinta, punto a punto,** sin fundido y sin cabeza morada, por lo mismo: dejaba un tinte morado en las líneas hasta el final del bucle. El morado de la hoja son los tres puntos que abren cada grupo, y el de la propia hoja mientras sale del anillo.
+- **Los puntos se pintan píxel a píxel** con la fórmula del shader del hero (un disco con un píxel de borde suave), no con `arc()`. El antialias del canvas avanza a saltos, y un punto pequeño que se mueve despacio parpadea.
+- **El primer fotograma, que es el póster, es la hoja ya escrita,** para que la imagen fija cuente la escena entera.
+- **Un vídeo por tema, no por idioma,** porque no lleva texto.
+- **Composición:** el anillo, en el centro; lo que importa cabe en el 80 % central. Los sobres entran desde fuera del borde izquierdo y la hoja se desvanece antes de llegar al derecho.
+- **Dos grabadores, una codificación.** Los ajustes de ffmpeg están ahora en `scripts/loops/encode.mjs` y los usan los dos scripts. `record-project-loops.mjs` se salta los proyectos que tienen escena en `scripts/loops/`: si no, al regrabar los otros volvería a crear los `loop-es-*` de este, que tienen preferencia sobre `loop-light`.
+- **Pesa más que el anterior.** El navegador baja el `.webm` y el póster del tema que se ve: 360 kB en claro y 308 kB en oscuro (antes, 68 y 54 kB). Se sigue cargando solo cuando la tarjeta se acerca a la pantalla.
+- **El `.webm` pesa más que el `.mp4`** (327 frente a 249 kB en claro), pero se ve mejor. El navegador sigue prefiriendo el `.webm`: ese orden está en `ProjectLoop.tsx` y no lo he tocado.
+- **En el móvil no cambia nada:** por debajo de 768 px la tarjeta sigue mostrando el fragmento «Resumen de hoy» en HTML, y el clip no se carga.
 
 ### Segunda ronda del 11-11 (revisar)
 
@@ -278,10 +307,10 @@ Grupo (a) completo, del 1 al 16, y el reveal del grupo (b). Capturas antes/despu
 - **Fondos de sección:** cuenta lo que está directamente en la carpeta de la sección, no en las de las tarjetas, para que elijas tú qué se ve (en Voluntariado, vídeos sin caras). Si hay vídeo, las fotos se ignoran; varios vídeos se reproducen uno detrás de otro.
 - **Vídeos de proyecto:**
   - Como los fragmentos apenas se movían, el clip añade el paralaje del puntero dando una vuelta a la tarjeta; el bucle no tiene costura.
-  - Pesan 3,0 MB en total entre los 16 (832 × 522 px, 24 fps; cada uno, entre 50 y 140 KB). Solo se descarga el del idioma y el tema que se ven, y solo cuando la tarjeta se acerca a la pantalla.
+  - Pesaban 3,0 MB en total entre los 16 (832 × 522 px, 24 fps; cada uno, entre 50 y 140 KB). Desde el 12-11 son 12, de tres proyectos, y pesan 2,6 MB. Solo se descarga el del idioma y el tema que se ven, y solo cuando la tarjeta se acerca a la pantalla.
   - En el móvil no se usa el clip: desde la segunda ronda vuelve el fragmento principal en HTML.
   - Con las animaciones en pausa, sin JavaScript o hasta que carga, se ve el póster.
-  - Para poner un vídeo real de un proyecto: `loop.mp4` en su carpeta (ver `public/media/README.md`). Para regrabar los actuales: `node scripts/record-project-loops.mjs`.
+  - Para poner un vídeo real de un proyecto: `loop.mp4` en su carpeta (ver `public/media/README.md`). Para regrabar los actuales: `node scripts/record-project-loops.mjs` (el de «Correo en piloto automático», con `node scripts/loops/record.mjs`).
 - **Reserva desde el agente:** un navegador solo deja abrir una pestaña justo después de un clic o una tecla, y la respuesta del agente puede llegar más tarde. Si la bloquea, la página baja a Contacto y resalta el botón.
 - **«Cómo trabajo» en el móvil:** no hay figura (las figuras siguen siendo solo de escritorio, salvo el chip).
 - **Límite del chip:** no es un tope fijo de ángulo. En cada fotograma el chip toma toda la inclinación y la apertura que caben sin acercarse a menos de 35 px de los textos; los puntos que empuja el cursor se comprimen en los 5 px siguientes y ninguno cruza los 30 px (24 más el radio del punto más grande). La apertura al pasar el ratón baja además de 0,20 a 0,16.
@@ -404,6 +433,21 @@ Grupo (a) completo, del 1 al 16, y el reveal del grupo (b). Capturas antes/despu
   - **Proyectos en 390 × 844:** fragmento de 305 × 122 px, texto de 12,5 px o más, y ninguna petición a los vídeos ni a sus pósters. A 800 px de ancho, el vídeo.
   - **Sin desbordes a lo ancho** en 390, 1024, 1280 y 1440 px.
   - Capturas de verificación: 9.
+- **Vídeo de «Correo en piloto automático» (12-11, build local de producción, Chromium):**
+  - `npm run lint` y `npm run build`, sin errores.
+  - **Archivos:** `loop-light.mp4`, 249 kB, y `loop-dark.mp4`, 223 kB (el límite era 400). Los `.webm`, 327 y 276 kB; los pósters, 34 y 33 kB. Los cuatro vídeos: 832 × 520 px, 24 fps, 168 fotogramas, 7,000 s y ninguna pista de audio.
+  - **Bucle, en la escena (sin compresión), en los dos temas:**
+    - Un instante antes del final y el fotograma 0 son la misma imagen (diferencia media, menos de 0,0001 de 255).
+    - El paso del último fotograma al primero cambia lo mismo que sus vecinos (×0,997).
+    - Ningún paso del bucle cambia más de un 3 % más que los dos de al lado.
+  - **Bucle, en el `.mp4`:** revisados seis fotogramas repartidos (0, 28, 56, 84, 112 y 140) y el último junto al primero, en claro y en oscuro. El morado del anillo es el mismo antes y después del corte (1–2 niveles de 255) y las líneas de la hoja no cambian de color.
+  - **Determinista:** dos sesiones del navegador dan los mismos fotogramas, y dos grabaciones, el mismo `.mp4` y el mismo póster byte a byte. El `.webm` no: VP9 con varios hilos no es reproducible al bit.
+  - **Fondo:**
+    - El de la escena coincide con el `.frag-stage` real de la tarjeta (0–1 niveles de 255 en los puntos comprobados, en los dos temas).
+    - Reproduciéndose en la tarjeta, el clip da `rgb(28 28 30)` en oscuro, igual que la tarjeta. En claro da `rgb(246 245 248)`, frente a `rgb(245 245 247)`: es el redondeo del vídeo, el mismo que tiene el clip vecino de Shortlist.
+  - **Tarjeta a 1440 × 900, en claro y en oscuro, en `/` y en `/es`:** caja de 520 × 325 px; se reproduce `loop-<tema>.webm` (832 × 520, 7 s, mudo y en bucle) con su póster; solo se piden los archivos del tema que se ve; sin errores de consola. Los `loop-es-*` anteriores dan 404.
+  - **El grabador de los otros tres proyectos,** probado después de compartir la codificación: graba sus 12 clips y no crea nada en `mail-autopilot`.
+  - **Sin pasar** Lighthouse ni axe: no cambia el código de la web, solo archivos de `public/media` y scripts.
 - **axe:** 0 incidencias en claro y oscuro, escritorio y móvil (04-11).
 - **axe 4.14 (10-11):** 0 incidencias en `/` y `/es`, en claro y oscuro, en escritorio (1440 × 900, tras recorrer toda la página) y en móvil (390 × 844).
   - Esta versión pasa por defecto una regla más, `label-content-name-mismatch`, que marcaba 7 nodos del grafo de skills en `/es` y 4 en `/`: leía pegadas las dos líneas de una etiqueta («pilotoautomático») y el monograma «IF» junto al nombre. Arreglado: ver «Grafo de skills» en «Técnicas».

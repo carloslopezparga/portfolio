@@ -40,11 +40,22 @@ Lo que subas **directamente** a `education/` o a `volunteering/` (a la carpeta d
 
 ## Vídeo en bucle de cada proyecto
 
-Arriba de cada tarjeta de proyecto hay un vídeo corto (7 s), mudo y en bucle, desde 768 px de ancho. En el móvil no se carga: ahí se ve el fragmento principal de la ilustración, en HTML y a tamaño legible. Los vídeos están en la carpeta del proyecto y su nombre empieza por `loop`:
+Arriba de cada tarjeta de proyecto hay un vídeo corto (7 s), mudo y en bucle, desde 768 px de ancho. En el móvil no se carga: ahí se ve el fragmento principal de la ilustración, en HTML y a tamaño legible. Los vídeos están en la carpeta del proyecto y su nombre empieza por `loop`.
 
-- `loop-es-light.webm`, `loop-es-light.mp4` y `loop-es-light.poster.jpg` (y lo mismo con `en` y con `dark`): uno por idioma y por tema.
-- Para poner un vídeo tuyo, basta `loop.mp4` (y, si quieres, `loop.webm` y `loop.poster.jpg`) y borrar los `loop-…` de esa carpeta. También valen `loop-light.*` / `loop-dark.*` (uno por tema) o `loop-es.*` / `loop-en.*` (uno por idioma). Formato 16:10; lo que sobre se recorta.
-- Los que hay ahora están grabados de las propias ilustraciones de la web. Para volver a grabarlos: `node scripts/record-project-loops.mjs` (lo explica el propio script).
+Todos tienen el mismo formato: 7 s, 24 fotogramas por segundo, 832 × 520 px (16:10) y sin audio. Cada uno va en `.mp4` (H.264) y `.webm` (VP9), con su portada `.poster.jpg`, que es el primer fotograma.
+
+Lo que hay ahora:
+
+| Carpeta | Archivos | De dónde sale | Para volver a grabarlo |
+| --- | --- | --- | --- |
+| `projects/mail-autopilot/` | `loop-light.*` y `loop-dark.*`: uno por tema. No lleva texto, así que sirve para los dos idiomas. | Una escena dibujada con código, [`scripts/loops/mail-autopilot.html`](../../scripts/loops/mail-autopilot.html): sobres de puntos que llegan a un anillo y salen convertidos en una hoja de resumen. | `node scripts/loops/record.mjs mail-autopilot` |
+| `projects/job-hunt-copilot/`, `projects/cooling-agent/` y `projects/cs50-ai/` | `loop-es-light.*`, `loop-es-dark.*`, `loop-en-light.*` y `loop-en-dark.*`: uno por idioma y por tema. | Grabados de la ilustración de la propia tarjeta. | `npm run build && npm run start` y, en otra terminal, `node scripts/record-project-loops.mjs` |
+
+Los dos grabadores necesitan Playwright y ffmpeg, y cada script explica lo suyo. El segundo no toca los proyectos que tienen escena propia en `scripts/loops/`.
+
+- **Qué archivo gana.** Si en una carpeta hay varios, la web usa el primero que encuentre en este orden: `loop-<idioma>-<tema>`, `loop-<tema>`, `loop-<idioma>` y `loop`. Por eso, al cambiar el tipo de vídeo de un proyecto hay que borrar los `loop-…` anteriores de su carpeta.
+- **Para poner un vídeo tuyo,** basta `loop.mp4` (y, si quieres, `loop.webm` y `loop.poster.jpg`) y borrar los `loop-…` de esa carpeta. También valen `loop-light.*` / `loop-dark.*` (uno por tema) o `loop-es.*` / `loop-en.*` (uno por idioma). Formato 16:10; lo que sobre se recorta, así que deja lo importante en el centro.
+- **Para dibujar con código el de otro proyecto,** crea `scripts/loops/<id>.html` siguiendo el de `mail-autopilot` (el grabador explica qué tiene que cumplir la escena), grábalo y borra los `loop-…` anteriores de su carpeta.
 - Los archivos `loop…` no salen en la tira de fotos y vídeos de la tarjeta.
 - Si un proyecto no tiene vídeo, su tarjeta muestra la ilustración animada de antes.
 
