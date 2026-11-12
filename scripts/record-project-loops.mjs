@@ -11,8 +11,11 @@
 // dependency of the site. Frame by frame, not in real time: every frame sets the
 // animations' clock and the pointer's parallax and takes a still, so the clip is
 // sharp and loops without a seam whatever the machine's speed.
+//
+// A project whose clip is drawn with code (a scene in scripts/loops/<id>.html,
+// recorded by scripts/loops/record.mjs) is left alone.
 import { execFileSync } from "node:child_process";
-import { mkdirSync, mkdtempSync, rmSync } from "node:fs";
+import { existsSync, mkdirSync, mkdtempSync, rmSync } from "node:fs";
 import { createRequire } from "node:module";
 import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
@@ -20,7 +23,8 @@ import { fileURLToPath } from "node:url";
 
 const { chromium } = createRequire(import.meta.url)("playwright");
 const BASE = (process.argv[2] ?? "http://localhost:3000").replace(/\/$/, "");
-const OUT = join(dirname(fileURLToPath(import.meta.url)), "..", "public", "media", "projects");
+const HERE = dirname(fileURLToPath(import.meta.url));
+const OUT = join(HERE, "..", "public", "media", "projects");
 const SECONDS = 7;
 const FPS = 24;
 // the illustration is 520 × 325 CSS px on a desktop card: 1.6× gives 832 × 520, sharp enough on a 2× screen at half the weight
@@ -45,6 +49,7 @@ for (const [lang, path] of LANGS) {
     await page.addStyleTag({ content: `.frag { animation-duration: ${SECONDS / 2}s !important; transition: none !important } .reveal { opacity: 1 !important; transition: none !important } header, .fig-layer, .skip-link { visibility: hidden !important }` });
     const ids = await page.$$eval("#projects article[data-target-id]", (els) => els.map((el) => el.dataset.targetId));
     for (const id of ids) {
+      if (existsSync(join(HERE, "loops", `${id}.html`))) continue;
       const stage = page.locator(`#projects article[data-target-id="${id}"] .frag-stage`);
       await stage.scrollIntoViewIfNeeded();
       await page.waitForTimeout(500);

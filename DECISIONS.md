@@ -1,8 +1,8 @@
 # Decisiones
 
-Lo aprobado, lo que he decidido yo al construir (para que lo revises) y lo que falta. Última actualización: 11-11-2026. Incluye las tres fases (contenido y CV, dirección visual Apple × Evolve, piezas visuales), el pulido estético (rama `claude/design-polish`), el hero definitivo con el chip de partículas (rama `claude/hero-asymmetric`), la nube de partículas con presencia y figuras (rama `claude/particle-figures`), la carga, la interacción y la pausa del chip (rama `claude/chip-interaction`), la ronda del 11-11 (rama `claude/nice-keller-emmje9`): partículas una a una, «Cómo trabajo», carruseles, vídeos de proyecto, Skills compacto y reserva con Google Calendar; y la segunda ronda del 11-11 (rama `claude/tender-faraday-k93q2e`): física real por partícula, «Cómo trabajo» más abajo y rediseñada, Skills como red en 3D y cinco ajustes.
+Lo aprobado, lo que he decidido yo al construir (para que lo revises) y lo que falta. Última actualización: 12-11-2026. Incluye las tres fases (contenido y CV, dirección visual Apple × Evolve, piezas visuales), el pulido estético (rama `claude/design-polish`), el hero definitivo con el chip de partículas (rama `claude/hero-asymmetric`), la nube de partículas con presencia y figuras (rama `claude/particle-figures`), la carga, la interacción y la pausa del chip (rama `claude/chip-interaction`), la ronda del 11-11 (rama `claude/nice-keller-emmje9`): partículas una a una, «Cómo trabajo», carruseles, vídeos de proyecto, Skills compacto y reserva con Google Calendar;; la segunda ronda del 11-11 (rama `claude/tender-faraday-k93q2e`): física real por partícula, «Cómo trabajo» más abajo y rediseñada, Skills como red en 3D y cinco ajustes; y el vídeo del agente de refrigeración hecho con código (rama `claude/trusting-fermi-r1j0o9`).
 
-Lo que cambia la última ronda está en «Segunda ronda del 11-11», al final de la sección 1; los apartados anteriores se han corregido donde ya no eran verdad.
+Lo último es «Vídeo del agente de refrigeración», al final de la sección 1 (y su «revisar» en la 2 y sus medidas en la 3); los apartados anteriores se han corregido donde ya no eran verdad.
 
 ## 1. Aprobado (hecho)
 
@@ -159,7 +159,7 @@ Grupo (a) completo, del 1 al 16, y el reveal del grupo (b). Capturas antes/despu
 
 **5. Proyectos**
 - Una sola fila con desplazamiento horizontal: scroll-snap, flechas desde 768 px y arrastre con el dedo en el móvil. El panel de demo y case study se abre debajo de la fila.
-- **Vídeo en bucle arriba de cada tarjeta, desde 768 px** (mudo, autoplay, playsInline, con póster; en el móvil, el fragmento principal en HTML): 7 s, grabado con Playwright de los fragmentos animados de la propia tarjeta, en webm y mp4, uno por idioma y por tema (16 vídeos y 16 pósters en `public/media/projects/<id>/`).
+- **Vídeo en bucle arriba de cada tarjeta, desde 768 px** (mudo, autoplay, playsInline, con póster; en el móvil, el fragmento principal en HTML): 7 s, grabado con Playwright de los fragmentos animados de la propia tarjeta, en webm y mp4, uno por idioma y por tema (16 vídeos y 16 pósters en `public/media/projects/<id>/`). Desde el 12-11, el del agente de refrigeración está hecho con código: ver «Vídeo del agente de refrigeración».
 - job-hunt-copilot se llama **Shortlist** en la web y para el agente; el `id` interno, la carpeta y el enlace al repositorio no cambian. La imagen OG no nombra proyectos.
 
 **6. Skills**
@@ -235,7 +235,38 @@ Grupo (a) completo, del 1 al 16, y el reveal del grupo (b). Capturas antes/despu
 - **Contacto:** «, o reservar 15 minutos» solo aparece con `NEXT_PUBLIC_BOOKING_URL`. Sin ella, la frase termina en «Lo más rápido es el email.».
 - **Escudo de Retamar:** se ve. Dos cambios para que no vuelva a salir en blanco: ver «Segunda ronda del 11-11 (revisar)».
 
+### Vídeo del agente de refrigeración: aire entre racks (rama `claude/trusting-fermi-r1j0o9`; pendiente de tu OK)
+
+- **Qué es:** el clip de arriba de la tarjeta «Agente de IA para refrigeración de centros de datos» ya no es la grabación de sus fragmentos de interfaz. Es una escena dibujada con código, sin generadores de vídeo ni recursos externos.
+- **Escena:** una fila de cuatro racks en vista de tres cuartos desde arriba, hechos de puntos (aristas nítidas, caras en grano fino, puertas con sus servidores y testigos). Entre ellos corre una lámina de aire en líneas de puntos: entra ámbar por detrás a la izquierda, se abre al llegar a cada rack, se cuela por los huecos y sale cian por delante a la derecha. Ocho testigos laten despacio. Sin texto, sin ejes, sin cifras.
+- **Estilo:** el de la nube del hero (`lib/chip-cloud.ts`): la misma jerarquía de tamaños, el mismo generador con semilla y los lejanos más pequeños y tenues.
+- **Colores, de `app/globals.css`:** tinta `--fg` (#1D1D1F en claro; #F5F5F7 al 85 % en oscuro), ámbar `--orange` y cian `--cyan` (el dominio de la tarjeta). Fondo: `--card` con el tinte de `.frag-stage`. El grabador los lee del propio archivo.
+- **Formato:** 7 s, 24 fps, 832 × 520 px, sin audio, en bucle. Uno por tema: `loop-light` y `loop-dark`, cada uno en `.mp4` (H.264), `.webm` (VP9) y `.poster.jpg` (primer fotograma). Fuera los doce `loop-en-*` y `loop-es-*` de esa carpeta.
+- **Cómo:** `scripts/loops/cooling-agent.html` (canvas 2D, semilla fija, todo depende de una fase de 0 a 1) y `scripts/loops/record.mjs`, que la graba fotograma a fotograma con Playwright y ffmpeg, con la codificación de `scripts/record-project-loops.mjs`.
+- **No cambia:** el móvil (sigue el fragmento en HTML), el panel de demo, ni el código de la web: `lib/media.ts` ya admitía `loop-<tema>`.
+
 ## 2. Decidido por mí (revisar)
+
+### Vídeo del agente de refrigeración (revisar)
+
+- **El ámbar es `--orange`** (#FF9500 en claro, #FF9F0A en oscuro): en `globals.css` no hay un token «ámbar» y es el más cercano.
+- **Los racks no se mueven; solo el aire y los testigos.** La cámara está quieta. Un vaivén como el del chip movía los 1.900 puntos de los racks en cada fotograma: más peso y riesgo de que el grano tiemble al comprimir.
+- **Proyección ortográfica, no perspectiva.** Así el aire avanza exactamente 1 px a la derecha y 1 px hacia abajo por fotograma donde va recto: sus puntos se dibujan igual en todos los fotogramas (no parpadean) y el vídeo pesa menos. La profundidad se da con el tamaño y la opacidad de los puntos.
+- **Una sola lámina de aire, a medio metro del suelo.** Con dos alturas las líneas se pisaban y dejaba de leerse. Los racks sobresalen de la lámina, como piedras en un río.
+- **36 líneas y unos 2.100 puntos de aire a la vez; las dos líneas que rodean cada rack van más marcadas** (puntos medianos y grandes) y el resto en grano fino. Es lo que hace que la curva se vea de un vistazo.
+- **Las curvas no están dibujadas a mano:** son un flujo ideal alrededor de los cuatro racks, resuelto al cargar la página. Sigue siendo ilustrativo: no sale de ningún simulador de refrigeración ni representa una medida.
+- **Los racks están separados** (80 cm de hueco). En una sala real van pegados, pero entonces no habría aire entre ellos.
+- **El aire «respira»:** cada tanto los puntos vienen algo mayores y más llenos, en bandas que viajan con él. No cuesta peso, porque cada punto conserva su aspecto.
+- **Cada punto pasa de ámbar a cian en su propio sitio,** entre la entrada y la salida de la fila, y rápido. Un degradado común dejaba una franja gris verdosa en el centro.
+- **Lo que queda detrás de un rack se ve al 10 %,** para que los racks parezcan sólidos sin cortar las líneas.
+- **En oscuro el aire va también al 85 %,** como la tinta.
+- **Testigos:** dos encendidos por rack, cian (dos de los ocho, ámbar), a uno o dos latidos por bucle (7 s o 3,5 s).
+- **Velocidad:** el aire cruza la tarjeta en unos 12 s (34 px/s en el vídeo; más deprisa en los huecos).
+- **Peso:** con la codificación fijada, lo que pesa son los puntos en movimiento. La primera versión (2.900 puntos, perspectiva) daba 570 kB en oscuro; la final, 355 kB.
+- **El `.webm` oscuro pesa 407 kB.** El límite que diste es para los mp4; no he tocado la codificación para bajarlo. El navegador descarga uno solo de los dos.
+- **Los pósters pesan 75–79 kB** (los grabados de las ilustraciones, 16–30 kB): miles de puntos comprimen peor en JPEG que unas tarjetas lisas.
+- **`record-project-loops.mjs` se salta los proyectos con escena** en `scripts/loops/`. Si no, al regrabar los otros tres volvería a dejar en esta carpeta los `loop-<idioma>-<tema>`, que tienen prioridad sobre `loop-<tema>`.
+- **En el móvil la tarjeta sigue mostrando el fragmento «Generaciones»,** una curva rotulada «Ilustrativo». Pediste que el vídeo no pareciera una gráfica; el fragmento no lo he tocado. Dime si lo cambio.
 
 ### Segunda ronda del 11-11 (revisar)
 
@@ -409,6 +440,16 @@ Grupo (a) completo, del 1 al 16, y el reveal del grupo (b). Capturas antes/despu
   - Esta versión pasa por defecto una regla más, `label-content-name-mismatch`, que marcaba 7 nodos del grafo de skills en `/es` y 4 en `/`: leía pegadas las dos líneas de una etiqueta («pilotoautomático») y el monograma «IF» junto al nombre. Arreglado: ver «Grafo de skills» en «Técnicas».
   - En esa regla queda un aviso «por revisar», que no es una incidencia: el nodo «C». axe no sabe valorar una etiqueta de una sola letra; su nombre accesible, «C · Software», la contiene.
 
+- **Vídeo del agente de refrigeración (12-11, build local de producción, Chromium):**
+  - `npm run lint` y `npm run build`, sin errores.
+  - **Archivos:** `loop-light.mp4` 304 kB y `loop-dark.mp4` 355 kB (límite, 400); `loop-light.webm` 342 kB y `loop-dark.webm` 407 kB; pósters de 79 y 75 kB. Los cuatro vídeos: 832 × 520 px, 24 fps, 168 fotogramas, 7,000 s, una sola pista (sin audio), BT.709 de rango limitado.
+  - **Bucle:** la fase 1 dibuja lo mismo que la fase 0, píxel a píxel. El salto del último fotograma al primero cambia lo mismo que cualquier otro paso (suma de diferencias: 10,27 M frente a 10,18 M y 10,16 M en los pasos 0→1 y 83→84). Mirados seis fotogramas repartidos y el último junto al primero, en los dos temas, sobre el mp4 ya codificado.
+  - **Codificación:** cada fotograma de cada archivo coincide con el suyo de origen y no con un vecino (ni repetidos ni saltos). Calidad estable a lo largo del bucle: 36–39 dB en los mp4 y 37–43 dB en los webm.
+  - **Encuadre:** todo lo que se ve con claridad queda entre el 11 y el 89 % del ancho y entre el 9 y el 90 % del alto; los racks, entre el 29 y el 74 % y el 13 y el 75 %. Fuera del 80 % central solo quedan las puntas de las líneas, ya desvaneciéndose.
+  - **Tarjeta a 1440 × 900, claro y oscuro, `/` y `/es`:** el vídeo ocupa 520 × 325 px, se reproduce mudo y en bucle, y cambia con el tema; solo se piden el póster y un vídeo del tema activo; sin errores de consola ni peticiones fallidas. El mp4, probado aparte, también se reproduce.
+  - **Fondo:** comparado con la ilustración en vivo de la misma tarjeta (`?live-art`), en 14 puntos: en oscuro, idéntico en la zona lisa (28, 28, 30) y hasta 2 niveles de 255 en el tinte; en claro, 1 nivel en la zona lisa (246, 245, 248 frente a 245, 245, 247) y hasta 3 en el tinte. Es el redondeo del vídeo; los otros clips tienen el mismo.
+  - **Sin comprobar:** Safari y Firefox (solo Chromium), y una pantalla de 2× real. No he vuelto a pasar Lighthouse ni axe: la web no cambia de código, solo de archivos.
+
 ## 4. Pendiente
 
 **Datos (`npm run todos`)**
@@ -422,7 +463,7 @@ Grupo (a) completo, del 1 al 16, y el reveal del grupo (b). Capturas antes/despu
 - `content/demos/job-hunt-copilot.txt` (el archivo conserva ese nombre), la grabación del terminal de Shortlist. Hasta que exista, la tarjeta dice «Ver detalles» y no hay ventana de terminal.
 - Fotos y vídeos en `public/media/…`. Las de voluntariado convierten la tarjeta en tarjeta de foto.
 - **Fondos de sección:** un vídeo o fotos en `public/media/education/` y un vídeo sin caras en `public/media/volunteering/` (en la carpeta de la sección, no en la de una tarjeta). Sin ellos no hay fondo.
-- **Vídeos reales de los proyectos:** `loop.mp4` en la carpeta de cada uno sustituye al grabado de la ilustración (ver `public/media/README.md`).
+- **Vídeos reales de los proyectos:** `loop.mp4` en la carpeta de cada uno sustituye al grabado de la ilustración (ver `public/media/README.md`). En el agente de refrigeración hay que borrar además `loop-light.*` y `loop-dark.*`, que tienen prioridad.
 
 **Avisos**
 - **Tu CV en PDF incluye tu teléfono.** Al servirlo, queda público en la web, y antes acordamos no publicar el teléfono. Si no lo quieres publicar, sube una versión sin él con el mismo nombre.

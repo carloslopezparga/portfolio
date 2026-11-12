@@ -42,9 +42,12 @@ Lo que subas **directamente** a `education/` o a `volunteering/` (a la carpeta d
 
 Arriba de cada tarjeta de proyecto hay un vídeo corto (7 s), mudo y en bucle, desde 768 px de ancho. En el móvil no se carga: ahí se ve el fragmento principal de la ilustración, en HTML y a tamaño legible. Los vídeos están en la carpeta del proyecto y su nombre empieza por `loop`:
 
-- `loop-es-light.webm`, `loop-es-light.mp4` y `loop-es-light.poster.jpg` (y lo mismo con `en` y con `dark`): uno por idioma y por tema.
-- Para poner un vídeo tuyo, basta `loop.mp4` (y, si quieres, `loop.webm` y `loop.poster.jpg`) y borrar los `loop-…` de esa carpeta. También valen `loop-light.*` / `loop-dark.*` (uno por tema) o `loop-es.*` / `loop-en.*` (uno por idioma). Formato 16:10; lo que sobre se recorta.
-- Los que hay ahora están grabados de las propias ilustraciones de la web. Para volver a grabarlos: `node scripts/record-project-loops.mjs` (lo explica el propio script).
+- **Grabados de la ilustración de la tarjeta** (`job-hunt-copilot`, `mail-autopilot` y `cs50-ai`): `loop-es-light.webm`, `loop-es-light.mp4` y `loop-es-light.poster.jpg` (y lo mismo con `en` y con `dark`), uno por idioma y por tema, porque llevan texto. Para volver a grabarlos: `node scripts/record-project-loops.mjs` (lo explica el propio script).
+- **Dibujados con código** (`cooling-agent`: aire entre una fila de racks, en puntos): `loop-light.*` y `loop-dark.*`, uno por tema y sin idioma, porque no llevan texto. Cada uno en `.mp4` (H.264), `.webm` (VP9) y `.poster.jpg` (su primer fotograma); 7 s, 24 fps, 832 × 520 px, sin audio.
+  - La escena es un HTML suelto, `scripts/loops/cooling-agent.html`. Se puede abrir en el navegador para verla en marcha (`?theme=dark` para el tema oscuro).
+  - Para volver a grabarlo: `node scripts/loops/record.mjs cooling-agent`. Con `--stills <carpeta>` solo saca seis fotogramas y el último, para mirarlos antes.
+  - El grabador sirve para otros proyectos: una escena `scripts/loops/<id>.html` se graba en `projects/<id>/` con `node scripts/loops/record.mjs <id>`. Toma los colores de `app/globals.css`. `record-project-loops.mjs` se salta los proyectos que tienen escena.
+- Para poner un vídeo tuyo, basta `loop.mp4` (y, si quieres, `loop.webm` y `loop.poster.jpg`) y borrar los `loop-…` de esa carpeta. También valen `loop-light.*` / `loop-dark.*` (uno por tema) o `loop-es.*` / `loop-en.*` (uno por idioma). Formato 16:10; lo que sobre se recorta, así que deja lo importante en el 80 % central.
 - Los archivos `loop…` no salen en la tira de fotos y vídeos de la tarjeta.
 - Si un proyecto no tiene vídeo, su tarjeta muestra la ilustración animada de antes.
 
