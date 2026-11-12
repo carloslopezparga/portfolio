@@ -1,65 +1,68 @@
 <!doctype html>
-<html lang="en">
+<!--
+  The looping clip at the top of the "AI agent for data-center cooling" card:
+  air between racks.
+
+  A row of four racks as a cloud of points, in a three-quarter view from above
+  (crisp edges, a fine grain on the faces, slats and lamps on the doors), and
+  a sheet of air in dotted lines, like smoke in a wind tunnel: it comes in
+  amber from behind, parts around each rack, runs through the gaps and leaves
+  cyan in front. A few lamps beat slowly. Illustrative: nothing in it is a
+  measurement.
+
+  The look is the hero chip's (lib/chip-cloud.ts): crisp dots in a hierarchy of
+  sizes, the far ones smaller and fainter. Colours and background come from
+  the site's own stylesheet, linked below: the card's grey, .frag-stage's tint,
+  the "data" domain's cyan and the orange that serves as amber.
+
+  Deterministic (seeded) and periodic: a frame depends only on a phase from 0
+  to 1, and phase 1 draws the same picture as phase 0. Only the air and eight
+  lamps move; the racks never do. Where the air runs straight it advances
+  exactly one pixel right and one down per frame, so its dots are drawn the
+  same in every frame (nothing flickers) and the video stays light. Open it in
+  a browser to watch it (add ?theme=dark, or ?phase=0.25 for one still), or
+  record it:
+
+    node scripts/loops/record.mjs cooling-agent cooling-agent
+-->
+<html lang="en" data-theme="light">
   <head>
     <meta charset="utf-8" />
-    <title>cooling-agent · air between racks</title>
-    <!--
-      The looping clip at the top of the "AI agent for data-center cooling" card
-      (public/media/projects/cooling-agent/loop-<theme>.*), drawn here with code:
-      a row of racks as a cloud of points, in a three-quarter view from above,
-      and lines of air that come in amber, bend around the racks and leave cyan.
-      Illustrative: nothing in it is a measurement.
-
-      Deterministic (fixed seeds) and periodic: every frame depends only on a
-      phase from 0 to 1, and phase 1 draws exactly what phase 0 does.
-        window.LOOP               size, length and frame rate of the clip
-        window.renderLoop(phase)  draws one frame
-      scripts/loops/record.mjs records it frame by frame (and gives it the
-      site's own colours, from app/globals.css). Opened by hand it just plays:
-      cooling-agent.html?theme=dark   (&phase=0.25 for one still frame)
-
-      Only the air and eight lamps move; the racks never do. Where the air runs
-      straight it advances exactly one pixel right and one down per frame, so
-      its dots are drawn the same in every frame (nothing flickers) and the
-      video stays light.
-    -->
+    <title>Cooling agent · loop</title>
+    <script>
+      document.documentElement.dataset.theme = new URLSearchParams(location.search).get("theme") === "dark" ? "dark" : "light";
+    </script>
+    <link rel="stylesheet" href="../../app/globals.css" />
     <style>
-      /* Today's values of app/globals.css, so that the page also works on its
-         own. The recorder overrides them with the ones it reads from that file. */
-      :root {
-        --card: #f5f5f7;
-        --fg-rgb: 29 29 31;
-        --orange-rgb: 255 149 0;
-        --cyan-rgb: 50 173 230;
-        --stage: radial-gradient(90% 80% at 50% 0%, rgb(var(--d-rgb) / 0.14), transparent 70%);
-      }
-      [data-theme="dark"] {
-        --card: #1c1c1e;
-        --fg-rgb: 245 245 247;
-        --orange-rgb: 255 159 10;
-        --cyan-rgb: 100 210 255;
-        --stage: radial-gradient(90% 80% at 50% 0%, rgb(var(--d-rgb) / 0.22), transparent 70%);
-      }
-      html {
-        /* the card's domain is "data": cyan */
-        --d-rgb: var(--cyan-rgb);
-        background: var(--card);
-      }
+      html,
       body {
         margin: 0;
+        overflow: hidden;
+        background: var(--card);
+      }
+      /* the card (its grey, its domain's colour)… */
+      #card {
         width: 832px;
         height: 520px;
-        overflow: hidden;
-        /* .frag-stage: the domain's tint from the top, on the card's own colour */
-        background: var(--stage);
+        background: var(--card);
+      }
+      /* …and the top of it: .frag-stage paints the tint */
+      #stage {
+        position: relative;
+        width: 832px;
+        height: 520px;
       }
       canvas {
+        position: absolute;
+        inset: 0;
         display: block;
       }
     </style>
   </head>
   <body>
-    <canvas id="scene" width="832" height="520"></canvas>
+    <div id="card" data-domain="data">
+      <div id="stage" class="frag-stage"><canvas id="scene" width="832" height="520"></canvas></div>
+    </div>
     <script>
       "use strict";
 
@@ -387,23 +390,22 @@
         return [4.0767416621 * l - 3.3077115913 * m + 0.2309699292 * s, -1.2684380046 * l + 2.6097574011 * m - 0.3413193965 * s, -0.0041960863 * l - 0.7034186147 * m + 1.707614701 * s].map((v) => Math.round(clamp01(toSRGB(clamp01(v))) * 255));
       }
 
-      /** The page's colours, read when drawing (the recorder sets them after loading). */
-      function palette() {
-        const css = getComputedStyle(document.documentElement);
-        const rgb = (name) => css.getPropertyValue(name).trim().split(/[\s,]+/).map(Number);
+      // The card's colours, from the site's stylesheet. Ink: the page's text colour (#1D1D1F; in the dark, #F5F5F7
+      // at 85 %, like the hero's cloud, and the air is held back as much). Amber: the site's orange. Cyan: the card's domain.
+      const pal = (() => {
+        const css = getComputedStyle(document.getElementById("card"));
+        const rgb = (name) => css.getPropertyValue(name).trim().split(/\s+/).map(Number);
         const dark = document.documentElement.dataset.theme === "dark";
-        const amber = rgb("--orange-rgb");
-        const cyan = rgb("--cyan-rgb");
-        const a = oklab(amber);
-        const b = oklab(cyan);
+        const [ink, amber, cyan] = [rgb("--fg-rgb"), rgb("--orange-rgb"), rgb("--d-rgb")];
+        if (![...ink, ...amber, ...cyan].every(Number.isFinite) || ink.length + amber.length + cyan.length !== 9) throw new Error("no colours: app/globals.css did not load, or its tokens changed");
+        const [a, b] = [oklab(amber), oklab(cyan)];
         // amber → cyan in 33 steps
         const ramp = Array.from({ length: 33 }, (_, i) => srgb([0, 1, 2].map((c) => mix(a[c], b[c], i / 32))).join(" "));
-        // ink: #1D1D1F on the light card, #F5F5F7 at 85 % on the dark one (where the air is held back as much)
-        return { ink: rgb("--fg-rgb").join(" "), inkAlpha: dark ? 0.85 : 1, airAlpha: dark ? 0.85 : 1, ramp, amber: amber.join(" "), cyan: cyan.join(" ") };
-      }
+        return { ink: ink.join(" "), inkAlpha: dark ? 0.85 : 1, airAlpha: dark ? 0.85 : 1, ramp, amber: amber.join(" "), cyan: cyan.join(" ") };
+      })();
 
-      function renderLoop(phase) {
-        const pal = palette();
+      function draw(phase) {
+
         const dots = [];
         const put = (x, y, z, size, alpha, colour) => {
           const [dx, dy, dz] = [x - CAM.at[0], y - CAM.at[1], z - CAM.at[2]];
@@ -448,20 +450,19 @@
         }
       }
 
-      window.LOOP = LOOP;
-      window.renderLoop = renderLoop;
+      // What the recorder uses: the clip's size and length, and one frame at a phase.
+      window.loop = { ...LOOP, draw };
 
-      // ?theme=dark picks the theme and ?phase=0.5 stops on a frame; without a phase, it plays.
-      const query = new URLSearchParams(location.search);
-      if (query.get("theme") === "dark") document.documentElement.dataset.theme = "dark";
-      if (query.has("phase")) renderLoop(Number(query.get("phase")) % 1);
-      else {
-        const tick = (ms) => {
-          renderLoop((ms / 1000 / LOOP.seconds) % 1);
+      const still = new URLSearchParams(location.search).get("phase");
+      if (still !== null) draw(Number(still));
+      else if (!navigator.webdriver) {
+        const from = performance.now();
+        const tick = (now) => {
+          draw((((now - from) / 1000 / LOOP.seconds) % 1 + 1) % 1);
           requestAnimationFrame(tick);
         };
         requestAnimationFrame(tick);
-      }
+      } else draw(0);
     </script>
   </body>
 </html>

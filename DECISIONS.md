@@ -240,15 +240,16 @@ Grupo (a) completo, del 1 al 16, y el reveal del grupo (b). Capturas antes/despu
 - **Qué es:** el clip de arriba de la tarjeta «Agente de IA para refrigeración de centros de datos» ya no es la grabación de sus fragmentos de interfaz. Es una escena dibujada con código, sin generadores de vídeo ni recursos externos.
 - **Escena:** una fila de cuatro racks en vista de tres cuartos desde arriba, hechos de puntos (aristas nítidas, caras en grano fino, puertas con sus servidores y testigos). Entre ellos corre una lámina de aire en líneas de puntos: entra ámbar por detrás a la izquierda, se abre al llegar a cada rack, se cuela por los huecos y sale cian por delante a la derecha. Ocho testigos laten despacio. Sin texto, sin ejes, sin cifras.
 - **Estilo:** el de la nube del hero (`lib/chip-cloud.ts`): la misma jerarquía de tamaños, el mismo generador con semilla y los lejanos más pequeños y tenues.
-- **Colores, de `app/globals.css`:** tinta `--fg` (#1D1D1F en claro; #F5F5F7 al 85 % en oscuro), ámbar `--orange` y cian `--cyan` (el dominio de la tarjeta). Fondo: `--card` con el tinte de `.frag-stage`. El grabador los lee del propio archivo.
+- **Colores, de `app/globals.css`:** tinta `--fg` (#1D1D1F en claro; #F5F5F7 al 85 % en oscuro), ámbar `--orange` y cian `--cyan` (el dominio de la tarjeta). Fondo: `--card` con el tinte de `.frag-stage`. La escena enlaza el propio `globals.css`, así que no hay colores copiados.
 - **Formato:** 7 s, 24 fps, 832 × 520 px, sin audio, en bucle. Uno por tema: `loop-light` y `loop-dark`, cada uno en `.mp4` (H.264), `.webm` (VP9) y `.poster.jpg` (primer fotograma). Fuera los doce `loop-en-*` y `loop-es-*` de esa carpeta.
-- **Cómo:** `scripts/loops/cooling-agent.html` (canvas 2D, semilla fija, todo depende de una fase de 0 a 1) y `scripts/loops/record.mjs`, que la graba fotograma a fotograma con Playwright y ffmpeg, con la codificación de `scripts/record-project-loops.mjs`.
+- **Cómo:** `scripts/loops/cooling-agent.html` (canvas 2D, semilla fija, todo depende de una fase de 0 a 1) y `scripts/loops/record.mjs`, que la graba fotograma a fotograma con Playwright y ffmpeg, con la codificación de `scripts/record-project-loops.mjs`: `node scripts/loops/record.mjs cooling-agent cooling-agent`.
 - **No cambia:** el móvil (sigue el fragmento en HTML), el panel de demo, ni el código de la web: `lib/media.ts` ya admitía `loop-<tema>`.
 
 ## 2. Decidido por mí (revisar)
 
 ### Vídeo del agente de refrigeración (revisar)
 
+- **El grabador es el del vídeo de Shortlist** (PR #8, aún sin fusionar; en `main` no había ninguno). He traído `scripts/loops/record.mjs` y su cambio en `scripts/record-project-loops.mjs` tal cual, sin tocar una línea, y la escena sigue su contrato (`window.loop.draw(fase)`, tema en `?theme=`, colores enlazando `globals.css`). Así los dos PR se pueden fusionar en cualquier orden sin chocar en el código. En el texto sí: los dos tocan los mismos párrafos de `DECISIONS.md` y de `public/media/README.md`, y el segundo que se fusione tendrá que unirlos a mano. El ejemplo del grabador nombra `shortlist.html`, que no existe hasta que entre el #8.
 - **El ámbar es `--orange`** (#FF9500 en claro, #FF9F0A en oscuro): en `globals.css` no hay un token «ámbar» y es el más cercano.
 - **Los racks no se mueven; solo el aire y los testigos.** La cámara está quieta. Un vaivén como el del chip movía los 1.900 puntos de los racks en cada fotograma: más peso y riesgo de que el grano tiemble al comprimir.
 - **Proyección ortográfica, no perspectiva.** Así el aire avanza exactamente 1 px a la derecha y 1 px hacia abajo por fotograma donde va recto: sus puntos se dibujan igual en todos los fotogramas (no parpadean) y el vídeo pesa menos. La profundidad se da con el tamaño y la opacidad de los puntos.
@@ -265,7 +266,7 @@ Grupo (a) completo, del 1 al 16, y el reveal del grupo (b). Capturas antes/despu
 - **Peso:** con la codificación fijada, lo que pesa son los puntos en movimiento. La primera versión (2.900 puntos, perspectiva) daba 570 kB en oscuro; la final, 355 kB.
 - **El `.webm` oscuro pesa 407 kB.** El límite que diste es para los mp4; no he tocado la codificación para bajarlo. El navegador descarga uno solo de los dos.
 - **Los pósters pesan 75–79 kB** (los grabados de las ilustraciones, 16–30 kB): miles de puntos comprimen peor en JPEG que unas tarjetas lisas.
-- **`record-project-loops.mjs` se salta los proyectos con escena** en `scripts/loops/`. Si no, al regrabar los otros tres volvería a dejar en esta carpeta los `loop-<idioma>-<tema>`, que tienen prioridad sobre `loop-<tema>`.
+- **`record-project-loops.mjs` se salta los proyectos con vídeo propio** (`loop.*`, `loop-light.*` o `loop-dark.*`); es el cambio del PR #8. Si no, al regrabar los otros volvería a dejar en esta carpeta los `loop-<idioma>-<tema>`, que tienen prioridad sobre `loop-<tema>`.
 - **En el móvil la tarjeta sigue mostrando el fragmento «Generaciones»,** una curva rotulada «Ilustrativo». Pediste que el vídeo no pareciera una gráfica; el fragmento no lo he tocado. Dime si lo cambio.
 
 ### Segunda ronda del 11-11 (revisar)
@@ -442,7 +443,7 @@ Grupo (a) completo, del 1 al 16, y el reveal del grupo (b). Capturas antes/despu
 
 - **Vídeo del agente de refrigeración (12-11, build local de producción, Chromium):**
   - `npm run lint` y `npm run build`, sin errores.
-  - **Archivos:** `loop-light.mp4` 304 kB y `loop-dark.mp4` 355 kB (límite, 400); `loop-light.webm` 342 kB y `loop-dark.webm` 407 kB; pósters de 79 y 75 kB. Los cuatro vídeos: 832 × 520 px, 24 fps, 168 fotogramas, 7,000 s, una sola pista (sin audio), BT.709 de rango limitado.
+  - **Archivos** (el grabador termina con error si un mp4 pasa de 400 kB): `loop-light.mp4` 304 kB y `loop-dark.mp4` 355 kB; `loop-light.webm` 342 kB y `loop-dark.webm` 407 kB; pósters de 79 y 75 kB. Los cuatro vídeos: 832 × 520 px, 24 fps, 168 fotogramas, 7,000 s, una sola pista (sin audio), BT.709 de rango limitado.
   - **Bucle:** la fase 1 dibuja lo mismo que la fase 0, píxel a píxel. El salto del último fotograma al primero cambia lo mismo que cualquier otro paso (suma de diferencias: 10,27 M frente a 10,18 M y 10,16 M en los pasos 0→1 y 83→84). Mirados seis fotogramas repartidos y el último junto al primero, en los dos temas, sobre el mp4 ya codificado.
   - **Codificación:** cada fotograma de cada archivo coincide con el suyo de origen y no con un vecino (ni repetidos ni saltos). Calidad estable a lo largo del bucle: 36–39 dB en los mp4 y 37–43 dB en los webm.
   - **Encuadre:** todo lo que se ve con claridad queda entre el 11 y el 89 % del ancho y entre el 9 y el 90 % del alto; los racks, entre el 29 y el 74 % y el 13 y el 75 %. Fuera del 80 % central solo quedan las puntas de las líneas, ya desvaneciéndose.
