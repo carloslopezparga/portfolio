@@ -1,8 +1,8 @@
 # Decisiones
 
-Lo aprobado, lo que he decidido yo al construir (para que lo revises) y lo que falta. Última actualización: 11-11-2026. Incluye las tres fases (contenido y CV, dirección visual Apple × Evolve, piezas visuales), el pulido estético (rama `claude/design-polish`), el hero definitivo con el chip de partículas (rama `claude/hero-asymmetric`), la nube de partículas con presencia y figuras (rama `claude/particle-figures`), la carga, la interacción y la pausa del chip (rama `claude/chip-interaction`), la ronda del 11-11 (rama `claude/nice-keller-emmje9`): partículas una a una, «Cómo trabajo», carruseles, vídeos de proyecto, Skills compacto y reserva con Google Calendar; y la segunda ronda del 11-11 (rama `claude/tender-faraday-k93q2e`): física real por partícula, «Cómo trabajo» más abajo y rediseñada, Skills como red en 3D y cinco ajustes.
+Lo aprobado, lo que he decidido yo al construir (para que lo revises) y lo que falta. Última actualización: 13-11-2026. Incluye las tres fases (contenido y CV, dirección visual Apple × Evolve, piezas visuales), el pulido estético (rama `claude/design-polish`), el hero definitivo con el chip de partículas (rama `claude/hero-asymmetric`), la nube de partículas con presencia y figuras (rama `claude/particle-figures`), la carga, la interacción y la pausa del chip (rama `claude/chip-interaction`), la ronda del 11-11 (rama `claude/nice-keller-emmje9`): partículas una a una, «Cómo trabajo», carruseles, vídeos de proyecto, Skills compacto y reserva con Google Calendar; y la segunda ronda del 11-11 (rama `claude/tender-faraday-k93q2e`): física real por partícula, «Cómo trabajo» más abajo y rediseñada, Skills como red en 3D y cinco ajustes; y el vídeo de «Proyectos de IA (CS50)» hecho con código (rama `claude/blissful-noether-vdydld`).
 
-Lo que cambia la última ronda está en «Segunda ronda del 11-11», al final de la sección 1; los apartados anteriores se han corregido donde ya no eran verdad.
+Lo que cambia la última ronda está en «Vídeo de Proyectos de IA (CS50)», al final de la sección 1; los apartados anteriores se han corregido donde ya no eran verdad.
 
 ## 1. Aprobado (hecho)
 
@@ -159,7 +159,7 @@ Grupo (a) completo, del 1 al 16, y el reveal del grupo (b). Capturas antes/despu
 
 **5. Proyectos**
 - Una sola fila con desplazamiento horizontal: scroll-snap, flechas desde 768 px y arrastre con el dedo en el móvil. El panel de demo y case study se abre debajo de la fila.
-- **Vídeo en bucle arriba de cada tarjeta, desde 768 px** (mudo, autoplay, playsInline, con póster; en el móvil, el fragmento principal en HTML): 7 s, grabado con Playwright de los fragmentos animados de la propia tarjeta, en webm y mp4, uno por idioma y por tema (16 vídeos y 16 pósters en `public/media/projects/<id>/`).
+- **Vídeo en bucle arriba de cada tarjeta, desde 768 px** (mudo, autoplay, playsInline, con póster; en el móvil, el fragmento principal en HTML): 7 s, grabado con Playwright de los fragmentos animados de la propia tarjeta, en webm y mp4, uno por idioma y por tema (en `public/media/projects/<id>/`). Desde el 12-11 son tres proyectos los que lo tienen así (12 clips); el de Proyectos de IA (CS50) es una escena propia: ver «Vídeo de Proyectos de IA (CS50)».
 - job-hunt-copilot se llama **Shortlist** en la web y para el agente; el `id` interno, la carpeta y el enlace al repositorio no cambian. La imagen OG no nombra proyectos.
 
 **6. Skills**
@@ -235,7 +235,65 @@ Grupo (a) completo, del 1 al 16, y el reveal del grupo (b). Capturas antes/despu
 - **Contacto:** «, o reservar 15 minutos» solo aparece con `NEXT_PUBLIC_BOOKING_URL`. Sin ella, la frase termina en «Lo más rápido es el email.».
 - **Escudo de Retamar:** se ve. Dos cambios para que no vuelva a salir en blanco: ver «Segunda ronda del 11-11 (revisar)».
 
+### Vídeo de «Proyectos de IA (CS50)» (rama `claude/blissful-noether-vdydld`, PR contra `main`; pendiente de tu OK)
+
+**El clip de arriba de la tarjeta es ahora una escena dibujada con código,** no una grabación de la ilustración. Sin generadores de vídeo ni recursos externos: un HTML suelto con un canvas 2D, `scripts/loops/cs50-ai.html` (se abre tal cual en el navegador). La primera versión iba de izquierda a derecha; desde el 13-11 va **en vertical**, de arriba abajo.
+
+**La escena: una red que aprende a ver**
+- **Tres capas de nodos en perspectiva, una bajo otra,** vistas de frente y un poco desde arriba: entrada (14 × 6), oculta (7 × 3) y salida (una fila de 5). Cada capa lleva un marco punteado y se estrecha hacia el fondo; las unen 189 líneas finas.
+- **Impulsos morados** recorren las líneas de arriba abajo sin parar: 41, cada uno con su cola de tres puntos, como los paquetes de datos del chip.
+- **Sobre la capa de entrada se forma con puntos una señal de tráfico,** de pie en su poste, plantado en el centro de la capa: un stop (octógono, 263 puntos) y, media vuelta después, un ceda el paso (triángulo, 210). Sin letras.
+- **La señal se deshace desde el pie y cae dentro de la capa de entrada** como una lluvia de puntos que se abre a lo ancho. La capa enciende la silueta de la señal, tumbada y pixelada.
+- **La onda baja por la red:** de los nodos encendidos salen impulsos más vivos (la línea se ilumina a su paso), la capa oculta enciende una copia más tosca y de ahí la onda converge en un solo nodo de salida. El octógono enciende el segundo por la izquierda; el triángulo, el cuarto.
+- **Ritmo** (cada señal, en su ciclo de 7 s): se forma en 1 s, aguanta 1,2 s, cae durante 1,25 s, la onda tarda 1,8 s en llegar a la salida y el nodo queda encendido 1,1 s más 0,75 s de apagado. Las dos señales van desfasadas 3,5 s.
+
+**Estilo: el del chip del hero**
+- **Puntos nítidos en cinco tamaños:** 2,1 · 3,1 · 4,7 · 7 y 9,6 px a la distancia media. Entre señal, marcos, polvo y nodos: 539 finos, 216 pequeños, 143 medianos, 42 grandes y 5 muy grandes.
+- **Bordes densos y con un punto grande en cada vértice; caras con grano fino,** como las placas del chip.
+- **Profundidad:** la fila del fondo de cada capa es un 15 % más pequeña que la de delante, y la salida, la capa más alejada de la cámara, un 22 % más pequeña que la señal y un tercio más tenue. Alrededor, 180 puntos de polvo a distintas distancias; un tercio deambula despacio.
+- **Un solo acento:** el morado del dominio IA (`--purple`, el de `--d-rgb` en `app/globals.css`): #AF52DE en claro y #BF5AF2 en oscuro. Tinta #1D1D1F en claro y #F5F5F7 al 85 % en oscuro. Sin texto ni logos.
+- **Fondo:** el gris de la tarjeta (`--card`) con el tinte de `.frag-stage` encima. La escena enlaza `app/globals.css` y lo pinta con las reglas de la propia web.
+
+**Formato: el del vídeo de Shortlist (PR #8)**
+- 7 s, 24 fps (168 fotogramas), 832 × 520 px, sin audio. La acción cabe en el 80 % central.
+- Un vídeo por tema, el mismo en los dos idiomas: `loop-light` y `loop-dark`, cada uno en `.mp4` (H.264), `.webm` (VP9) y `.poster.jpg` (el primer fotograma). Borrados los 12 `loop-en-*` y `loop-es-*` de la carpeta.
+- **Determinista y periódica:** semilla fija y todo en función de una fase de 0 a 1; el último fotograma enlaza con el primero.
+
+**Cómo se graba**
+- `node scripts/loops/record.mjs cs50-ai cs50-ai` (escena y carpeta del proyecto): fotograma a fotograma con Playwright y ffmpeg, con los ajustes de codificación de `scripts/record-project-loops.mjs`.
+- **El grabador es el de los PR #8 (Shortlist) y #9 (refrigeración), sin cambiar una línea.** En `main` no hay ninguno en `scripts/loops/`; lo he traído tal cual de esos PR, junto con su cambio en `scripts/record-project-loops.mjs`, y la escena sigue su contrato (`window.loop` con `draw(fase)`, tema por `?theme=`).
+
+**Móvil:** sin cambios. Por debajo de 768 px la tarjeta sigue mostrando su fragmento en HTML.
+
 ## 2. Decidido por mí (revisar)
+
+### Vídeo de «Proyectos de IA (CS50)» (revisar)
+- **«En vertical» lo he leído como la escena, no como el archivo.** El vídeo sigue midiendo 832 × 520 (16:10), como el de Shortlist del PR #8 y como recorta la tarjeta; lo que cambia es que la red va de arriba abajo. En el repo no hay ningún vídeo de Shortlist en retrato ni cambio en la tarjeta. Si te referías al formato del archivo, la escena se ajusta sola al encuadre: basta cambiar dos números (`W` y `H`) y volver a grabar.
+- **Las capas son anchas y poco profundas, y se ven de frente.** Una pila vertical en un encuadre apaisado quedaba como una columna estrecha y pequeña. Probé tres vistas antes:
+  - De tres cuartos, con capas cuadradas en rombo, como las placas del chip: la más bonita, pero en la tarjeta la figura medía 170 × 250 px y los nodos apenas 2 px.
+  - Con un giro leve: los planos se veían torcidos, como por error.
+  - De frente con capas cuadradas: la red seguía apretada bajo la señal.
+  - Con capas de 14 × 6 y 7 × 3 la figura ocupa 434 × 400 px del vídeo (270 × 250 en la tarjeta) y las filas de nodos se leen.
+- **La señal está de pie, con el poste plantado en el centro de la capa de entrada.** Así se lee como señal y queda «sobre la primera capa». Tumbada, paralela a las capas, un octógono aplastado no se reconocía.
+- **Al caer, la señal se tumba y se abre a lo ancho:** su parte alta va al fondo de la capa y se estira hasta ocuparla casi entera. La capa enciende un octógono o un triángulo alargados, no una mancha en el centro.
+- **La señal se deshace desde el pie hacia arriba,** con algo de desorden: primero el poste, lo último el borde de arriba.
+- **El triángulo es un ceda el paso,** con la punta hacia abajo. Es la señal triangular que de verdad va vacía; un triángulo de peligro sin su pictograma quedaría a medias.
+- **El morado es el de relleno** (`--purple`), el mismo del tinte de la tarjeta, no el de texto (`--purple-text`), que está pensado para letra.
+- **La cámara no se mueve y la red es rígida.** En la primera versión probé un vaivén leve, como el del chip, y lo quité: al mover cada punto una fracción de píxel por fotograma, el codificador rehacía la imagen entera cada vez y en cada vuelta se notaba un latido (el primer fotograma salía 4 dB más nítido que el último). La vida la ponen los impulsos, el polvo y las señales.
+- **El primer fotograma (y el póster) es el octógono ya formado con un nodo de salida encendido.** Ese nodo es el del triángulo de la vuelta anterior: el de cada señal sigue encendido mientras se forma la siguiente y se apaga cuando esta cae en la red. Así el póster enseña la escena completa (señal, red y respuesta) y en el bucle siempre pasa algo.
+- **Las líneas no son «todos con todos» en la primera mitad:** cada nodo oculto recoge un bloque de 2 × 2 nodos de entrada. Así la capa oculta enciende de verdad una versión reducida de la señal. De la oculta a la salida sí van todos con todos, y la onda solo viaja hacia el nodo que responde.
+- **La capa oculta tiene un número impar de columnas (7).** Con un número par, las líneas de las dos columnas centrales bajaban rectas, una encima de otra, y formaban dos rayas oscuras. Además, cada haz de líneas se pinta de una vez, para que donde se cruzan no se sumen.
+- **En la costura cambia más que entre dos fotogramas seguidos cualesquiera,** al revés que en el de Shortlist: 0,84 niveles de 255 frente a una mediana de 0,48. La escena en sí enlaza exacta. La diferencia es el fotograma clave, que sale 1,4 dB más nítido que el último, y pesa más aquí porque casi toda la imagen está quieta. No se ve, y queda muy por debajo del máximo del bucle (2,05, cuando cae la señal).
+- **El webm sigue pesando algo más que el mp4** (318 y 267 kB frente a 259 y 235), con los ajustes de siempre, y la web sirve el webm primero. Ahora los cuatro vídeos bajan de 400 kB.
+- **Pesa más que el clip anterior:** antes se descargaban entre 51 y 95 kB por visita; ahora, entre 235 y 318 kB. Sigue cargándose solo cuando la tarjeta se acerca a la pantalla, y nunca en el móvil.
+- **Fondo tras codificar:** el de la escena es exacto. En Chromium, el clip oscuro sale idéntico a la tarjeta (28, 28, 30) y el claro se va un nivel de 255 en rojo y azul (246, 245, 248 frente a 245, 245, 247). Es el redondeo del vídeo a 8 bits, el mismo de los otros clips; no se ve.
+- **El póster y el primer fotograma son la misma imagen, pero no píxel a píxel:** el vídeo se pinta a 520 × 324 px y el póster a 520 × 325 (la tarjeta le quita 1 px al vídeo para su línea inferior), así que los bordes de los puntos difieren en un 1 % de los píxeles. Pasa igual en las otras tarjetas.
+- **Los colores salen de `app/globals.css`,** que la escena enlaza: el gris de la tarjeta, el tinte de `.frag-stage` y el morado del dominio. Si los cambias, basta con volver a grabar.
+- **Empecé con un grabador propio y lo retiré.** Al ir a abrir el PR vi que los PR #8 y #9 ya traían uno; para que los tres no choquen en el código, uso ese, idéntico. Al cambiar, la escena se reproducía sola mientras el grabador capturaba y los fotogramas salían mezclados; corregido como en las otras dos escenas: bajo automatización no se autorreproduce.
+- **Este PR choca en el texto con los PR #8 y #9, no en el código.** Los tres tocan los mismos párrafos de `DECISIONS.md`, `README.md` y `public/media/README.md`; al fusionar el segundo y el tercero habrá que unirlos a mano. El grabador y `record-project-loops.mjs` son idénticos en los tres. Con el PR #10 (Correo) sí choca también el código: ese trae otro grabador.
+- **El grabador de las ilustraciones se salta los proyectos con vídeo propio** (`loop.*`, `loop-light.*` o `loop-dark.*`). Si no, al regrabar volvería a crear los `loop-es-*` y `loop-en-*` de CS50, que tienen preferencia.
+- **La ilustración antigua de la tarjeta** (CNN · GTSRB con «Stop / Ceda el paso / Prohibido el paso», y Nim) no se ha tocado: es lo que se ve en el móvil y lo que saldría si faltara el vídeo.
+- **Los webm no salen idénticos byte a byte** entre dos grabaciones, aunque el vídeo que llevan dentro sí lo es: el contenedor guarda un identificador aleatorio en la cabecera. Los mp4 y los pósters son idénticos.
 
 ### Segunda ronda del 11-11 (revisar)
 
@@ -278,10 +336,10 @@ Grupo (a) completo, del 1 al 16, y el reveal del grupo (b). Capturas antes/despu
 - **Fondos de sección:** cuenta lo que está directamente en la carpeta de la sección, no en las de las tarjetas, para que elijas tú qué se ve (en Voluntariado, vídeos sin caras). Si hay vídeo, las fotos se ignoran; varios vídeos se reproducen uno detrás de otro.
 - **Vídeos de proyecto:**
   - Como los fragmentos apenas se movían, el clip añade el paralaje del puntero dando una vuelta a la tarjeta; el bucle no tiene costura.
-  - Pesan 3,0 MB en total entre los 16 (832 × 522 px, 24 fps; cada uno, entre 50 y 140 KB). Solo se descarga el del idioma y el tema que se ven, y solo cuando la tarjeta se acerca a la pantalla.
+  - Los 12 grabados de las ilustraciones pesan 2,4 MB en total con sus pósters (832 × 522 px, 24 fps; cada vídeo, entre 36 y 140 KB). Solo se descarga el del idioma y el tema que se ven, y solo cuando la tarjeta se acerca a la pantalla. El de CS50 pesa más: ver «Vídeo de Proyectos de IA (CS50) (revisar)».
   - En el móvil no se usa el clip: desde la segunda ronda vuelve el fragmento principal en HTML.
   - Con las animaciones en pausa, sin JavaScript o hasta que carga, se ve el póster.
-  - Para poner un vídeo real de un proyecto: `loop.mp4` en su carpeta (ver `public/media/README.md`). Para regrabar los actuales: `node scripts/record-project-loops.mjs`.
+  - Para poner un vídeo real de un proyecto: `loop.mp4` en su carpeta (ver `public/media/README.md`). Para regrabar los actuales: `node scripts/record-project-loops.mjs` (y `node scripts/loops/record.mjs cs50-ai cs50-ai` para el de CS50).
 - **Reserva desde el agente:** un navegador solo deja abrir una pestaña justo después de un clic o una tecla, y la respuesta del agente puede llegar más tarde. Si la bloquea, la página baja a Contacto y resalta el botón.
 - **«Cómo trabajo» en el móvil:** no hay figura (las figuras siguen siendo solo de escritorio, salvo el chip).
 - **Límite del chip:** no es un tope fijo de ángulo. En cada fotograma el chip toma toda la inclinación y la apertura que caben sin acercarse a menos de 35 px de los textos; los puntos que empuja el cursor se comprimen en los 5 px siguientes y ninguno cruza los 30 px (24 más el radio del punto más grande). La apertura al pasar el ratón baja además de 0,20 a 0,16.
@@ -404,6 +462,18 @@ Grupo (a) completo, del 1 al 16, y el reveal del grupo (b). Capturas antes/despu
   - **Proyectos en 390 × 844:** fragmento de 305 × 122 px, texto de 12,5 px o más, y ninguna petición a los vídeos ni a sus pósters. A 800 px de ancho, el vídeo.
   - **Sin desbordes a lo ancho** en 390, 1024, 1280 y 1440 px.
   - Capturas de verificación: 9.
+- **Vídeo de «Proyectos de IA (CS50)», en vertical (13-11, build local de producción, Chromium):**
+  - `npm run lint` y `npm run build`, sin errores.
+  - **Archivos:** H.264 y VP9, 832 × 520 px, 24 fps, 168 fotogramas, 7 s, una sola pista (sin audio). mp4: 259 kB (claro) y 235 kB (oscuro). webm: 318 y 267 kB. Pósters: 38 y 36 kB.
+  - **Bucle:** en la escena, la fase 1 y la fase 0 dan la misma imagen (ningún byte distinto), y del último fotograma al primero cambia lo mismo que entre sus vecinos (0,155 niveles de 255, frente a 0,154 y 0,153). En el mp4, del último al primero cambia 0,84; la mediana del bucle es 0,48 y el máximo, 2,05. El fondo no salta: la zona lisa es idéntica en los 168 fotogramas. Cada fotograma del mp4 y del webm coincide con el suyo de origen (ni repetidos ni saltos).
+  - **Nada tiembla:** siguiendo 17 puntos quietos durante 2 s, el centro de cada uno en el mp4 se aparta del original 0,02 px (rms) en claro y 0,04 en oscuro; 0,12 px como mucho.
+  - **Acción en el 80 % central:** señales y capas van de 199 a 633 px a lo ancho y de 60 a 460 a lo alto; el 80 % central va de 83 a 749 y de 52 a 468.
+  - **Tarjeta a 1440 × 900, en claro y en oscuro, con el webm y con el mp4** (en `/es`; en `/`, con el webm): el vídeo se reproduce mudo y en bucle a 520 × 324 px, sin errores de consola ni peticiones a los archivos borrados. Fondo del vídeo frente al de la tarjeta: en oscuro, idéntico (28, 28, 30); en claro, (246, 245, 248) frente a (245, 245, 247).
+  - **Fila de proyectos a 1440 × 900,** en claro y en oscuro: capturada con la tarjeta de CS50 a la vista, junto a la de refrigeración.
+  - **Determinista:** dos grabaciones seguidas dan mp4 idénticos byte a byte.
+  - **Revisión a ojo, sobre el mp4:** seis fotogramas repartidos por tema y el último junto al primero.
+  - **Grabador de las ilustraciones** (el archivo de los PR #8 y #9), ejecutado entero en esta rama el 12-11: graba los otros tres proyectos y se salta este («skipped: it has its own clip»). No he subido esas regrabaciones.
+  - **Sin repetir:** Lighthouse y axe. El cambio no toca componentes ni estilos de la web; solo archivos de vídeo y scripts. Sin comprobar: Safari y Firefox.
 - **axe:** 0 incidencias en claro y oscuro, escritorio y móvil (04-11).
 - **axe 4.14 (10-11):** 0 incidencias en `/` y `/es`, en claro y oscuro, en escritorio (1440 × 900, tras recorrer toda la página) y en móvil (390 × 844).
   - Esta versión pasa por defecto una regla más, `label-content-name-mismatch`, que marcaba 7 nodos del grafo de skills en `/es` y 4 en `/`: leía pegadas las dos líneas de una etiqueta («pilotoautomático») y el monograma «IF» junto al nombre. Arreglado: ver «Grafo de skills» en «Técnicas».
@@ -422,7 +492,7 @@ Grupo (a) completo, del 1 al 16, y el reveal del grupo (b). Capturas antes/despu
 - `content/demos/job-hunt-copilot.txt` (el archivo conserva ese nombre), la grabación del terminal de Shortlist. Hasta que exista, la tarjeta dice «Ver detalles» y no hay ventana de terminal.
 - Fotos y vídeos en `public/media/…`. Las de voluntariado convierten la tarjeta en tarjeta de foto.
 - **Fondos de sección:** un vídeo o fotos en `public/media/education/` y un vídeo sin caras en `public/media/volunteering/` (en la carpeta de la sección, no en la de una tarjeta). Sin ellos no hay fondo.
-- **Vídeos reales de los proyectos:** `loop.mp4` en la carpeta de cada uno sustituye al grabado de la ilustración (ver `public/media/README.md`).
+- **Vídeos reales de los proyectos:** `loop.mp4` en la carpeta de cada uno sustituye al grabado de la ilustración (ver `public/media/README.md`). En CS50, donde el clip es una escena con código, hay que borrar además `loop-light.*` y `loop-dark.*`.
 
 **Avisos**
 - **Tu CV en PDF incluye tu teléfono.** Al servirlo, queda público en la web, y antes acordamos no publicar el teléfono. Si no lo quieres publicar, sube una versión sin él con el mismo nombre.
