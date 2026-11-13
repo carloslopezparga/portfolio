@@ -1,72 +1,58 @@
 <!doctype html>
 <!--
-  The looping clip at the top of the "AI agent for data-center cooling" card:
-  air between racks.
+  The looping clip behind the "AI agent for data-center cooling" card: air
+  between racks.
 
-  A row of four racks as a cloud of points, in a three-quarter view from above
-  (crisp edges, a fine grain on the faces, slats and lamps on the doors), and
-  a sheet of air in dotted lines, like smoke in a wind tunnel: it comes in
-  amber from behind, parts around each rack, runs through the gaps and leaves
-  cyan in front. A few lamps beat slowly. Illustrative: nothing in it is a
-  measurement.
+  In the upper half, a row of three racks as a cloud of points, in a
+  three-quarter view from above (crisp edges, a fine grain on the faces, slats
+  and lamps on the doors). A sheet of air in dotted lines, like smoke in a wind
+  tunnel, comes down the card: amber from behind the row, it parts around each
+  rack, runs through the gaps and leaves cyan in front, fading out before the
+  lower third, where the card's text goes. A few lamps beat slowly.
+  Illustrative: nothing in it is a measurement.
 
   The look is the hero chip's (lib/chip-cloud.ts): crisp dots in a hierarchy of
-  sizes, the far ones smaller and fainter. Colours and background come from
-  the site's own stylesheet, linked below: the card's grey, .frag-stage's tint,
-  the "data" domain's cyan and the orange that serves as amber.
+  sizes, the far ones smaller and fainter. The card is dark in both themes:
+  #1D1D1F behind, light dots, and two colours from the site's own stylesheet
+  (linked below, in its dark theme): the "data" domain's cyan and the orange
+  that serves as amber.
 
   Deterministic (seeded) and periodic: a frame depends only on a phase from 0
-  to 1, and phase 1 draws the same picture as phase 0. Only the air and eight
-  lamps move; the racks never do. Where the air runs straight it advances
-  exactly one pixel right and one down per frame, so its dots are drawn the
-  same in every frame (nothing flickers) and the video stays light. Open it in
-  a browser to watch it (add ?theme=dark, or ?phase=0.25 for one still), or
-  record it:
+  to 1, and phase 1 draws the same picture as phase 0. Only the air and the
+  lamps move; the racks never do. Open it in a browser to watch it (add
+  ?phase=0.25 for one still), or record it:
 
     node scripts/loops/record.mjs cooling-agent cooling-agent
 -->
-<html lang="en" data-theme="light">
+<html lang="en" data-theme="dark">
   <head>
     <meta charset="utf-8" />
     <title>Cooling agent · loop</title>
-    <script>
-      document.documentElement.dataset.theme = new URLSearchParams(location.search).get("theme") === "dark" ? "dark" : "light";
-    </script>
     <link rel="stylesheet" href="../../app/globals.css" />
     <style>
       html,
       body {
         margin: 0;
         overflow: hidden;
-        background: var(--card);
+        background: #1d1d1f;
       }
-      /* the card (its grey, its domain's colour)… */
+      /* the card: dark in both themes, in its domain's colour */
       #card {
-        width: 832px;
-        height: 520px;
-        background: var(--card);
-      }
-      /* …and the top of it: .frag-stage paints the tint */
-      #stage {
-        position: relative;
-        width: 832px;
-        height: 520px;
+        width: 600px;
+        height: 900px;
+        background: #1d1d1f;
       }
       canvas {
-        position: absolute;
-        inset: 0;
         display: block;
       }
     </style>
   </head>
   <body>
-    <div id="card" data-domain="data">
-      <div id="stage" class="frag-stage"><canvas id="scene" width="832" height="520"></canvas></div>
-    </div>
+    <div id="card" data-domain="data"><canvas id="scene" width="600" height="900"></canvas></div>
     <script>
       "use strict";
 
-      const LOOP = { width: 832, height: 520, seconds: 7, fps: 24 };
+      const LOOP = { width: 600, height: 900, seconds: 7, fps: 24 };
       const W = LOOP.width;
       const H = LOOP.height;
       const TAU = Math.PI * 2;
@@ -100,33 +86,29 @@
       // Units: metres, more or less. x is the way the air goes, z runs along the
       // row, y is up. A rack: 0.6 wide (z), 1 deep (x), 2 tall.
 
-      const RACK = { n: 4, pitch: 1.4, w: 0.6, d: 1.0, h: 2.0 };
+      const RACK = { n: 3, pitch: 1.4, w: 0.6, d: 1.0, h: 2.0 };
       const rackZ = (k) => (k - (RACK.n - 1) / 2) * RACK.pitch;
 
-      // Camera: orthographic, `el` above the floor and turned `az` from +x towards
+      // Camera: perspective, `el` above the floor and turned `az` from +x towards
       // +z, so that it sees each rack's top, its door (+x, where the air leaves)
-      // and one side (+z). `az` is the turn at which the wind (+x) runs at 45° on
-      // screen: with SCALE px to the metre, air that advances STEP metres moves
-      // exactly one pixel right and one down. `at` is the point at mid-frame.
-      const EL = 0.76;
-      const CAM = { el: EL, az: Math.atan(Math.sin(EL)), at: [-0.2, 0.3, 0.0] };
-      const SCALE = 83;
-      const STEP = 1 / (SCALE * Math.sin(CAM.az));
+      // and one side (+z), and the air comes down the frame. It looks at `at`,
+      // which lands on `centre`, `scale` px to the metre there.
+      const CAM = { az: 0.36, el: 0.78, dist: 20, at: [0, 0.9, 0], scale: 118, centre: [300, 300] };
       const VIEW = (() => {
         const [ca, sa, ce, se] = [Math.cos(CAM.az), Math.sin(CAM.az), Math.cos(CAM.el), Math.sin(CAM.el)];
-        // right, up and forward (away from the camera)
-        return { r: [sa, 0, -ca], up: [-ca * se, ce, -sa * se], f: [-ce * ca, -se, -ce * sa] };
+        // where the camera is, and its right, up and forward
+        return { eye: [CAM.at[0] + CAM.dist * ce * ca, CAM.at[1] + CAM.dist * se, CAM.at[2] + CAM.dist * ce * sa], r: [sa, 0, -ca], up: [-ca * se, ce, -sa * se], f: [-ce * ca, -se, -ce * sa] };
       })();
 
-      /** How much of the way from p towards the camera goes through a rack other than `own` (metres). */
+      /** How much of the way from p to the camera goes through a rack other than `own` (metres). */
       function behind(x, y, z, own) {
-        const [dx, dy, dz] = [-VIEW.f[0], -VIEW.f[1], -VIEW.f[2]];
+        const [dx, dy, dz] = [VIEW.eye[0] - x, VIEW.eye[1] - y, VIEW.eye[2] - z];
         let total = 0;
         for (let k = 0; k < RACK.n; k++) {
           if (k === own) continue;
           const zc = rackZ(k);
           let t0 = 0;
-          let t1 = 100;
+          let t1 = 1;
           // slabs: x in ±d/2, y in 0..h, z in zc ± w/2
           for (const [o, d, lo, hi] of [[x, dx, -RACK.d / 2, RACK.d / 2], [y, dy, 0, RACK.h], [z, dz, zc - RACK.w / 2, zc + RACK.w / 2]]) {
             const a = (lo - o) / d;
@@ -134,14 +116,14 @@
             t0 = Math.max(t0, Math.min(a, b));
             t1 = Math.min(t1, Math.max(a, b));
           }
-          if (t1 > t0) total += t1 - t0;
+          if (t1 > t0) total += (t1 - t0) * Math.hypot(dx, dy, dz);
         }
         return total;
       }
 
-      // Dot diameters in px, at mid-depth: many fine, some medium, a few large
-      // (the hero's hierarchy, at this card's size).
-      const DOT = { xs: 1.9, s: 2.7, m: 3.9, l: 5.6 };
+      // Dot diameters in px, where the camera looks: many fine, some medium, a
+      // few large (the hero's hierarchy, for a card some 270 px wide).
+      const DOT = { xs: 2.8, s: 4, m: 5.7, l: 8.2 };
       const look = (sizes, alphas = [[1, 1]]) => ({ sizes, alphas });
       const EDGE = look([[DOT.s, 0.56], [DOT.m, 0.38], [DOT.l, 0.06]]);
       const EDGE_LOW = look([[DOT.xs, 0.45], [DOT.s, 0.55]]);
@@ -152,9 +134,9 @@
       const BEAT = look([[DOT.l, 1]]);
       // the air, by how close a line passes to a rack: the two that wrap each rack are the ones to follow
       const AIR = [
-        look([[DOT.s, 0.5], [DOT.m, 0.38], [DOT.l, 0.12]]),
-        look([[DOT.xs, 0.4], [DOT.s, 0.46], [DOT.m, 0.14]], [[0.8, 0.3], [1, 0.7]]),
-        look([[DOT.xs, 0.82], [DOT.s, 0.18]], [[0.55, 0.35], [0.85, 0.65]]),
+        look([[DOT.s, 0.44], [DOT.m, 0.4], [DOT.l, 0.16]]),
+        look([[DOT.xs, 0.3], [DOT.s, 0.5], [DOT.m, 0.2]], [[0.85, 0.3], [1, 0.7]]),
+        look([[DOT.xs, 0.66], [DOT.s, 0.3], [DOT.m, 0.04]], [[0.7, 0.35], [0.95, 0.65]]),
       ];
 
       /* ------------------------------- racks ------------------------------- */
@@ -214,14 +196,14 @@
           grid(8, 16, (u, v) => [mix(x0 + m, x1 - m, u), mix(m, h - m, v), z1], FACE);
 
           // door (+x): the servers, each a slat of fine dots and, apart, its lamp. Two lamps per rack are lit
-          // (cyan, one in four amber) and beat slowly, once or twice per loop, each at its own moment.
+          // (cyan, one in three amber) and beat slowly, once or twice per loop, each at its own moment.
           const rows = 14;
           const lit = new Set();
           while (lit.size < 2) lit.add(Math.floor(rnd() * (rows - 3)) + 2);
           for (let r = 0; r < rows; r++) {
             const y = mix(0.2, h - 0.2, r / (rows - 1));
             line([x1, y, z0 + 0.09], [x1, y, z1 - 0.2], SLAT, 0.056);
-            if (lit.has(r)) add(x1, y, z1 - 0.105, BEAT, { amber: lamps++ % 4 === 1, at: rnd(), beats: 1 + (r % 2) });
+            if (lit.has(r)) add(x1, y, z1 - 0.105, BEAT, { amber: lamps++ % 3 === 1, at: rnd(), beats: 1 + (r % 2) });
             else add(x1, y, z1 - 0.105, LAMP);
           }
         }
@@ -237,7 +219,6 @@
        * each rack's footprint, slightly grown and rounded so that the lines pass
        * at a small distance. The velocity is (∂ψ/∂z, −∂ψ/∂x).
        */
-      const CALM = [2.0, 3.2];
       function solveAir() {
         const step = 0.03;
         const half = 6;
@@ -272,15 +253,6 @@
               if (fixed[id]) continue;
               psi[id] += omega * (0.25 * (psi[id - 1] + psi[id + 1] + psi[id - n] + psi[id + n]) - psi[id]);
             }
-        // Away from the row the racks' pull on the air dies out slowly; fade it
-        // out altogether between CALM[0] and CALM[1] metres, so that out there
-        // the wind is exactly uniform (still a stream function: nothing piles up).
-        for (let j = 0; j < n; j++)
-          for (let i = 0; i < n; i++) {
-            const z = -half + j * step;
-            const keep = 1 - smooth(CALM[0], CALM[1], Math.abs(-half + i * step));
-            psi[j * n + i] = z + (psi[j * n + i] - z) * keep;
-          }
         // velocity at the nodes (central differences), read bilinearly
         const u = new Float32Array(n * n);
         const w = new Float32Array(n * n);
@@ -306,10 +278,10 @@
         };
       }
 
-      const AIR_X = [-3.4, 3.0]; // where the lines start and end
+      const AIR_X = [-5.2, 4.6]; // where the lines start and end: both out of sight
       const AIR_DT = 0.004;
       /** 1: the puffs keep the air's true pace (slow before a rack, fast in the gaps); 0: an even pace. In between, a softer version of the true one. */
-      const PACE = 0.45;
+      const PACE = 0.35;
 
       /** One line of air from (AIR_X[0], z): where a puff is after each AIR_DT of its own time (far from the racks, a metre of time is a metre of way). */
       function traceLine(vel, zStart) {
@@ -334,19 +306,22 @@
       }
 
       // A sheet of air at this height: a rake of lines, RAKE apart (none on a
-      // rack's axis: that line would stop at its door), two past each end of
-      // the row.
+      // rack's axis: that line would stop at its door), and enough of them past
+      // each end of the row to fill the card from side to side. On the card it
+      // shows between FADE's rows: it comes in under the pills and is gone before
+      // the lower third, where the text is.
       const AIR_Y = 0.5;
+      const FADE = { top: [30, 140], bottom: [482, 592] };
       const RAKE = RACK.pitch / 8;
-      // In one loop the air advances LAP (one pixel right and one down per
-      // frame, where it runs straight). Each line is a stream of puffs that
-      // repeats every LAP, so the last frame hands over to the first.
-      const LAP = STEP * LOOP.seconds * LOOP.fps;
-      const PUFFS = 34; // per LAP
+      const BEYOND = 15; // lines past each end of the row
+      // In one loop the air advances LAP metres. Each line is a stream of puffs
+      // that repeats every LAP, so the last frame hands over to the first.
+      const LAP = 4;
+      const PUFFS = 44; // per LAP
 
       function buildAir() {
         const vel = solveAir();
-        const count = Math.round((RACK.n * RACK.pitch) / RAKE) + 4;
+        const count = Math.round((RACK.n * RACK.pitch) / RAKE) + 2 * BEYOND;
         const lines = Array.from({ length: count }, (_, i) => traceLine(vel, (i - (count - 1) / 2) * RAKE));
         const rnd = mulberry32(977);
         const puffs = [];
@@ -356,7 +331,6 @@
           for (let j = 0; j < PUFFS; j++) {
             const u = (j + 0.5 + (rnd() - 0.5) * 0.5) / PUFFS;
             // the air breathes: once per LAP its puffs come a little larger and fuller, a band that travels with them
-            // (in the first frame, the poster, one band is about to reach the racks and another has just left them)
             const breath = 0.5 - 0.5 * Math.cos(TAU * u);
             const p = { line: li, u, s: pick(rnd, lk.sizes) * mix(0.9, 1.1, breath), a: pick(rnd, lk.alphas) * mix(0.74, 1, breath), turn: mix(-0.1, 0.9, rnd()), dy: (rnd() - 0.5) * 0.03 };
             // the same puff once per LAP of the line
@@ -390,29 +364,32 @@
         return [4.0767416621 * l - 3.3077115913 * m + 0.2309699292 * s, -1.2684380046 * l + 2.6097574011 * m - 0.3413193965 * s, -0.0041960863 * l - 0.7034186147 * m + 1.707614701 * s].map((v) => Math.round(clamp01(toSRGB(clamp01(v))) * 255));
       }
 
-      // The card's colours, from the site's stylesheet. Ink: the page's text colour (#1D1D1F; in the dark, #F5F5F7
-      // at 85 %, like the hero's cloud, and the air is held back as much). Amber: the site's orange. Cyan: the card's domain.
+      // The colours, from the site's stylesheet in its dark theme. Ink: the page's text colour, #F5F5F7, at 85 %
+      // like the hero's cloud. Amber: the site's orange. Cyan: the card's domain.
       const pal = (() => {
         const css = getComputedStyle(document.getElementById("card"));
         const rgb = (name) => css.getPropertyValue(name).trim().split(/\s+/).map(Number);
-        const dark = document.documentElement.dataset.theme === "dark";
         const [ink, amber, cyan] = [rgb("--fg-rgb"), rgb("--orange-rgb"), rgb("--d-rgb")];
         if (![...ink, ...amber, ...cyan].every(Number.isFinite) || ink.length + amber.length + cyan.length !== 9) throw new Error("no colours: app/globals.css did not load, or its tokens changed");
         const [a, b] = [oklab(amber), oklab(cyan)];
         // amber → cyan in 33 steps
         const ramp = Array.from({ length: 33 }, (_, i) => srgb([0, 1, 2].map((c) => mix(a[c], b[c], i / 32))).join(" "));
-        return { ink: ink.join(" "), inkAlpha: dark ? 0.85 : 1, airAlpha: dark ? 0.85 : 1, ramp, amber: amber.join(" "), cyan: cyan.join(" ") };
+        return { ink: ink.join(" "), inkAlpha: 0.85, airAlpha: 0.95, ramp, amber: amber.join(" "), cyan: cyan.join(" ") };
       })();
 
       function draw(phase) {
-
         const dots = [];
-        const put = (x, y, z, size, alpha, colour) => {
-          const [dx, dy, dz] = [x - CAM.at[0], y - CAM.at[1], z - CAM.at[2]];
+        const put = (x, y, z, size, alpha, colour, air = false) => {
+          const [dx, dy, dz] = [x - VIEW.eye[0], y - VIEW.eye[1], z - VIEW.eye[2]];
           const depth = dx * VIEW.f[0] + dy * VIEW.f[1] + dz * VIEW.f[2];
-          // further away: smaller and fainter
-          const far = smooth(-2.8, 3.2, depth);
-          dots.push({ sx: W / 2 + SCALE * (dx * VIEW.r[0] + dy * VIEW.r[1] + dz * VIEW.r[2]), sy: H / 2 - SCALE * (dx * VIEW.up[0] + dy * VIEW.up[1] + dz * VIEW.up[2]), r: (size * mix(1.1, 0.84, far)) / 2, alpha: alpha * mix(1, 0.55, far), colour, depth });
+          const k = (CAM.scale * CAM.dist) / depth;
+          const sx = CAM.centre[0] + k * (dx * VIEW.r[0] + dy * VIEW.r[1] + dz * VIEW.r[2]);
+          const sy = CAM.centre[1] - k * (dx * VIEW.up[0] + dy * VIEW.up[1] + dz * VIEW.up[2]);
+          if (sx < -10 || sx > W + 10 || sy < -10 || sy > H + 10) return;
+          // further away: smaller (perspective) and fainter
+          const far = smooth(CAM.dist - 2.4, CAM.dist + 4.2, depth);
+          const shown = air ? smooth(FADE.top[0], FADE.top[1], sy) * (1 - smooth(FADE.bottom[0], FADE.bottom[1], sy)) : 1;
+          dots.push({ sx, sy, r: (size * CAM.dist) / depth / 2, alpha: alpha * mix(1, 0.62, far) * shown, colour, depth });
         };
 
         for (const p of racks) {
@@ -431,12 +408,10 @@
           const x = mix(ln.path[i * 2], ln.path[i * 2 + 2], f - i);
           const z = mix(ln.path[i * 2 + 1], ln.path[i * 2 + 3], f - i);
           const y = AIR_Y + p.dy;
-          // it comes in and goes out little by little
-          const ends = smooth(0, 1.0, t) * (1 - smooth(ln.time - 1.1, ln.time, t));
           const seen = 1 - 0.9 * smooth(0, 0.12, behind(x, y, z, -1));
           // amber on the way in, cyan on the way out; each puff turns, quickly, at its own point among the racks
           const cool = smooth(-0.12, 0.12, x - p.turn);
-          put(x, y, z, p.s, p.a * pal.airAlpha * ends * seen, pal.ramp[Math.round(cool * 32)]);
+          put(x, y, z, p.s, p.a * pal.airAlpha * seen, pal.ramp[Math.round(cool * 32)], true);
         }
 
         dots.sort((a, b) => b.depth - a.depth);
