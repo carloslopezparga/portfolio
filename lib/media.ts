@@ -18,7 +18,7 @@ const VIDEO = new Set([".mp4", ".webm"]);
 /** "<video name>.poster.jpg" (or png/webp) is the cover of "<video name>.mp4". */
 const POSTER = /\.poster\.(jpe?g|png|webp)$/i;
 
-/** "loop.mp4", "loop-es-dark.webm", "loop-light.poster.jpg"…: the clip at the top of a project's card. */
+/** "loop.mp4", "loop.webm", "loop.poster.jpg" (and anything else called loop…): the clip behind a project's card. */
 const LOOP = /^loop([-.]|$)/i;
 
 const byName = (a: string, b: string) => a.localeCompare(b, "en", { numeric: true, sensitivity: "base" });
@@ -110,19 +110,17 @@ function clipOf(files: string[], base: string, url: (f: string) => string): Clip
 }
 
 /**
- * The looping clip at the top of a project's card, one per theme, from
- * public/media/projects/<id>/: "loop-<lang>-<theme>", else "loop-<theme>",
- * "loop-<lang>" or plain "loop" (.webm and/or .mp4, plus an optional
- * ".poster.jpg"). null for a theme with no clip: the card keeps its live
- * illustration. Files called loop… never show up in the card's media strip.
+ * The looping clip behind a project's card, from public/media/projects/<id>/:
+ * "loop.mp4" and/or "loop.webm", plus an optional "loop.poster.jpg". One per
+ * project: the cards are dark in both themes and the clip has no text. null
+ * when there is no video: the card keeps its plain background, tinted with its
+ * domain's colour. Files called loop… never show up in the card's media strip.
  */
-export async function projectLoop(id: string, lang: Locale): Promise<Record<"light" | "dark", Clip | null>> {
+export async function projectLoop(id: string): Promise<Clip | null> {
   "use cache";
   cacheLife("max");
   const files = listFiles(path.join(ROOT, "projects", id));
-  const url = (f: string) => `/media/projects/${id}/${encodeURIComponent(f)}`;
-  const pick = (theme: string) => [`loop-${lang}-${theme}`, `loop-${theme}`, `loop-${lang}`, "loop"].map((base) => clipOf(files, base, url)).find(Boolean) ?? null;
-  return { light: pick("light"), dark: pick("dark") };
+  return clipOf(files, "loop", (f) => `/media/projects/${id}/${encodeURIComponent(f)}`);
 }
 
 /**

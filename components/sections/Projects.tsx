@@ -11,7 +11,7 @@ import { SectionHeader } from "./SectionHeader";
 export async function Projects({ lang }: { lang: Locale }) {
   const t = copy.projects;
   const media = await Promise.all(profile.projects.map((p) => mediaFor("projects", p.id, lang)));
-  const loops = await Promise.all(profile.projects.map((p) => projectLoop(p.id, lang)));
+  const loops = await Promise.all(profile.projects.map((p) => projectLoop(p.id)));
   const items: ProjectItem[] = profile.projects.map((p, i) => {
     let demo: ProjectItem["demo"] = null;
     if (p.demo?.kind === "terminal") {
