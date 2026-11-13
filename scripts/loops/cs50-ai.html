@@ -3,11 +3,11 @@
   The looping clip at the top of the "AI projects (CS50)" card: a network that
   learns to see.
 
-  Dots form a traffic sign on its post (a stop octagon, then a yield triangle,
-  no lettering) in front of three layers of nodes in perspective, joined by
-  hairlines that impulses of colour run along, left to right, all the time.
-  The sign falls apart into the input layer, a wave crosses the network and a
-  different output node lights up for each sign.
+  Three layers of nodes in perspective, one under another, joined by hairlines
+  that impulses of colour run down all the time. On the first layer, dots form
+  a traffic sign on its post (a stop octagon, then a yield triangle, no
+  lettering); the sign falls apart into the input layer, a wave goes down the
+  network and a different output node lights up for each sign.
 
   The look is the hero chip's (lib/chip-cloud.ts): crisp dots in a hierarchy of
   sizes, the far ones smaller and fainter, ink plus one accent. Colours and
@@ -40,15 +40,11 @@
       /* the card (its grey, its domain's colour)… */
       #card {
         flex: none;
-        width: 832px;
-        height: 520px;
         background: var(--card);
       }
       /* …and the top of it: .frag-stage paints the tint */
       #stage {
         position: relative;
-        width: 832px;
-        height: 520px;
       }
       canvas {
         position: absolute;
@@ -65,11 +61,14 @@
     </div>
     <script>
       "use strict";
+      /* ------------------------------ the clip ------------------------------ */
+      // The frame. The scene fits itself to it (see the camera): another size or shape only needs these two numbers.
       const W = 832;
       const H = 520;
       const SECONDS = 7;
       const FPS = 24;
       const query = new URLSearchParams(location.search);
+      for (const id of ["card", "stage"]) Object.assign(document.getElementById(id).style, { width: `${W}px`, height: `${H}px` });
 
       /* ---------------- randomness (same generator as lib/chip-cloud.ts) ---------------- */
       function mulberry32(seed) {
@@ -82,7 +81,7 @@
           return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
         };
       }
-      const rnd = mulberry32(20261112);
+      const rnd = mulberry32(20261113);
       function pick(pairs) {
         let r = rnd() * pairs.reduce((s, p) => s + p[1], 0);
         for (const [v, w] of pairs) if ((r -= w) < 0) return v;
@@ -97,114 +96,152 @@
         return t * t * (3 - 2 * t);
       };
 
+      /* ---------------- the stack ---------------- */
+      /*
+       * World: y is up, and the signal travels down it. Each layer is a
+       * horizontal plane of nodes (x across, z towards the viewer), wide and
+       * shallow so that the stack fills a frame that is wider than tall: the
+       * input at y = 0, the hidden layer and the row of outputs under it.
+       * The sign stands upright on the middle of the input layer, on its
+       * post, facing the viewer: its face is drawn in (u, v) = (x, y − FACE).
+       *
+       * (An odd number of hidden columns: the wires of the two middle columns
+       * of the input fan out to the one in the middle. With an even number
+       * they ran straight down, one over another, and made two dark lines.)
+       */
+      const INPUT = { nx: 14, nz: 6, pitch: 0.25, y: 0 };
+      const HIDDEN = { nx: 7, nz: 3, pitch: 0.33, y: -1.32 };
+      const OUTPUT = { n: 5, gap: 0.42, y: -2.2 };
+      for (const L of [INPUT, HIDDEN]) Object.assign(L, { halfX: (L.nx * L.pitch) / 2, halfZ: (L.nz * L.pitch) / 2 });
+      /** which output answers to each sign (0: the octagon, 1: the triangle), counted from the left */
+      const ANSWER = [1, 3];
+      /** the post, from the input layer up to the foot of the face; and the height of the face's centre */
+      const POST = 0.54;
+      const FACE = POST + 0.756;
+      const octagon = Array.from({ length: 8 }, (_, k) => {
+        const a = ((22.5 + 45 * k) * Math.PI) / 180;
+        return [0.721 * Math.cos(a), 0.721 * Math.sin(a)];
+      });
+      const triangle = [[-0.781, 0.598], [0.781, 0.598], [0, -0.756]]; // a yield sign: equilateral, point down
+      const FRAME = { input: [INPUT.halfX + 0.09, INPUT.halfZ + 0.09], hidden: [HIDDEN.halfX + 0.1, HIDDEN.halfZ + 0.1], output: [((OUTPUT.n - 1) / 2) * OUTPUT.gap + 0.19, 0.14] };
+
       /* ---------------- camera ---------------- */
       /*
-       * World: x is the way the signal travels (sign, input, hidden, output),
-       * y is up and z runs across each layer. The camera stands front-left
-       * and a little above, so the sign is the nearest thing and the output
-       * the farthest: v' = Rx(tilt) · Ry(yaw) · v, then perspective.
+       * From the front and a little above: v' = Rx(tilt) · v, then
+       * perspective, so each layer is a trapezium that narrows towards the
+       * back. The zoom and the centre are worked out so that the sign and the
+       * three layers fill the central 80 % of the frame, whatever its shape.
        *
-       * The camera does not move. A sway, however slight, shifts every dot a
-       * fraction of a pixel per frame: the encoder then redraws the whole
-       * picture each time, softer than its first frame, and the loop shows a
-       * beat where it starts again (and weighs a third more).
+       * The camera does not move, and neither does the network. A sway,
+       * however slight, shifts every dot a fraction of a pixel per frame: the
+       * encoder then redraws the whole picture each time, softer than its
+       * first frame, and the loop shows a beat where it starts again (and
+       * weighs a third more).
        */
-      const CAM = { yaw: 0.9, tilt: 0.17, dist: 13, focal: 1840, cx: 495, cy: 210 };
-      /** px per world unit at the distance of the scene's middle: dot sizes are given in px there */
-      const UNIT = CAM.focal / CAM.dist;
-
-      const cosY = Math.cos(CAM.yaw);
-      const sinY = Math.sin(CAM.yaw);
+      const CAM = { tilt: 0.5, dist: 8, focal: 1, cx: 0, cy: 0 };
       const cosT = Math.cos(CAM.tilt);
       const sinT = Math.sin(CAM.tilt);
       /** world → [screen x, screen y, px per world unit, distance from the camera] */
       function project(x, y, z, out) {
-        const x1 = cosY * x + sinY * z;
-        const z1 = -sinY * x + cosY * z;
-        const y2 = cosT * y - sinT * z1;
-        const depth = CAM.dist - (sinT * y + cosT * z1);
+        const y2 = cosT * y - sinT * z;
+        const depth = CAM.dist - (sinT * y + cosT * z);
         const s = CAM.focal / depth;
-        out[0] = CAM.cx + x1 * s;
+        out[0] = CAM.cx + x * s;
         out[1] = CAM.cy - y2 * s;
         out[2] = s;
         out[3] = depth;
         return out;
       }
+      {
+        // fit: everything that has to stay in the middle, seen with a focal length of 1
+        const corners = [];
+        for (const sx of [-1, 1])
+          for (const sz of [-1, 1]) {
+            corners.push([sx * FRAME.input[0], INPUT.y, sz * FRAME.input[1]], [sx * FRAME.hidden[0], HIDDEN.y, sz * FRAME.hidden[1]], [sx * FRAME.output[0], OUTPUT.y, sz * FRAME.output[1]]);
+          }
+        for (const [u, v] of [...octagon, ...triangle]) corners.push([u, FACE + v, 0]);
+        const o = [0, 0, 0, 0];
+        let x0 = Infinity, x1 = -Infinity, y0 = Infinity, y1 = -Infinity;
+        for (const c of corners) {
+          project(c[0], c[1], c[2], o);
+          x0 = Math.min(x0, o[0]);
+          x1 = Math.max(x1, o[0]);
+          y0 = Math.min(y0, o[1]);
+          y1 = Math.max(y1, o[1]);
+        }
+        const PAD = 8; // the dots' own radius, and a little air
+        CAM.focal = Math.min((W * 0.8 - 2 * PAD) / (x1 - x0), (H * 0.8 - 2 * PAD) / (y1 - y0));
+        CAM.cx = W / 2 - (CAM.focal * (x0 + x1)) / 2;
+        CAM.cy = H / 2 - (CAM.focal * (y0 + y1)) / 2;
+      }
+      /** px per world unit at the distance of the scene's middle */
+      const UNIT = CAM.focal / CAM.dist;
+      /** a length given in px at that distance, in world units: the dots and their spacing keep their size whatever the zoom */
+      const px = (n) => n / UNIT;
       /** far things are fainter as well as smaller */
-      const haze = (depth) => mix(1, 0.55, smooth(CAM.dist - 2.4, CAM.dist + 2.8, depth));
+      const haze = (depth) => mix(1, 0.55, smooth(CAM.dist - 1.2, CAM.dist + 2.2, depth));
 
       /* ---------------- the look: dot sizes and mixes ---------------- */
       // Diameters in px at the middle distance: many fine, some medium, a few large.
-      const DOT = { xs: 2.1 / UNIT, s: 3.1 / UNIT, m: 4.7 / UNIT, l: 7.0 / UNIT, xl: 9.6 / UNIT };
+      const DOT = { xs: px(2.1), s: px(3.1), m: px(4.7), l: px(7.0), xl: px(9.6) };
       const look = (sizes, alphas = [[1, 1]]) => ({ sizes, alphas });
       const EDGE = look([[DOT.s, 0.56], [DOT.m, 0.38], [DOT.l, 0.06]]);
       const RIM = look([[DOT.xs, 0.5], [DOT.s, 0.5]]);
       const CORNER = look([[DOT.l, 1]]);
-      const FACE = look([[DOT.xs, 0.74], [DOT.s, 0.22], [DOT.m, 0.04]], [[0.6, 0.22], [1, 0.78]]);
-      const POST = look([[DOT.xs, 0.55], [DOT.s, 0.45]]);
-      const FRAME = look([[DOT.xs, 0.8], [DOT.s, 0.2]], [[0.55, 1]]);
+      const GRAIN = look([[DOT.xs, 0.74], [DOT.s, 0.22], [DOT.m, 0.04]], [[0.6, 0.22], [1, 0.78]]);
+      const POLE = look([[DOT.xs, 0.55], [DOT.s, 0.45]]);
+      const BORDER = look([[DOT.xs, 0.8], [DOT.s, 0.2]], [[0.55, 1]]);
       const DUST = look([[DOT.xs, 0.6], [DOT.s, 0.27], [DOT.m, 0.11], [DOT.l, 0.02]], [[0.6, 0.4], [1, 0.6]]);
 
       /* ---------------- the network ---------------- */
-      const X = { sign: -3.0, input: -1.0, hidden: 1.4, output: 3.1 };
-      const INPUT = { n: 10, half: 0.74 };
-      const HIDDEN = { n: 5, half: 0.5 };
-      const OUTPUT = { n: 5, gap: 0.2 };
-      /** which output answers to each sign (0: the octagon, 1: the triangle), counted from the bottom */
-      const ANSWER = [3, 1];
-
-      const cell = (L, i) => -L.half + ((i + 0.5) * 2 * L.half) / L.n;
-      const inputNodes = [];
-      for (let j = 0; j < INPUT.n; j++) for (let i = 0; i < INPUT.n; i++) inputNodes.push({ p: [X.input, cell(INPUT, j), cell(INPUT, i)], size: DOT.m });
-      const hiddenNodes = [];
-      for (let j = 0; j < HIDDEN.n; j++) for (let i = 0; i < HIDDEN.n; i++) hiddenNodes.push({ p: [X.hidden, cell(HIDDEN, j), cell(HIDDEN, i)], size: DOT.l });
+      // (row j runs from the back, j = 0, to the front; column i from left to right)
+      const grid = (L, size) => {
+        const nodes = [];
+        for (let j = 0; j < L.nz; j++) for (let i = 0; i < L.nx; i++) nodes.push({ p: [-L.halfX + (i + 0.5) * L.pitch, L.y, -L.halfZ + (j + 0.5) * L.pitch], size });
+        return nodes;
+      };
+      const inputNodes = grid(INPUT, DOT.m * 0.9);
+      const hiddenNodes = grid(HIDDEN, DOT.l * 0.95);
       const outputNodes = [];
-      for (let j = 0; j < OUTPUT.n; j++) outputNodes.push({ p: [X.output, (j - (OUTPUT.n - 1) / 2) * OUTPUT.gap, 0], size: DOT.xl });
+      for (let i = 0; i < OUTPUT.n; i++) outputNodes.push({ p: [(i - (OUTPUT.n - 1) / 2) * OUTPUT.gap, OUTPUT.y, 0], size: DOT.xl });
 
       // Wires. Input to hidden: each hidden node gathers a 2 × 2 patch (a small
       // receptive field), so the hidden layer ends up holding a coarse copy of
       // the sign. Hidden to output: every hidden node to every output.
       const wiresIn = inputNodes.map((_, k) => {
-        const i = k % INPUT.n;
-        const j = Math.floor(k / INPUT.n);
-        return { a: k, b: Math.floor(j / 2) * HIDDEN.n + Math.floor(i / 2), seed: rnd() };
+        const i = k % INPUT.nx;
+        const j = Math.floor(k / INPUT.nx);
+        return { a: k, b: Math.floor(j / 2) * HIDDEN.nx + Math.floor(i / 2), seed: rnd() };
       });
       const wiresOut = [];
       hiddenNodes.forEach((_, a) => outputNodes.forEach((_, b) => wiresOut.push({ a, b, seed: rnd() })));
 
       // The planes' edges: a fine dotted frame around each layer, a larger dot on each corner.
       const frames = [];
-      function frame(x, halfY, halfZ) {
-        const corners = [[-halfY, -halfZ], [-halfY, halfZ], [halfY, halfZ], [halfY, -halfZ]];
-        corners.forEach(([y, z], c) => {
-          const [y1, z1] = corners[(c + 1) % 4];
-          const count = Math.max(1, Math.round(Math.hypot(y1 - y, z1 - z) / 0.045));
+      function frame(y, halfX, halfZ) {
+        const corners = [[-halfX, -halfZ], [halfX, -halfZ], [halfX, halfZ], [-halfX, halfZ]];
+        corners.forEach(([x, z], c) => {
+          const [x1, z1] = corners[(c + 1) % 4];
+          const count = Math.max(1, Math.round(Math.hypot(x1 - x, z1 - z) / px(6.4)));
           for (let i = 0; i < count; i++) {
             const t = (i + 0.5 + (rnd() - 0.5) * 0.3) / count;
-            frames.push({ p: [x, mix(y, y1, t), mix(z, z1, t)], size: pick(FRAME.sizes), alpha: pick(FRAME.alphas) });
+            frames.push({ p: [mix(x, x1, t), y, mix(z, z1, t)], size: pick(BORDER.sizes), alpha: pick(BORDER.alphas) });
           }
           frames.push({ p: [x, y, z], size: DOT.m, alpha: 0.9 });
         });
       }
-      frame(X.input, INPUT.half + 0.09, INPUT.half + 0.09);
-      frame(X.hidden, HIDDEN.half + 0.1, HIDDEN.half + 0.1);
-      frame(X.output, ((OUTPUT.n - 1) / 2) * OUTPUT.gap + 0.16, 0.13);
+      frame(INPUT.y, ...FRAME.input);
+      frame(HIDDEN.y, ...FRAME.hidden);
+      frame(OUTPUT.y, ...FRAME.output);
 
       /* ---------------- the signs ---------------- */
       /*
-       * Each sign is drawn on the plane x = X.sign, in (u, v) = (z, y − SIGN_Y):
-       * a dense outer edge, a finer inner rim, a light grain inside and a
-       * post. Every dot also knows the input node it falls into: the one
-       * straight behind it, as if the sign were projected on the layer.
+       * A dense outer edge, a finer inner rim, a light grain inside and a
+       * post down to the input layer. Every dot also knows the input node it
+       * falls into: the sign lies down on the layer, its top at the back and
+       * spread over the layer's width (LENS), so the layer lights up the
+       * sign's own silhouette, seen flat.
        */
-      const SIGN_Y = (2 * INPUT.half) / INPUT.n; // one input row up: the sign covers whole rows of the grid, and the post reaches its bottom
-      const POST_END = -1.08;
-      const octagon = Array.from({ length: 8 }, (_, k) => {
-        const a = ((22.5 + 45 * k) * Math.PI) / 180;
-        return [0.628 * Math.cos(a), 0.628 * Math.sin(a)];
-      });
-      const triangle = [[-0.68, 0.52], [0.68, 0.52], [0, -0.658]]; // a yield sign: equilateral, point down
-
       const centroid = (poly) => poly.reduce((c, p) => [c[0] + p[0] / poly.length, c[1] + p[1] / poly.length], [0, 0]);
       /** the polygon shrunk towards its centre so that its sides move in by `inset` (regular polygons only) */
       function shrink(poly, inset) {
@@ -227,63 +264,68 @@
         }
         return true;
       }
+      const colOf = (x) => clamp(Math.floor((x + INPUT.halfX) / INPUT.pitch), 0, INPUT.nx - 1);
+      const rowOf = (z) => clamp(Math.floor((z + INPUT.halfZ) / INPUT.pitch), 0, INPUT.nz - 1);
+      /** how the sign lands on the layer: spread across its width, and no deeper than it is */
+      const LENS = [2.05, 0.86];
 
       function buildSign(poly, rimInset) {
         const dots = [];
-        const add = (u, v, lk, alpha = 1) => {
-          const i = clamp(Math.floor((u + INPUT.half) / ((2 * INPUT.half) / INPUT.n)), 0, INPUT.n - 1);
-          const j = clamp(Math.floor((v + SIGN_Y + INPUT.half) / ((2 * INPUT.half) / INPUT.n)), 0, INPUT.n - 1);
+        const middle = centroid(poly)[1];
+        /** a dot at (u, v) on the sign's plane; on the layer it lands at (x, z) */
+        const add = (u, v, x, z, lk, alpha = 1) => {
           const heading = rnd() * TAU;
           dots.push({
-            p: [X.sign, v + SIGN_Y, u],
+            p: [u, FACE + v, 0],
             size: pick(lk.sizes),
             alpha: pick(lk.alphas) * alpha,
-            node: j * INPUT.n + i,
-            // where it comes from as the sign forms: a little way off, mostly across the plane
-            from: [(rnd() - 0.5) * 0.9, Math.sin(heading), Math.cos(heading)],
-            reach: 0.14 + 0.4 * rnd(),
+            node: rowOf(z) * INPUT.nx + colOf(x),
+            // where it comes from as the sign forms: a little way off, mostly across the sign's plane
+            from: [Math.cos(heading), Math.sin(heading), (rnd() - 0.5) * 0.9],
+            reach: px(20) + px(56) * rnd(),
             seed: [rnd(), rnd(), rnd()],
           });
         };
+        const face = (u, v, lk) => add(u, v, LENS[0] * u, -LENS[1] * (v - middle), lk);
         const line = (a, b, lk, pitch) => {
           const count = Math.max(1, Math.round(Math.hypot(b[0] - a[0], b[1] - a[1]) / pitch));
           for (let i = 0; i < count; i++) {
             const t = (i + 0.5 + (rnd() - 0.5) * 0.3) / count;
-            add(mix(a[0], b[0], t), mix(a[1], b[1], t), lk);
+            face(mix(a[0], b[0], t), mix(a[1], b[1], t), lk);
           }
         };
         const outline = (pts, lk, pitch) => pts.forEach((p, k) => line(p, pts[(k + 1) % pts.length], lk, pitch));
 
-        outline(poly, EDGE, 0.034);
-        poly.forEach((p) => add(p[0], p[1], CORNER));
+        outline(poly, EDGE, px(4.8));
+        poly.forEach((p) => face(p[0], p[1], CORNER));
         const rim = shrink(poly, rimInset);
-        outline(rim, RIM, 0.034);
+        outline(rim, RIM, px(4.8));
         // grain: a loose grid, regular enough to read as a face, never ruled
-        const field = shrink(poly, rimInset + 0.07);
-        const gap = 0.09;
-        for (let u = -0.75; u < 0.75; u += gap)
-          for (let v = -0.75; v < 0.75; v += gap) {
+        const field = shrink(poly, rimInset + px(10));
+        const gap = px(12.5);
+        for (let u = -1; u < 1; u += gap)
+          for (let v = -1; v < 1; v += gap) {
             const gu = u + (rnd() - 0.5) * gap * 0.7;
             const gv = v + (rnd() - 0.5) * gap * 0.7;
-            if (inside(field, gu, gv)) add(gu, gv, FACE);
+            if (inside(field, gu, gv)) face(gu, gv, GRAIN);
           }
-        // post: two fine columns from the sign's lowest point, fading out at the bottom
+        // post: two fine columns from the sign's lowest point down to the layer, where they land around its middle
         const low = Math.min(...poly.map((p) => p[1]));
-        const count = Math.round((low - POST_END) / 0.036);
-        for (const u of [-0.026, 0.026])
+        const count = Math.round((low + FACE) / px(5.1));
+        for (const u of [-px(3.6), px(3.6)])
           for (let i = 0; i < count; i++) {
             const t = (i + 0.5 + (rnd() - 0.5) * 0.3) / count;
-            add(u, mix(low - 0.02, POST_END, t), POST, 1 - smooth(0.55, 1, t) * 0.8);
+            add(u, mix(low - px(3), -FACE, t), (rnd() - 0.5) * 0.3, (rnd() - 0.5) * 0.3, POLE);
           }
         return dots;
       }
-      const signs = [buildSign(octagon, 0.085), buildSign(triangle, 0.13)];
+      const signs = [buildSign(octagon, px(12)), buildSign(triangle, px(18))];
 
       /* ---------------- what each sign does to the network ---------------- */
       /*
        * Times in seconds within a sign's own cycle (the two signs are half a
        * loop apart): it forms, holds, falls into the input layer, and the
-       * wave it starts crosses to the hidden layer and then to its output.
+       * wave it starts goes down to the hidden layer and then to its output.
        */
       const T = {
         form: [0, 1.0],
@@ -305,8 +347,9 @@
       const START = 1.9;
 
       const plans = signs.map((dots, s) => {
-        // when each dot leaves: mostly at random (the sign crumbles), the side nearest the layer a little earlier
-        for (const d of dots) d.leave = T.fall + T.fallSpread * (0.72 * d.seed[0] + 0.28 * (1 - (d.p[2] + 0.7) / 1.4));
+        // when each dot leaves: the sign crumbles from the foot up, with some disorder
+        const top = Math.max(...dots.map((d) => d.p[1]));
+        for (const d of dots) d.leave = T.fall + T.fallSpread * (0.55 * d.seed[0] + 0.45 * (d.p[1] / top));
         const input = inputNodes.map(() => ({ level: 0, at: Infinity }));
         const weight = inputNodes.map(() => 0);
         for (const d of dots) {
@@ -340,18 +383,23 @@
       // laps per loop (so the loop closes) and its own offset.
       const TAIL = 3;
       const ambient = [];
-      for (const w of wiresIn) if (rnd() < 0.24) ambient.push({ wire: w, stage: 0, laps: rnd() < 0.5 ? 2 : 3, offset: rnd() });
-      for (const w of wiresOut) if (rnd() < 0.16) ambient.push({ wire: w, stage: 1, laps: rnd() < 0.5 ? 2 : 3, offset: rnd() });
+      for (const w of wiresIn) if (rnd() < 0.3) ambient.push({ wire: w, stage: 0, laps: rnd() < 0.5 ? 2 : 3, offset: rnd() });
+      for (const w of wiresOut) if (rnd() < 0.18) ambient.push({ wire: w, stage: 1, laps: rnd() < 0.5 ? 2 : 3, offset: rnd() });
 
       /* ---------------- dust ---------------- */
+      // All over the frame, at every distance; the column the network stands in is kept almost clear.
       const dust = [];
-      while (dust.length < 180) {
-        const p = [mix(-4.4, 4.4, rnd()), (rnd() + rnd() - 1) * 1.8, (rnd() + rnd() - 1) * 2.4];
-        // keep the space the network occupies almost clear
-        const inNet = Math.abs(p[1]) < 1.05 && Math.abs(p[2]) < 1.05 && p[0] > -3.4 && p[0] < 3.4;
-        if (inNet && rnd() > 0.12) continue;
-        // (a third of it wanders; the rest stays put)
-        dust.push({ p, size: pick(DUST.sizes), alpha: pick(DUST.alphas), seed: rnd(), laps: rnd() < 0.7 ? 1 : 2, amp: rnd() < 0.3 ? 0.05 : 0 });
+      {
+        const spanX = (W / UNIT / 2) * 1.25;
+        const spanY = (H / UNIT / 2) * 1.25;
+        const midY = (FACE + 0.8 + OUTPUT.y) / 2;
+        while (dust.length < 180) {
+          const p = [(rnd() * 2 - 1) * spanX, midY + (rnd() * 2 - 1) * spanY, (rnd() + rnd() - 1) * 2.6];
+          const inNet = Math.abs(p[0]) < INPUT.halfX + 0.4 && Math.abs(p[2]) < 1.5 && p[1] > OUTPUT.y - 0.4 && p[1] < FACE + 1.2;
+          if (inNet && rnd() > 0.1) continue;
+          // (a third of it wanders; the rest stays put)
+          dust.push({ p, size: pick(DUST.sizes), alpha: pick(DUST.alphas), seed: rnd(), laps: rnd() < 0.7 ? 1 : 2, amp: rnd() < 0.3 ? px(7) : 0 });
+        }
       }
 
       /* ---------------- drawing ---------------- */
@@ -374,9 +422,9 @@
       /** A speck of dust's slow wander: a small loop of its own, a whole number of times per clip (so it closes). */
       function wander(d, phase, out) {
         const a = TAU * (phase * d.laps + d.seed);
-        out[0] = d.p[0] + d.amp * 0.6 * Math.sin(a + 1.1);
+        out[0] = d.p[0] + d.amp * Math.cos(a);
         out[1] = d.p[1] + d.amp * Math.sin(a);
-        out[2] = d.p[2] + d.amp * Math.cos(a);
+        out[2] = d.p[2] + d.amp * 0.6 * Math.sin(a + 1.1);
         return out;
       }
 
@@ -401,7 +449,7 @@
       const place = { input: inputNodes.map((n) => n.p), hidden: hiddenNodes.map((n) => n.p), output: outputNodes.map((n) => n.p) };
       const lit = { input: new Float32Array(inputNodes.length), hidden: new Float32Array(hiddenNodes.length), output: new Float32Array(outputNodes.length) };
 
-      function render(phase) {
+      function draw(phase) {
         phase = ((phase % 1) + 1) % 1;
         sprites.length = 0;
         const seconds = phase * SECONDS;
@@ -453,7 +501,7 @@
 
         // the layers: frames and nodes
         for (const f of frames) dot(f.p, f.size, f.alpha);
-        inputNodes.forEach((n, k) => dot(place.input[k], n.size * (1 + 0.5 * lit.input[k]), 1, lit.input[k], lit.input[k]));
+        inputNodes.forEach((n, k) => dot(place.input[k], n.size * (1 + 0.4 * lit.input[k]), 1, lit.input[k], lit.input[k] * 0.55));
         hiddenNodes.forEach((n, k) => dot(place.hidden[k], n.size * (1 + 0.42 * lit.hidden[k]), 1, lit.hidden[k], lit.hidden[k]));
         outputNodes.forEach((n, k) => dot(place.output[k], n.size * (1 + 0.7 * lit.output[k]), 1, lit.output[k], lit.output[k] * 2));
 
@@ -464,7 +512,7 @@
           for (let k = 0; k <= TAIL; k++) {
             const u = (((phase * b.laps + b.offset - k * 0.045) % 1) + 1) % 1;
             const ends = smooth(0, 0.07, u) * (1 - smooth(0.9, 1, u));
-            dot(along(a, c, u, v3), DOT.m * (1 - k * 0.17), (1 - k * 0.22) * ends, 1, k === 0 ? 0.8 : 0);
+            dot(along(a, c, u, v3), DOT.s * 1.15 * (1 - k * 0.17), (1 - k * 0.22) * ends, 1, k === 0 ? 0.8 : 0);
           }
         }
         // …and each sign's wave
@@ -496,7 +544,7 @@
               }
               if (head < 1) {
                 const ends = smooth(0, 0.1, head) * (1 - smooth(0.9, 1, head));
-                dot(along(a, c, u1, v3), DOT.m * 1.25, mix(0.75, 1, b.level) * ends, 1, 1);
+                dot(along(a, c, u1, v3), DOT.s * 1.4, mix(0.75, 1, b.level) * ends, 1, 1);
               }
             }
           };
@@ -513,26 +561,23 @@
             // forming, as the hero's figures do: each dot arrives from a little way off (here it also grows: a fine dust that sets)
             const f = smooth(0, 1, clamp(form * 1.4 - d.seed[1] * 0.4));
             const gone = 1 - f;
-            v3[0] = d.p[0];
-            v3[1] = d.p[1];
-            v3[2] = d.p[2];
             const off = d.reach * gone * gone;
-            v3[0] += d.from[0] * off;
-            v3[1] += d.from[1] * off;
-            v3[2] += d.from[2] * off;
+            v3[0] = d.p[0] + d.from[0] * off;
+            v3[1] = d.p[1] + d.from[1] * off;
+            v3[2] = d.p[2] + d.from[2] * off;
             let size = d.size * (1 - 0.4 * gone);
             let alpha = d.alpha * f * Math.sqrt(f);
             let hue = 0;
-            // falling into the input layer
+            // falling into the input layer: it drops faster and faster while it slides to its node
             const u = clamp((t - d.leave) / T.flight);
             if (u > 0) {
-              const e = u * u * (3 - 2 * u);
               const node = place.input[d.node];
-              along(v3, node, e, v3);
-              // a slight arc, so the stream does not look ruled
-              v3[1] += Math.sin(Math.PI * e) * 0.05 * (d.seed[2] - 0.5);
-              size = mix(size, DOT.s, e);
-              alpha *= 1 - smooth(0.78, 1, u);
+              const slide = u * u * (3 - 2 * u);
+              v3[0] = mix(v3[0], node[0], slide);
+              v3[1] = mix(v3[1], node[1], Math.pow(u, 1.7));
+              v3[2] = mix(v3[2], node[2], slide);
+              size = mix(size, DOT.s, slide);
+              alpha *= 1 - smooth(0.8, 1, u);
               hue = smooth(0.1, 0.6, u);
             }
             dot(v3, size, alpha, hue);
@@ -571,20 +616,20 @@
       }
 
       /** what scripts/loops/record.mjs drives: the clip's size and length, and one frame per phase */
-      window.loop = { width: W, height: H, seconds: SECONDS, fps: FPS, draw: render };
+      window.loop = { width: W, height: H, seconds: SECONDS, fps: FPS, draw };
 
       // One still (?phase=…), or the clip in real time for whoever opens the file. Under automation
       // (the recorder) it does not play by itself: a frame drawn on its own between draw() and the
       // screenshot would end up in the clip.
-      if (query.has("phase")) render(Number(query.get("phase")) || 0);
+      if (query.has("phase")) draw(Number(query.get("phase")) || 0);
       else if (!navigator.webdriver) {
         const t0 = performance.now();
         const tick = (now) => {
-          render((now - t0) / 1000 / SECONDS);
+          draw((now - t0) / 1000 / SECONDS);
           requestAnimationFrame(tick);
         };
         requestAnimationFrame(tick);
-      } else render(0);
+      } else draw(0);
     </script>
   </body>
 </html>

@@ -1,6 +1,6 @@
 # Decisiones
 
-Lo aprobado, lo que he decidido yo al construir (para que lo revises) y lo que falta. Última actualización: 12-11-2026. Incluye las tres fases (contenido y CV, dirección visual Apple × Evolve, piezas visuales), el pulido estético (rama `claude/design-polish`), el hero definitivo con el chip de partículas (rama `claude/hero-asymmetric`), la nube de partículas con presencia y figuras (rama `claude/particle-figures`), la carga, la interacción y la pausa del chip (rama `claude/chip-interaction`), la ronda del 11-11 (rama `claude/nice-keller-emmje9`): partículas una a una, «Cómo trabajo», carruseles, vídeos de proyecto, Skills compacto y reserva con Google Calendar; y la segunda ronda del 11-11 (rama `claude/tender-faraday-k93q2e`): física real por partícula, «Cómo trabajo» más abajo y rediseñada, Skills como red en 3D y cinco ajustes; y el vídeo de «Proyectos de IA (CS50)» hecho con código (rama `claude/blissful-noether-vdydld`).
+Lo aprobado, lo que he decidido yo al construir (para que lo revises) y lo que falta. Última actualización: 13-11-2026. Incluye las tres fases (contenido y CV, dirección visual Apple × Evolve, piezas visuales), el pulido estético (rama `claude/design-polish`), el hero definitivo con el chip de partículas (rama `claude/hero-asymmetric`), la nube de partículas con presencia y figuras (rama `claude/particle-figures`), la carga, la interacción y la pausa del chip (rama `claude/chip-interaction`), la ronda del 11-11 (rama `claude/nice-keller-emmje9`): partículas una a una, «Cómo trabajo», carruseles, vídeos de proyecto, Skills compacto y reserva con Google Calendar; y la segunda ronda del 11-11 (rama `claude/tender-faraday-k93q2e`): física real por partícula, «Cómo trabajo» más abajo y rediseñada, Skills como red en 3D y cinco ajustes; y el vídeo de «Proyectos de IA (CS50)» hecho con código (rama `claude/blissful-noether-vdydld`).
 
 Lo que cambia la última ronda está en «Vídeo de Proyectos de IA (CS50)», al final de la sección 1; los apartados anteriores se han corregido donde ya no eran verdad.
 
@@ -237,24 +237,24 @@ Grupo (a) completo, del 1 al 16, y el reveal del grupo (b). Capturas antes/despu
 
 ### Vídeo de «Proyectos de IA (CS50)» (rama `claude/blissful-noether-vdydld`, PR contra `main`; pendiente de tu OK)
 
-**El clip de arriba de la tarjeta es ahora una escena dibujada con código,** no una grabación de la ilustración. Sin generadores de vídeo ni recursos externos: un HTML suelto con un canvas 2D, `scripts/loops/cs50-ai.html` (se abre tal cual en el navegador).
+**El clip de arriba de la tarjeta es ahora una escena dibujada con código,** no una grabación de la ilustración. Sin generadores de vídeo ni recursos externos: un HTML suelto con un canvas 2D, `scripts/loops/cs50-ai.html` (se abre tal cual en el navegador). La primera versión iba de izquierda a derecha; desde el 13-11 va **en vertical**, de arriba abajo.
 
 **La escena: una red que aprende a ver**
-- **Tres capas de nodos en perspectiva,** vistas desde delante a la izquierda y un poco desde arriba: entrada (10 × 10), oculta (5 × 5) y salida (5 nodos en columna). Cada capa lleva un marco punteado; las unen 225 líneas finas.
-- **Impulsos morados** recorren las líneas de izquierda a derecha sin parar: 37, cada uno con su cola de tres puntos, como los paquetes de datos del chip.
-- **Delante de la capa de entrada se forma con puntos una señal de tráfico** sobre su poste: un stop (octógono, 319 puntos) y, media vuelta después, un ceda el paso (triángulo, 253). Sin letras.
-- **La señal se deshace y cae dentro de la capa de entrada.** Cada punto va al nodo que tiene justo detrás, así que la capa enciende la silueta de la señal, pixelada.
-- **La onda cruza la red:** de los nodos encendidos salen impulsos más vivos (la línea se ilumina a su paso), la capa oculta enciende una copia más tosca y de ahí la onda converge en un solo nodo de salida. El octógono enciende el segundo por arriba; el triángulo, el segundo por abajo.
+- **Tres capas de nodos en perspectiva, una bajo otra,** vistas de frente y un poco desde arriba: entrada (14 × 6), oculta (7 × 3) y salida (una fila de 5). Cada capa lleva un marco punteado y se estrecha hacia el fondo; las unen 189 líneas finas.
+- **Impulsos morados** recorren las líneas de arriba abajo sin parar: 41, cada uno con su cola de tres puntos, como los paquetes de datos del chip.
+- **Sobre la capa de entrada se forma con puntos una señal de tráfico,** de pie en su poste, plantado en el centro de la capa: un stop (octógono, 263 puntos) y, media vuelta después, un ceda el paso (triángulo, 210). Sin letras.
+- **La señal se deshace desde el pie y cae dentro de la capa de entrada** como una lluvia de puntos que se abre a lo ancho. La capa enciende la silueta de la señal, tumbada y pixelada.
+- **La onda baja por la red:** de los nodos encendidos salen impulsos más vivos (la línea se ilumina a su paso), la capa oculta enciende una copia más tosca y de ahí la onda converge en un solo nodo de salida. El octógono enciende el segundo por la izquierda; el triángulo, el cuarto.
 - **Ritmo** (cada señal, en su ciclo de 7 s): se forma en 1 s, aguanta 1,2 s, cae durante 1,25 s, la onda tarda 1,8 s en llegar a la salida y el nodo queda encendido 1,1 s más 0,75 s de apagado. Las dos señales van desfasadas 3,5 s.
 
 **Estilo: el del chip del hero**
-- **Puntos nítidos en cinco tamaños:** 2,1 · 3,1 · 4,7 · 7 y 9,6 px a la distancia media. Entre señal, marcos, polvo y nodos: 485 finos, 245 pequeños, 177 medianos, 47 grandes y 5 muy grandes.
+- **Puntos nítidos en cinco tamaños:** 2,1 · 3,1 · 4,7 · 7 y 9,6 px a la distancia media. Entre señal, marcos, polvo y nodos: 539 finos, 216 pequeños, 143 medianos, 42 grandes y 5 muy grandes.
 - **Bordes densos y con un punto grande en cada vértice; caras con grano fino,** como las placas del chip.
-- **Profundidad:** la señal es lo más cercano y la salida lo más lejano, un 33 % más pequeña y hasta un 45 % más tenue. Alrededor, 180 puntos de polvo a distintas distancias; un tercio deambula despacio.
+- **Profundidad:** la fila del fondo de cada capa es un 15 % más pequeña que la de delante, y la salida, la capa más alejada de la cámara, un 22 % más pequeña que la señal y un tercio más tenue. Alrededor, 180 puntos de polvo a distintas distancias; un tercio deambula despacio.
 - **Un solo acento:** el morado del dominio IA (`--purple`, el de `--d-rgb` en `app/globals.css`): #AF52DE en claro y #BF5AF2 en oscuro. Tinta #1D1D1F en claro y #F5F5F7 al 85 % en oscuro. Sin texto ni logos.
 - **Fondo:** el gris de la tarjeta (`--card`) con el tinte de `.frag-stage` encima. La escena enlaza `app/globals.css` y lo pinta con las reglas de la propia web.
 
-**Formato**
+**Formato: el del vídeo de Shortlist (PR #8)**
 - 7 s, 24 fps (168 fotogramas), 832 × 520 px, sin audio. La acción cabe en el 80 % central.
 - Un vídeo por tema, el mismo en los dos idiomas: `loop-light` y `loop-dark`, cada uno en `.mp4` (H.264), `.webm` (VP9) y `.poster.jpg` (el primer fotograma). Borrados los 12 `loop-en-*` y `loop-es-*` de la carpeta.
 - **Determinista y periódica:** semilla fija y todo en función de una fase de 0 a 1; el último fotograma enlaza con el primero.
@@ -268,21 +268,29 @@ Grupo (a) completo, del 1 al 16, y el reveal del grupo (b). Capturas antes/despu
 ## 2. Decidido por mí (revisar)
 
 ### Vídeo de «Proyectos de IA (CS50)» (revisar)
-- **El triángulo es un ceda el paso,** con la punta hacia abajo. Es la señal triangular que de verdad va vacía; un triángulo de peligro sin su pictograma quedaría a medias. Las dos señales llevan poste: sin él, un octógono de puntos no se lee como señal.
+- **«En vertical» lo he leído como la escena, no como el archivo.** El vídeo sigue midiendo 832 × 520 (16:10), como el de Shortlist del PR #8 y como recorta la tarjeta; lo que cambia es que la red va de arriba abajo. En el repo no hay ningún vídeo de Shortlist en retrato ni cambio en la tarjeta. Si te referías al formato del archivo, la escena se ajusta sola al encuadre: basta cambiar dos números (`W` y `H`) y volver a grabar.
+- **Las capas son anchas y poco profundas, y se ven de frente.** Una pila vertical en un encuadre apaisado quedaba como una columna estrecha y pequeña. Probé tres vistas antes:
+  - De tres cuartos, con capas cuadradas en rombo, como las placas del chip: la más bonita, pero en la tarjeta la figura medía 170 × 250 px y los nodos apenas 2 px.
+  - Con un giro leve: los planos se veían torcidos, como por error.
+  - De frente con capas cuadradas: la red seguía apretada bajo la señal.
+  - Con capas de 14 × 6 y 7 × 3 la figura ocupa 434 × 400 px del vídeo (270 × 250 en la tarjeta) y las filas de nodos se leen.
+- **La señal está de pie, con el poste plantado en el centro de la capa de entrada.** Así se lee como señal y queda «sobre la primera capa». Tumbada, paralela a las capas, un octógono aplastado no se reconocía.
+- **Al caer, la señal se tumba y se abre a lo ancho:** su parte alta va al fondo de la capa y se estira hasta ocuparla casi entera. La capa enciende un octógono o un triángulo alargados, no una mancha en el centro.
+- **La señal se deshace desde el pie hacia arriba,** con algo de desorden: primero el poste, lo último el borde de arriba.
+- **El triángulo es un ceda el paso,** con la punta hacia abajo. Es la señal triangular que de verdad va vacía; un triángulo de peligro sin su pictograma quedaría a medias.
 - **El morado es el de relleno** (`--purple`), el mismo del tinte de la tarjeta, no el de texto (`--purple-text`), que está pensado para letra.
-- **La cámara no se mueve.** Probé un vaivén leve, como el del chip, y lo quité:
-  - Al mover cada punto una fracción de píxel por fotograma, el codificador rehace la imagen entera cada vez, más blanda que el primer fotograma: en cada vuelta se notaba un latido (el primero salía 4 dB más nítido que el último).
-  - Con la cámara fija esa diferencia baja a 1,1 dB, la imagen gana nitidez y el mp4 claro bajó de 382 a 289 kB. Con ese margen volví a subir el polvo y los impulsos: de ahí los 327 kB.
-  - La vida la ponen los impulsos, el polvo y las señales; la red es rígida, como las figuras del hero.
+- **La cámara no se mueve y la red es rígida.** En la primera versión probé un vaivén leve, como el del chip, y lo quité: al mover cada punto una fracción de píxel por fotograma, el codificador rehacía la imagen entera cada vez y en cada vuelta se notaba un latido (el primer fotograma salía 4 dB más nítido que el último). La vida la ponen los impulsos, el polvo y las señales.
 - **El primer fotograma (y el póster) es el octógono ya formado con un nodo de salida encendido.** Ese nodo es el del triángulo de la vuelta anterior: el de cada señal sigue encendido mientras se forma la siguiente y se apaga cuando esta cae en la red. Así el póster enseña la escena completa (señal, red y respuesta) y en el bucle siempre pasa algo.
-- **Las líneas no son «todos con todos» en la primera mitad:** cada nodo oculto recoge un bloque de 2 × 2 nodos de entrada. Con 100 × 25 líneas la red sería una mancha; así, además, la capa oculta enciende de verdad una versión reducida de la señal. De la oculta a la salida sí van todos con todos, y la onda solo viaja hacia el nodo que responde.
-- **Cada haz de líneas se pinta de una vez:** donde se cruzan no se suman en una raya más oscura. La cámara está a una altura a la que ninguna fila de líneas queda alineada.
-- **El webm pesa más que el mp4:** 432 kB (claro) y 359 kB (oscuro), frente a 327 y 295. Con los ajustes del script (VP9, CRF 40) esta escena de puntos comprime peor que en H.264, y Chrome y Firefox eligen el webm, que va primero. No lo he tocado porque pediste esos ajustes y el tope era para el mp4. Con CRF 44 el claro quedaría en 340 kB. Dime si lo cambio solo para este clip.
-- **Pesa más que el clip anterior:** antes se descargaban entre 51 y 95 kB por visita; ahora, entre 295 y 432 kB. Sigue cargándose solo cuando la tarjeta se acerca a la pantalla, y nunca en el móvil.
+- **Las líneas no son «todos con todos» en la primera mitad:** cada nodo oculto recoge un bloque de 2 × 2 nodos de entrada. Así la capa oculta enciende de verdad una versión reducida de la señal. De la oculta a la salida sí van todos con todos, y la onda solo viaja hacia el nodo que responde.
+- **La capa oculta tiene un número impar de columnas (7).** Con un número par, las líneas de las dos columnas centrales bajaban rectas, una encima de otra, y formaban dos rayas oscuras. Además, cada haz de líneas se pinta de una vez, para que donde se cruzan no se sumen.
+- **En la costura cambia más que entre dos fotogramas seguidos cualesquiera,** al revés que en el de Shortlist: 0,84 niveles de 255 frente a una mediana de 0,48. La escena en sí enlaza exacta. La diferencia es el fotograma clave, que sale 1,4 dB más nítido que el último, y pesa más aquí porque casi toda la imagen está quieta. No se ve, y queda muy por debajo del máximo del bucle (2,05, cuando cae la señal).
+- **El webm sigue pesando algo más que el mp4** (318 y 267 kB frente a 259 y 235), con los ajustes de siempre, y la web sirve el webm primero. Ahora los cuatro vídeos bajan de 400 kB.
+- **Pesa más que el clip anterior:** antes se descargaban entre 51 y 95 kB por visita; ahora, entre 235 y 318 kB. Sigue cargándose solo cuando la tarjeta se acerca a la pantalla, y nunca en el móvil.
 - **Fondo tras codificar:** el de la escena es exacto. En Chromium, el clip oscuro sale idéntico a la tarjeta (28, 28, 30) y el claro se va un nivel de 255 en rojo y azul (246, 245, 248 frente a 245, 245, 247). Es el redondeo del vídeo a 8 bits, el mismo de los otros clips; no se ve.
+- **El póster y el primer fotograma son la misma imagen, pero no píxel a píxel:** el vídeo se pinta a 520 × 324 px y el póster a 520 × 325 (la tarjeta le quita 1 px al vídeo para su línea inferior), así que los bordes de los puntos difieren en un 1 % de los píxeles. Pasa igual en las otras tarjetas.
 - **Los colores salen de `app/globals.css`,** que la escena enlaza: el gris de la tarjeta, el tinte de `.frag-stage` y el morado del dominio. Si los cambias, basta con volver a grabar.
-- **Empecé con un grabador propio y lo retiré.** Al ir a abrir el PR vi que los PR #8 y #9 ya traían uno; para que los tres no choquen en el código, uso ese, idéntico. Al cambiar, la escena se reproducía sola mientras el grabador capturaba y los fotogramas salían mezclados (los mp4 no coincidían con los ya revisados); corregido como en las otras dos escenas: bajo automatización no se autorreproduce. Tras el arreglo, los mp4 y los pósters son idénticos byte a byte a los que había revisado.
-- **Este PR choca en el texto con los PR #8 y #9, no en el código.** Los tres tocan los mismos párrafos de `DECISIONS.md`, `README.md` y `public/media/README.md`; al fusionar el segundo y el tercero habrá que unirlos a mano. El grabador y `record-project-loops.mjs` son idénticos en los tres.
+- **Empecé con un grabador propio y lo retiré.** Al ir a abrir el PR vi que los PR #8 y #9 ya traían uno; para que los tres no choquen en el código, uso ese, idéntico. Al cambiar, la escena se reproducía sola mientras el grabador capturaba y los fotogramas salían mezclados; corregido como en las otras dos escenas: bajo automatización no se autorreproduce.
+- **Este PR choca en el texto con los PR #8 y #9, no en el código.** Los tres tocan los mismos párrafos de `DECISIONS.md`, `README.md` y `public/media/README.md`; al fusionar el segundo y el tercero habrá que unirlos a mano. El grabador y `record-project-loops.mjs` son idénticos en los tres. Con el PR #10 (Correo) sí choca también el código: ese trae otro grabador.
 - **El grabador de las ilustraciones se salta los proyectos con vídeo propio** (`loop.*`, `loop-light.*` o `loop-dark.*`). Si no, al regrabar volvería a crear los `loop-es-*` y `loop-en-*` de CS50, que tienen preferencia.
 - **La ilustración antigua de la tarjeta** (CNN · GTSRB con «Stop / Ceda el paso / Prohibido el paso», y Nim) no se ha tocado: es lo que se ve en el móvil y lo que saldría si faltara el vídeo.
 - **Los webm no salen idénticos byte a byte** entre dos grabaciones, aunque el vídeo que llevan dentro sí lo es: el contenedor guarda un identificador aleatorio en la cabecera. Los mp4 y los pósters son idénticos.
@@ -454,18 +462,18 @@ Grupo (a) completo, del 1 al 16, y el reveal del grupo (b). Capturas antes/despu
   - **Proyectos en 390 × 844:** fragmento de 305 × 122 px, texto de 12,5 px o más, y ninguna petición a los vídeos ni a sus pósters. A 800 px de ancho, el vídeo.
   - **Sin desbordes a lo ancho** en 390, 1024, 1280 y 1440 px.
   - Capturas de verificación: 9.
-- **Vídeo de «Proyectos de IA (CS50)» (12-11, build local de producción, Chromium):**
+- **Vídeo de «Proyectos de IA (CS50)», en vertical (13-11, build local de producción, Chromium):**
   - `npm run lint` y `npm run build`, sin errores.
-  - **Archivos** (ffprobe): 832 × 520 px, 24 fps, 168 fotogramas, 7,0 s, sin pista de audio. mp4: 327 kB (claro) y 295 kB (oscuro); webm: 432 y 359 kB; pósters: 44 y 42 kB.
-  - **El bucle no salta.** Cambio medio entre fotogramas seguidos, en niveles de 255:
-    - Sin codificar: del último al primero, 0,23, igual que entre sus vecinos (0,23 y 0,23). En oscuro, 0,37 (0,38 y 0,37).
-    - En el mp4: del último al primero, 1,0; la mediana del bucle es 0,8 y el máximo, 3,1 (cuando la señal se deshace). En el webm: 1,2, con mediana 0,8 y máximo 2,9.
-  - **Acción en el 80 % central:** señales y capas van de 94 a 740 px a lo ancho y de 93 a 432 a lo alto; el 80 % central va de 83 a 749 y de 52 a 468.
-  - **Tarjeta a 1440 × 900,** claro y oscuro, en `/` y `/es`: carga `loop-<tema>.webm` y su póster, se reproduce mudo y en bucle a 520 × 325 px. Ninguna petición a los archivos borrados y ningún error de consola.
-  - **Determinista:** dos grabaciones seguidas dan mp4 y pósters idénticos byte a byte, y el mismo vídeo dentro de los webm.
-  - **Grabador de las ilustraciones** (el archivo de los PR #8 y #9), ejecutado entero en esta rama: graba los otros tres proyectos y se salta este («skipped: it has its own clip»). No he subido esas regrabaciones.
-  - **Revisado a ojo:** seis fotogramas repartidos de cada mp4, el último junto al primero, y la tarjeta en los dos temas (también a 2×).
-  - **Sin repetir:** Lighthouse y axe. El cambio no toca componentes ni estilos de la web; solo archivos de vídeo y scripts.
+  - **Archivos:** H.264 y VP9, 832 × 520 px, 24 fps, 168 fotogramas, 7 s, una sola pista (sin audio). mp4: 259 kB (claro) y 235 kB (oscuro). webm: 318 y 267 kB. Pósters: 38 y 36 kB.
+  - **Bucle:** en la escena, la fase 1 y la fase 0 dan la misma imagen (ningún byte distinto), y del último fotograma al primero cambia lo mismo que entre sus vecinos (0,155 niveles de 255, frente a 0,154 y 0,153). En el mp4, del último al primero cambia 0,84; la mediana del bucle es 0,48 y el máximo, 2,05. El fondo no salta: la zona lisa es idéntica en los 168 fotogramas. Cada fotograma del mp4 y del webm coincide con el suyo de origen (ni repetidos ni saltos).
+  - **Nada tiembla:** siguiendo 17 puntos quietos durante 2 s, el centro de cada uno en el mp4 se aparta del original 0,02 px (rms) en claro y 0,04 en oscuro; 0,12 px como mucho.
+  - **Acción en el 80 % central:** señales y capas van de 199 a 633 px a lo ancho y de 60 a 460 a lo alto; el 80 % central va de 83 a 749 y de 52 a 468.
+  - **Tarjeta a 1440 × 900, en claro y en oscuro, con el webm y con el mp4** (en `/es`; en `/`, con el webm): el vídeo se reproduce mudo y en bucle a 520 × 324 px, sin errores de consola ni peticiones a los archivos borrados. Fondo del vídeo frente al de la tarjeta: en oscuro, idéntico (28, 28, 30); en claro, (246, 245, 248) frente a (245, 245, 247).
+  - **Fila de proyectos a 1440 × 900,** en claro y en oscuro: capturada con la tarjeta de CS50 a la vista, junto a la de refrigeración.
+  - **Determinista:** dos grabaciones seguidas dan mp4 idénticos byte a byte.
+  - **Revisión a ojo, sobre el mp4:** seis fotogramas repartidos por tema y el último junto al primero.
+  - **Grabador de las ilustraciones** (el archivo de los PR #8 y #9), ejecutado entero en esta rama el 12-11: graba los otros tres proyectos y se salta este («skipped: it has its own clip»). No he subido esas regrabaciones.
+  - **Sin repetir:** Lighthouse y axe. El cambio no toca componentes ni estilos de la web; solo archivos de vídeo y scripts. Sin comprobar: Safari y Firefox.
 - **axe:** 0 incidencias en claro y oscuro, escritorio y móvil (04-11).
 - **axe 4.14 (10-11):** 0 incidencias en `/` y `/es`, en claro y oscuro, en escritorio (1440 × 900, tras recorrer toda la página) y en móvil (390 × 844).
   - Esta versión pasa por defecto una regla más, `label-content-name-mismatch`, que marcaba 7 nodos del grafo de skills en `/es` y 4 en `/`: leía pegadas las dos líneas de una etiqueta («pilotoautomático») y el monograma «IF» junto al nombre. Arreglado: ver «Grafo de skills» en «Técnicas».
