@@ -145,6 +145,8 @@ export function HoverGlow() {
       }
       let c = t.closest(CONTROL);
       let s = t.closest(SURFACE);
+      // a control that stands for its whole card (its hit area is the card) lights up the card, not its own box
+      if (c?.hasAttribute("data-glow-card")) c = null;
       if (c) {
         const r = c.getBoundingClientRect();
         if (r.width > MAX_CONTROL.w || r.height > MAX_CONTROL.h) {

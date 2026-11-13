@@ -12,10 +12,10 @@
   Illustrative: nothing in it is a measurement.
 
   The look is the hero chip's (lib/chip-cloud.ts): crisp dots in a hierarchy of
-  sizes, the far ones smaller and fainter. The card is dark in both themes:
-  #1D1D1F behind, light dots, and two colours from the site's own stylesheet
-  (linked below, in its dark theme): the "data" domain's cyan and the orange
-  that serves as amber.
+  sizes, the far ones smaller and fainter. Colours come from the site's own
+  stylesheet, linked below: the project cards' background (they are dark in
+  both themes), the dark theme's ink, the "data" domain's cyan and the orange
+  that serves as amber. It is the only clip with two colours.
 
   Deterministic (seeded) and periodic: a frame depends only on a phase from 0
   to 1, and phase 1 draws the same picture as phase 0. Only the air and the
@@ -34,13 +34,13 @@
       body {
         margin: 0;
         overflow: hidden;
-        background: #1d1d1f;
+        background: var(--project-card);
       }
-      /* the card: dark in both themes, in its domain's colour */
+      /* the card: its background, and its domain's colour */
       #card {
         width: 600px;
         height: 900px;
-        background: #1d1d1f;
+        background: var(--project-card);
       }
       canvas {
         display: block;
