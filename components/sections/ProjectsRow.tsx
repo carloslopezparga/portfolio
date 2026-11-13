@@ -9,6 +9,7 @@ import { LazyCooling, LazyMailFlow, LazyTerminal } from "@/components/demos/lazy
 import { MediaStrip, type MediaLabels } from "@/components/media/MediaStrip";
 import { Carousel } from "@/components/ui/Carousel";
 import type { Clip, MediaItem } from "@/lib/media";
+import { formatNumber } from "@/lib/metrics";
 import { onUI } from "@/lib/ui-bus";
 import { ProjectLoop } from "./ProjectLoop";
 
@@ -27,8 +28,8 @@ export interface ProjectItem {
   demo: { kind: "terminal"; script: string } | { kind: "mail" } | { kind: "cooling" } | null;
   screenshot: string | null;
   media: MediaItem[];
-  /** the looping clip at the top of the card, per theme (null: the live illustration) */
-  loop: Record<"light" | "dark", Clip | null>;
+  /** the looping clip behind the card (null: a plain background with the domain's tint) */
+  loop: Clip | null;
 }
 
 export interface ProjectLabels {
@@ -83,127 +84,179 @@ function Demo({ item, labels }: { item: ProjectItem; labels: ProjectLabels }) {
 }
 
 /**
- * The projects in one row that scrolls sideways (scroll-snap; arrows from
- * tablets up, a swipe on phones). Each card: a short looping clip of the
- * project on top, then status, name, problem, figures and stack. Opening one
- * unfolds its demo and case study in a panel under the row.
+ * The projects as a row of small, tall cards (2:3), dark in both themes like
+ * the photo cards: the project's looping clip edge to edge, pills on top
+ * (status and, when there are figures, the first one) and the name and its
+ * line at the bottom, over a dark gradient. From 1024 px the four fit in the
+ * row; below, the row scrolls sideways (scroll-snap, a swipe on phones).
+ *
+ * A whole card is one button: it unfolds the project's panel under the row,
+ * with its figures, stack, demo, case study and media. The panels' text is
+ * always in the page (and all of it shows without JavaScript); the demo is
+ * only mounted while its panel is open.
  */
 export function ProjectsRow({ items, labels, lang }: { items: ProjectItem[]; labels: ProjectLabels; lang: Locale }) {
   const [open, setOpen] = useState<ProjectId | null>(null);
-  const panelRef = useRef<HTMLDivElement>(null);
-  const item = items.find((i) => i.id === open) ?? null;
+  const row = useRef<HTMLDivElement>(null);
+  const panels = useRef<HTMLDivElement>(null);
 
   useEffect(() => onUI("open_project", (a) => setOpen(a.projectId)), []);
 
+  const toggle = (id: ProjectId) => {
+    const opening = open !== id;
+    setOpen(opening ? id : null);
+    if (opening) window.setTimeout(() => panels.current?.querySelector(`#project-panel-${CSS.escape(id)}`)?.scrollIntoView({ block: "nearest", behavior: "smooth" }), 60);
+  };
+  /** Closing from inside the panel: the focus goes back to the card that opened it. */
+  const close = (id: ProjectId) => {
+    setOpen(null);
+    row.current?.querySelector<HTMLButtonElement>(`[data-target-id="${CSS.escape(id)}"] button`)?.focus({ preventScroll: true });
+  };
+
   return (
     <>
-      <Carousel label={labels.row} labels={{ prev: labels.rowPrev, next: labels.rowNext }} arrows="desktop">
-      {items.map((it, i) => {
-        const on = it.id === open;
-        return (
-          <article
-            key={it.id}
-            data-target-id={it.id}
-            data-domain={it.domain}
-            suppressHydrationWarning className={`card card-hover reveal flex w-[min(86vw,400px)] flex-col md:w-[460px] lg:w-[520px] ${on ? "shadow-[var(--shadow)]" : ""}`}
-            style={{ ["--rd" as string]: `${Math.min(i, 2) * 90}ms` }}
-          >
-            <ProjectLoop id={it.id} lang={lang} clips={it.loop} />
-            <div className="flex flex-1 flex-col px-6 pb-6 pt-5 md:px-8 md:pb-8">
-              <span className="badge self-start">{it.status}</span>
-              <h3 className="mt-4 text-[clamp(1.5rem,2.4vw,1.9rem)] leading-tight text-fg">{it.name}</h3>
-              <p className="mt-1.5 text-[15px] font-semibold text-[var(--d)]">{it.oneLiner}</p>
-              <p className="mt-3 text-[16px] leading-relaxed text-fg">{it.problem}</p>
-              {it.metrics.length ? (
-                <dl className="mt-5 flex flex-wrap gap-x-8 gap-y-3">
-                  {it.metrics.map((m) => (
-                    <div key={m.label} className="flex flex-col-reverse">
-                      <dt className="mt-1 text-[13.5px] text-muted">{m.label}</dt>
-                      <dd className="font-display text-[clamp(1.6rem,2.6vw,2rem)] font-bold leading-none tracking-[-0.035em] text-fg">
-                        <CountUp value={m.value} prefix={m.prefix} suffix={m.suffix} lang={lang} />
-                      </dd>
-                    </div>
-                  ))}
-                </dl>
-              ) : null}
-              <ul className="mt-5 flex flex-wrap gap-1.5">
-                {it.stack.map((s) => (
-                  <li key={s.label} data-domain={s.domain ?? undefined} className="chip">
-                    {s.id ? (
-                      <span style={{ color: stackColor(s.id) }}>
-                        <StackIcon id={s.id} className="size-3.5" />
-                      </span>
-                    ) : null}
-                    {s.label}
-                  </li>
-                ))}
-              </ul>
-              {it.media.length ? <MediaStrip items={it.media} alt={it.name} labels={labels.media} className="mt-5" /> : null}
-              <span className="h-6 shrink-0" aria-hidden />
-              <button
-                type="button"
-                aria-expanded={on}
-                aria-controls="project-panel"
-                onClick={() => {
-                  setOpen(on ? null : it.id);
-                  if (!on) window.setTimeout(() => panelRef.current?.scrollIntoView({ block: "nearest", behavior: "smooth" }), 60);
-                }}
-                className="btn btn-secondary btn-sm mt-auto self-start"
+      <div ref={row} className="project-row">
+        <Carousel label={labels.row} labels={{ prev: labels.rowPrev, next: labels.rowNext }} arrows="desktop">
+          {items.map((it, i) => {
+            const on = it.id === open;
+            const first = it.metrics[0];
+            return (
+              <article
+                key={it.id}
+                data-target-id={it.id}
+                data-domain={it.domain}
+                data-theme="dark"
+                data-open={on ? "" : undefined}
+                suppressHydrationWarning
+                className="project-card reveal"
+                style={{ ["--rd" as string]: `${Math.min(i, 3) * 80}ms` }}
               >
-                {on ? labels.close : it.demo ? labels.open : labels.openNoDemo}
-                <svg viewBox="0 0 16 16" className={`size-3.5 transition-transform duration-300 ${on ? "rotate-180" : ""}`} fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" aria-hidden>
-                  <path d="M4 6l4 4 4-4" />
-                </svg>
-              </button>
-            </div>
-          </article>
-        );
-      })}
-      </Carousel>
-
-      <div className="wrap">
-      <div id="project-panel" ref={panelRef} className="project-panel mt-4 scroll-mt-nav" style={{ display: item ? undefined : "none" }} data-domain={item?.domain}>
-        {item ? (
-          <div key={item.id} className="clip-up grid gap-6 p-5 md:grid-cols-[minmax(0,1.25fr)_minmax(0,1fr)] md:gap-10 md:p-8">
-            {item.demo ? (
-              <div className="h-[300px] md:h-[400px]">
-                <Demo item={item} labels={labels} />
-              </div>
-            ) : null}
-            <dl className={`space-y-6 ${item.demo ? "" : "md:col-span-2 md:grid md:grid-cols-2 md:gap-10 md:space-y-0"}`}>
-              <div>
-                <dt className="eyebrow">{labels.problem}</dt>
-                <dd className="mt-2 text-[16px] leading-relaxed text-fg">{item.problem}</dd>
-              </div>
-              <div>
-                <dt className="eyebrow">{labels.built}</dt>
-                <dd className="mt-2 text-[16px] leading-relaxed text-fg">{item.built}</dd>
-              </div>
-              {item.next ? (
-                <div>
-                  <dt className="eyebrow">{labels.next}</dt>
-                  <dd className="mt-2 text-[16px] leading-relaxed text-fg">{item.next}</dd>
-                </div>
-              ) : null}
-              {item.repo ? (
-                <div>
-                  {item.repo.public ? (
-                    <a href={item.repo.url} target="_blank" rel="noreferrer noopener" className="btn btn-secondary btn-sm">
-                      GitHub ↗
-                    </a>
-                  ) : (
-                    <span className="inline-flex items-center gap-2 rounded-full bg-[var(--bg)] px-3.5 py-2 text-[13px] font-medium text-muted">
-                      <span className="size-1.5 rounded-full bg-subtle" />
-                      {labels.repoSoon}
+                {it.loop ? <ProjectLoop clip={it.loop} /> : null}
+                <p className="project-pills">
+                  <span className="project-pill">
+                    <i aria-hidden />
+                    {it.status}
+                  </span>
+                  {first ? (
+                    <span className="project-pill">
+                      <b>
+                        {first.prefix}
+                        {formatNumber(first.value, lang)}
+                        {first.suffix}
+                      </b>
+                      {` ${first.label}`}
                     </span>
-                  )}
+                  ) : null}
+                </p>
+                <div className="project-text">
+                  <h3>
+                    <button type="button" aria-expanded={on} aria-controls={`project-panel-${it.id}`} data-glow-card onClick={() => toggle(it.id)}>
+                      {it.name}
+                      <span className="sr-only">. {on ? labels.close : it.demo ? labels.open : labels.openNoDemo}</span>
+                    </button>
+                  </h3>
+                  <div className="mt-1.5 flex items-end gap-3">
+                    <p className="min-w-0 flex-1 text-[14.5px] font-semibold leading-snug text-white/85">{it.oneLiner}</p>
+                    <span className="project-more" aria-hidden>
+                      <svg viewBox="0 0 16 16" className="size-3.5" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round">
+                        <path d="M4 6l4 4 4-4" />
+                      </svg>
+                    </span>
+                  </div>
                 </div>
-              ) : null}
-              {!item.demo && item.id === "job-hunt-copilot" ? <p className="text-[14px] text-muted">{labels.demoSoon}</p> : null}
-            </dl>
-          </div>
-        ) : null}
+              </article>
+            );
+          })}
+        </Carousel>
       </div>
+
+      <div ref={panels} className="wrap">
+        {items.map((item) => {
+          const on = item.id === open;
+          return (
+            <div key={item.id} id={`project-panel-${item.id}`} role="region" aria-labelledby={`project-title-${item.id}`} data-domain={item.domain} data-open={on ? "" : undefined} className="project-panel mt-4 scroll-mt-nav">
+              <div className="clip-up p-5 md:p-8">
+                <div className="flex items-start justify-between gap-4">
+                  <div className="min-w-0">
+                    <h3 id={`project-title-${item.id}`} className="text-[clamp(1.5rem,2.4vw,1.9rem)] leading-tight text-fg">
+                      {item.name}
+                    </h3>
+                    <p className="mt-1.5 text-[15px] font-semibold text-[var(--d)]">{item.oneLiner}</p>
+                  </div>
+                  <button type="button" onClick={() => close(item.id)} className="project-close btn btn-secondary btn-sm shrink-0">
+                    {labels.close}
+                    <svg viewBox="0 0 16 16" className="size-3.5" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" aria-hidden>
+                      <path d="M4 4l8 8M12 4l-8 8" />
+                    </svg>
+                  </button>
+                </div>
+                {item.metrics.length ? (
+                  <dl className="mt-6 flex flex-wrap gap-x-8 gap-y-3">
+                    {item.metrics.map((m) => (
+                      <div key={m.label} className="flex flex-col-reverse">
+                        <dt className="mt-1 text-[13.5px] text-muted">{m.label}</dt>
+                        <dd className="font-display text-[clamp(1.6rem,2.6vw,2rem)] font-bold leading-none tracking-[-0.035em] text-fg">
+                          <CountUp value={m.value} prefix={m.prefix} suffix={m.suffix} lang={lang} />
+                        </dd>
+                      </div>
+                    ))}
+                  </dl>
+                ) : null}
+                <ul className="mt-5 flex flex-wrap gap-1.5">
+                  {item.stack.map((s) => (
+                    <li key={s.label} data-domain={s.domain ?? undefined} className="chip">
+                      {s.id ? (
+                        <span style={{ color: stackColor(s.id) }}>
+                          <StackIcon id={s.id} className="size-3.5" />
+                        </span>
+                      ) : null}
+                      {s.label}
+                    </li>
+                  ))}
+                </ul>
+                <div className="mt-7 grid gap-6 md:grid-cols-[minmax(0,1.25fr)_minmax(0,1fr)] md:gap-10">
+                  {item.demo ? <div className="project-demo h-[300px] md:h-[400px]">{on ? <Demo item={item} labels={labels} /> : null}</div> : null}
+                  <div className={item.demo ? "" : "md:col-span-2"}>
+                    <dl className={`space-y-6 ${item.demo ? "" : "md:grid md:grid-cols-2 md:gap-10 md:space-y-0"}`}>
+                      <div>
+                        <dt className="eyebrow">{labels.problem}</dt>
+                        <dd className="mt-2 text-[16px] leading-relaxed text-fg">{item.problem}</dd>
+                      </div>
+                      <div>
+                        <dt className="eyebrow">{labels.built}</dt>
+                        <dd className="mt-2 text-[16px] leading-relaxed text-fg">{item.built}</dd>
+                      </div>
+                      {item.next ? (
+                        <div>
+                          <dt className="eyebrow">{labels.next}</dt>
+                          <dd className="mt-2 text-[16px] leading-relaxed text-fg">{item.next}</dd>
+                        </div>
+                      ) : null}
+                    </dl>
+                    {item.repo || (!item.demo && item.id === "job-hunt-copilot") ? (
+                      <div className="mt-6 flex flex-wrap items-center gap-x-5 gap-y-3">
+                        {item.repo ? (
+                          item.repo.public ? (
+                            <a href={item.repo.url} target="_blank" rel="noreferrer noopener" className="btn btn-secondary btn-sm">
+                              GitHub ↗
+                            </a>
+                          ) : (
+                            <span className="inline-flex items-center gap-2 rounded-full bg-[var(--bg)] px-3.5 py-2 text-[13px] font-medium text-muted">
+                              <span className="size-1.5 rounded-full bg-subtle" />
+                              {labels.repoSoon}
+                            </span>
+                          )
+                        ) : null}
+                        {!item.demo && item.id === "job-hunt-copilot" ? <p className="text-[14px] text-muted">{labels.demoSoon}</p> : null}
+                      </div>
+                    ) : null}
+                  </div>
+                </div>
+                {item.media.length ? <MediaStrip items={item.media} alt={item.name} labels={labels.media} className="mt-7" /> : null}
+              </div>
+            </div>
+          );
+        })}
       </div>
     </>
   );
