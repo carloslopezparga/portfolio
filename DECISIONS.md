@@ -1,8 +1,8 @@
 # Decisiones
 
-Lo aprobado, lo que he decidido yo al construir (para que lo revises) y lo que falta. Última actualización: 12-11-2026. Incluye las tres fases (contenido y CV, dirección visual Apple × Evolve, piezas visuales), el pulido estético (rama `claude/design-polish`), el hero definitivo con el chip de partículas (rama `claude/hero-asymmetric`), la nube de partículas con presencia y figuras (rama `claude/particle-figures`), la carga, la interacción y la pausa del chip (rama `claude/chip-interaction`), la ronda del 11-11 (rama `claude/nice-keller-emmje9`): partículas una a una, «Cómo trabajo», carruseles, vídeos de proyecto, Skills compacto y reserva con Google Calendar; y la segunda ronda del 11-11 (rama `claude/tender-faraday-k93q2e`): física real por partícula, «Cómo trabajo» más abajo y rediseñada, Skills como red en 3D y cinco ajustes; y el vídeo de Shortlist hecho con código (rama `claude/cool-wozniak-1p9zt8`).
+Lo aprobado, lo que he decidido yo al construir (para que lo revises) y lo que falta. Última actualización: 13-11-2026. Incluye las tres fases (contenido y CV, dirección visual Apple × Evolve, piezas visuales), el pulido estético (rama `claude/design-polish`), el hero definitivo con el chip de partículas (rama `claude/hero-asymmetric`), la nube de partículas con presencia y figuras (rama `claude/particle-figures`), la carga, la interacción y la pausa del chip (rama `claude/chip-interaction`), la ronda del 11-11 (rama `claude/nice-keller-emmje9`): partículas una a una, «Cómo trabajo», carruseles, vídeos de proyecto, Skills compacto y reserva con Google Calendar; y la segunda ronda del 11-11 (rama `claude/tender-faraday-k93q2e`): física real por partícula, «Cómo trabajo» más abajo y rediseñada, Skills como red en 3D y cinco ajustes; y las tarjetas de proyecto verticales con vídeo de fondo, con el de Shortlist hecho con código (rama `claude/cool-wozniak-1p9zt8`).
 
-Lo último está en «Vídeo de Shortlist hecho con código», al final de la sección 1; los apartados anteriores se han corregido donde ya no eran verdad.
+Lo último está en «Tarjetas de proyecto verticales con vídeo de fondo», al final de la sección 1; los apartados anteriores se han corregido donde ya no eran verdad.
 
 ## 1. Aprobado (hecho)
 
@@ -58,7 +58,7 @@ Lo último está en «Vídeo de Shortlist hecho con código», al final de la se
 
 ### Fase 3: piezas visuales
 - **Chip de IA en el hero** (rehecho el 05-11 como nube de partículas, ver «Hero definitivo»): vista explosionada con disipador y aletas, die con 8 núcleos, interposer con pistas, sustrato y bolas BGA.
-- **Fragmentos de interfaz flotantes** (HTML/CSS) en cada proyecto, con flotación lenta y parallax al hover:
+- **Fragmentos de interfaz flotantes** (HTML/CSS) en cada proyecto, con flotación lenta y parallax al hover. (Retirados el 13-11: ver «Tarjetas de proyecto verticales con vídeo de fondo».)
   - Shortlist: oferta con barra de puntuación, lista ordenada y mini terminal con cifras reales (6.400+, 29, 116).
   - Correo en piloto automático: «Resumen de hoy» y nodos Gmail → Claude.
   - Agente de refrigeración: gráfica de generaciones con la etiqueta «Ilustrativo».
@@ -109,7 +109,7 @@ Grupo (a) completo, del 1 al 16, y el reveal del grupo (b). Capturas antes/despu
   - Al cargar, los puntos aparecen como una esfera y se condensan en el chip en ~1,5 s.
   - Cuando el agente responde, núcleos y paquetes se aceleran.
   - Las animaciones de la página se pueden pausar y reanudar (WCAG 2.2.2): activa el movimiento reducido durante la sesión. Dónde está el control ahora, en «Pausa de las animaciones» (sección 2).
-- **Proyectos en el móvil (< 768 px):** cada proyecto muestra solo su fragmento principal, a 1,3×, con el texto entre 11,1 y 12,4 px; los demás se ocultan. En escritorio, igual que antes.
+- **Proyectos en el móvil (< 768 px):** cada proyecto muestra solo su fragmento principal, a 1,3×, con el texto entre 11,1 y 12,4 px; los demás se ocultan. En escritorio, igual que antes. (Desde el 13-11 el móvil ve el vídeo de fondo, como el escritorio.)
   - Fragmentos principales: el terminal de Shortlist (cifras reales), el «Resumen de hoy» del correo, la gráfica de generaciones con su etiqueta «Ilustrativo» y la clasificación de señales de CS50.
 
 ### Nube de partículas: chip con presencia y figuras (rama `claude/particle-figures`; pendiente de tu OK)
@@ -159,7 +159,7 @@ Grupo (a) completo, del 1 al 16, y el reveal del grupo (b). Capturas antes/despu
 
 **5. Proyectos**
 - Una sola fila con desplazamiento horizontal: scroll-snap, flechas desde 768 px y arrastre con el dedo en el móvil. El panel de demo y case study se abre debajo de la fila.
-- **Vídeo en bucle arriba de cada tarjeta, desde 768 px** (mudo, autoplay, playsInline, con póster; en el móvil, el fragmento principal en HTML): 7 s, grabado con Playwright de los fragmentos animados de la propia tarjeta, en webm y mp4, uno por idioma y por tema (16 vídeos y 16 pósters en `public/media/projects/<id>/`). Desde el 12-11 el de Shortlist es una escena hecha con código (más abajo) y los grabados son 12.
+- **Vídeo en bucle arriba de cada tarjeta, desde 768 px** (mudo, autoplay, playsInline, con póster; en el móvil, el fragmento principal en HTML): 7 s, grabado con Playwright de los fragmentos animados de la propia tarjeta, en webm y mp4, uno por idioma y por tema (16 vídeos y 16 pósters en `public/media/projects/<id>/`). Desde el 13-11 ya no hay clips grabados de los fragmentos: cada proyecto tiene un solo vídeo de fondo, y el de Shortlist es una escena hecha con código (más abajo).
 - job-hunt-copilot se llama **Shortlist** en la web y para el agente; el `id` interno, la carpeta y el enlace al repositorio no cambian. La imagen OG no nombra proyectos.
 
 **6. Skills**
@@ -231,55 +231,80 @@ Grupo (a) completo, del 1 al 16, y el reveal del grupo (b). Capturas antes/despu
 **4. Ajustes**
 - **Agente:** conoce todas las skills del CV. Las que no están en el grafo van en `alsoKnows` (`content/profile.ts`), con dónde se usaron: Cursor, C, MATLAB, LaTeX, TypeScript, pandas, NumPy, scikit-learn, TensorFlow/Keras, OpenCV, NLTK, Transformers, Playwright, pytest, Git/GitHub, REST APIs y CI.
 - **Grafo:** SQL (usado en CS50) en lugar de Cursor. Siguen siendo 12. Cursor sigue como chip en PropHero, con su logo.
-- **Proyectos en el móvil (< 768 px):** el fragmento principal en HTML, legible (12,5 px el texto más pequeño). El vídeo, solo desde 768 px; en el móvil ni se descarga.
+- **Proyectos en el móvil (< 768 px):** el fragmento principal en HTML, legible (12,5 px el texto más pequeño). El vídeo, solo desde 768 px; en el móvil ni se descarga. (Desde el 13-11, al revés: el vídeo también en el móvil y sin fragmentos.)
 - **Contacto:** «, o reservar 15 minutos» solo aparece con `NEXT_PUBLIC_BOOKING_URL`. Sin ella, la frase termina en «Lo más rápido es el email.».
 - **Escudo de Retamar:** se ve. Dos cambios para que no vuelva a salir en blanco: ver «Segunda ronda del 11-11 (revisar)».
 
-### Vídeo de Shortlist hecho con código (rama `claude/cool-wozniak-1p9zt8`; pendiente de tu OK)
+### Tarjetas de proyecto verticales con vídeo de fondo (rama `claude/cool-wozniak-1p9zt8`, PR #8; pendiente de tu OK)
 
-- **Qué cambia:** el clip de arriba de la tarjeta de Shortlist ya no es la grabación de su ilustración. Es una escena dibujada con código (canvas 2D), sin generadores de vídeo ni recursos externos: `scripts/loops/shortlist.html`.
-- **La escena, el embudo de ofertas:**
-  - **Izquierda:** entra sin parar una nube desordenada de puntos, las ofertas (1.071 en todo el recorrido; a la vez se ven unos 880).
-  - **Centro:** siete líneas verticales finas, los siete factores. Tras cada línea el punto da un paso hacia su sitio y después avanza recto hasta la siguiente.
-  - **Derecha:** salen en 12 filas ordenadas por tamaño, de mayor a menor, como una lista. Las dos primeras (63 puntos, el 6 %) se encienden en azul línea a línea y suben.
-- **Estilo del chip:**
-  - Puntos nítidos en cinco tamaños: 59 % finos, 24 % pequeños, 12 % medianos y 6 % grandes.
-  - Profundidad: en la nube, el lado lejano es hasta un 30 % más pequeño y más tenue; en la lista, las filas de abajo van más juntas y más tenues.
-  - Un solo color: el azul del dominio de la tarjeta.
-- **Colores, del CSS de la propia web:** la escena enlaza `app/globals.css` y pinta con sus reglas: el fondo es `--card`, el tinte es el degradado de `.frag-stage` y el azul es `--d-rgb` de `data-domain="automation"`. La tinta es `--fg`: #1D1D1F en claro y #F5F5F7 al 85 % en oscuro.
-- **Formato:** 7 s, 24 fps, 832 × 520 px, sin audio. Un vídeo por tema, `loop-light` y `loop-dark`, cada uno en `.mp4` (H.264), `.webm` (VP9) y `.poster.jpg` (primer fotograma). Sin texto: vale para los dos idiomas.
-- **Peso:** mp4 de 372 kB (claro) y 347 kB (oscuro); el límite era 400.
+Sustituye a la primera versión de este mismo PR (un vídeo horizontal de 832 × 520 px arriba de la tarjeta de Shortlist, uno por tema), que no llegó a fusionarse.
+
+**1. Tarjetas**
+- **Verticales (2:3) y oscuras en los dos temas,** como las tarjetas de foto de Voluntariado: vídeo a sangre, degradado oscuro abajo y texto blanco encima.
+- **Tamaño:**
+  - Desde 1024 px caben las cuatro en la fila sin desplazar: 269 × 403,5 px a 1440 (225 × 337,5 a 1024).
+  - Por debajo, carrusel como antes, con tarjetas de 260 a 300 px de ancho (281 × 421 a 390).
+- **Arriba, píldoras:** el estado y, si el proyecto tiene cifras, la primera («6.400+ ofertas»). Hoy solo Shortlist tiene cifras.
+- **Abajo, sobre el degradado:** el nombre y, debajo, su línea.
+- **Toda la tarjeta es un botón** que abre el panel de debajo de la fila. Pulsarla otra vez, o «Cerrar» en el panel, lo cierra.
+- **Al panel pasan** el problema, las cifras (las tres), las etiquetas de stack, la tira de fotos y la demo. «Qué construí», «Siguiente» y el repo ya estaban. Ningún texto ni cifra cambia.
+- **El vídeo se ve en todos los tamaños,** también en el móvil. Con movimiento reducido o sin JavaScript, el póster.
+- **Sin vídeo** (hoy, las otras tres tarjetas): fondo liso `#1D1D1F` con el tinte de su dominio.
+- **Retirado:** los fragmentos de interfaz (`ProjectArt`) y su CSS, `?live-art`, el grabador `scripts/record-project-loops.mjs` y los clips grabados de los fragmentos.
+
+**2. Un vídeo por proyecto**
+- **Archivos:** `loop.mp4` (H.264), `loop.webm` (VP9) y `loop.poster.jpg` en la carpeta del proyecto. Ya no hay versión clara y oscura, ni por idioma.
+- **Formato:** 600 × 900 px (2:3), 7 s, 24 fps, sin audio, bucle sin salto. Hasta 900 kB el mp4.
+- **Composición, para ir detrás del texto:** fondo `#1D1D1F`, puntos claros y el color de acento del dominio; la acción en los dos tercios de arriba; el tercio de abajo, tranquilo y oscuro; nada importante bajo las píldoras.
+
+**3. Vídeo de Shortlist, en vertical** (`scripts/loops/shortlist.html`)
+- **Arriba** entra sin parar la nube desordenada: 1.302 puntos en todo el recorrido; a la vez se ven unos 800.
+- **En medio,** siete líneas horizontales finas. Al cruzarlas, cada punto se desliza hasta su sitio en un solo movimiento continuo, sin pasos.
+- **Abajo** salen en 15 filas ordenadas de mayor a menor, de izquierda a derecha. Las dos primeras (70 puntos, el 5 %) se encienden en azul.
+- **Se desvanece antes del tercio de abajo:** en ningún fotograma hay nada dibujado ahí.
+- **Jerarquía de puntos:** 60 % finos, 26 % pequeños, 9 % medianos y 5 % grandes. Toda la nube gira y deriva.
+- **Ritmo:** 3 px por fotograma (72 px/s en el vídeo; unos 32 px/s en la tarjeta).
+- **Peso:** mp4 de 484 kB, webm de 601 kB y póster de 42 kB.
+- **Colores, del CSS de la web:** la escena enlaza `app/globals.css` y usa `--project-card` (nuevo: `#1D1D1F`), la tinta del tema oscuro al 85 % y el azul de `data-domain="automation"`.
 - **Bucle sin salto:** todo depende de una fase de 0 a 1, con semilla fija; la fase 1 dibuja lo mismo que la 0, píxel a píxel.
-- **Grabador nuevo y reutilizable:** `scripts/loops/record.mjs` (en `scripts/loops/` no había ninguno). Playwright fotograma a fotograma y ffmpeg, con los mismos ajustes que `scripts/record-project-loops.mjs`. Uso: `node scripts/loops/record.mjs shortlist job-hunt-copilot`.
-- **Borrados** los 12 archivos `loop-en-*` y `loop-es-*` de `public/media/projects/job-hunt-copilot/`.
-- **En el móvil no cambia nada:** sigue el fragmento principal en HTML.
+- **Grabador:** `scripts/loops/record.mjs` graba ahora un solo clip (`loop.*`) y termina con error si el mp4 pasa de 900 kB. Mismos ajustes de codificación que antes.
+
+**4. Accesibilidad**
+- Una parada de tabulador por tarjeta, con anillo de foco de 2 px por fuera de la tarjeta.
+- `aria-expanded` y `aria-controls` en el botón; cada panel es una región con el nombre de su proyecto.
+- Al cerrar desde el panel, el foco vuelve a su tarjeta.
+- Contraste del texto sobre el vídeo: 13,7:1 en el peor fotograma (AA pide 4,5:1).
+- axe 4.14: sin incidencias.
 
 ## 2. Decidido por mí (revisar)
 
-### Vídeo de Shortlist (revisar)
+### Tarjetas de proyecto y vídeo de Shortlist (revisar)
 
-**Movimiento**
-- **Velocidad: 2 px por fotograma** (48 px/s en el vídeo; 30 px/s en la tarjeta). Un punto tarda 21 s en cruzar: tres vueltas del bucle.
-- **Por qué cierra el bucle:** cada punto tiene dos gemelos en su mismo camino, a un tercio y a dos tercios. Al acabar la vuelta cada uno está donde estaba el siguiente.
-- **Píxeles enteros:** en su fila, y entre una línea y la siguiente, un punto se mueve 2 px exactos por fotograma. Se dibuja igual en todos (nítido) y al códec no le cuesta nada. Con todos los puntos moviéndose sin parar, el mp4 pesaba entre 524 y 568 kB.
-- **No todos los puntos dan siete pasos.** Cada uno da los que necesita (uno por cada 30 px que le separan de su fila, siete como mucho) y queda en su sitio tras una línea distinta. Así las filas se van llenando línea a línea, en vez de aparecer todas tras la séptima. Los mejores sí dan los siete: su subida es continua.
-- **Un paso dura el 58 % del tramo entre dos líneas** (0,5 s); el resto, el punto va recto.
-- **La mitad lejana de la nube solo avanza.** La cercana gira despacio (0,85 rad en todo el tramo) y deriva con un flujo que comparten los vecinos (9 px). Con toda la nube girando, el mp4 pesaba 385 kB.
-- **El giro y la deriva se calman antes de la primera línea** (entre 140 y 24 px antes).
+**Lo que más conviene que mires**
+- **Las «filas» ordenadas bajan en vertical.** Al girar la escena, el flujo baja, así que la lista ordenada queda de izquierda a derecha: las mejores, azules, a la izquierda. Si las querías horizontales, hay que replantear la escena.
+- **En el tema claro, el gris de los enlaces de la cabecera pasa de `#6E6E73` a `#48484C`.** Es un cambio fuera de Proyectos. La píldora de la cabecera es translúcida: con una tarjeta oscura debajo, su blanco se vuelve gris y esos enlaces se quedaban en 2,78:1 (axe lo marca). Con el gris nuevo: 4,6:1 en el peor caso y 9:1 sobre blanco. La otra salida era una píldora casi opaca.
+- **Borrados los 36 clips grabados de los fragmentos** de los otros tres proyectos, además de los de Shortlist. Ya no los leía nada; siguen en el historial de git.
 
-**Composición**
-- **Los mejores entran por la mitad de abajo y por el lado cercano de la nube:** se ven grandes y su camino es siempre una subida.
-- **Las líneas se acortan como el embudo** (de 408 a 268 px de alto) y un énfasis suave pasa de una a la siguiente, una por segundo.
-- **Halo en los mejores:** un 13 % de azul alrededor, para que encenderse se note también en claro.
-- **Tamaños de punto:** 2,8 · 4 · 6 · 9 · 12,2 px en el vídeo; en la tarjeta (520 px de ancho), 1,75 · 2,5 · 3,75 · 5,6 · 7,6 px.
-- **Bordes:** los puntos aparecen y se van en los 78 px de cada lado (el 9 %). Las líneas y la lista quedan dentro del 80 % central.
+**Tarjetas**
+- **El tinte de dominio va solo en las tarjetas sin vídeo.** El vídeo de Shortlist va sobre `#1D1D1F` liso, como pediste, sin tinte encima.
+- **Un chevrón abajo a la derecha** (no lo pedías): sin él, en el móvil nada indica que la tarjeta se abre. Con el panel abierto gira y se pone blanco, y la tarjeta lleva un borde blanco.
+- **Un punto del color del dominio en la píldora de estado.**
+- **«Ver demo», «Ver detalles» y «Cerrar» ya no se ven en la tarjeta,** porque toda ella es el botón. Siguen en su nombre accesible («Shortlist. Ver detalles»). «Cerrar» se ve en el panel.
+- **El panel repite el nombre y la línea del proyecto** como cabecera, junto a «Cerrar»: en el móvil, al abrirlo, la tarjeta queda fuera de pantalla.
+- **Los cuatro paneles están siempre en el HTML** y solo se ve el abierto. El problema, las cifras y el stack antes estaban a la vista en la tarjeta; así siguen en la página para los buscadores. Sin JavaScript se ven los cuatro paneles, sin la demo.
+- **Entre 1024 y unos 1180 px, las dos píldoras de Shortlist parten en dos líneas:** la tarjeta mide 225 px.
+- **Un borde muy tenue en la tarjeta:** en el tema oscuro, sin él, su pie se fundía con la página negra.
+- **La luz del cursor enciende la tarjeta entera,** no solo el título, que es donde está el botón (`data-glow-card`, una línea en `HoverGlow`).
 
-**Archivos y scripts**
-- **El webm pesa algo más que el mp4** (404 y 362 kB) con los ajustes de siempre, y la web sirve el webm primero. No lo he tocado.
-- **El tinte tiene el mismo bandeado leve que los otros clips** (se ve forzando el contraste): es de la compresión, no de la escena. Se quita bajando el CRF, que no he tocado.
-- **`scripts/record-project-loops.mjs` se salta ahora los proyectos con vídeo propio** (`loop.*`, `loop-light.*`, `loop-dark.*`). Si no, al regrabar las ilustraciones volvería a crear los `loop-es-*` de Shortlist, que tienen preferencia.
-- **El grabador nuevo termina con error si un mp4 pasa de 400 kB.**
-- **Si cambian `--card`, el tinte o el azul en `globals.css`, hay que regrabar:** el vídeo lleva los colores dentro.
+**Vídeo**
+- **Convergencia continua.** Cada punto empieza y acaba su deslizamiento en un sitio distinto del tramo de las líneas, así que las filas se van llenando línea a línea. Los que vienen de lejos, y los mejores, usan todo el tramo.
+- **En su fila, cada punto sigue moviéndose píxeles enteros** (3 por fotograma). Ya no es por peso: así se dibuja igual en todos los fotogramas y la fila no centellea.
+- **Forma de embudo:** la nube es más ancha (unos 460 px) que la lista (389 px), y las líneas se estrechan de 504 a 424 px.
+- **Más puntos que en la versión horizontal:** 1.302 frente a 1.071, en 15 filas en vez de 12. Con el límite nuevo había margen.
+- **Tamaños de punto:** 3,4 · 5 · 7,4 · 10,8 · 14,5 px en el vídeo; en una tarjeta de 270 px, 1,5 · 2,2 · 3,3 · 4,8 · 6,5 px.
+- **Bordes:** los puntos aparecen entre los 24 y los 128 px de arriba, bajo las píldoras, y se van entre los 514 y los 592. El tercio de abajo empieza en 600.
+- **El webm pesa más que el mp4** (601 frente a 484 kB) con los ajustes de siempre, y la web sirve el webm primero. El límite que diste era para el mp4.
+- **Si cambian `--project-card` o el azul en `globals.css`, hay que regrabar:** el vídeo lleva los colores dentro.
 
 ### Segunda ronda del 11-11 (revisar)
 
@@ -320,16 +345,16 @@ Grupo (a) completo, del 1 al 16, y el reveal del grupo (b). Capturas antes/despu
 - **«Off the clock»** (batería, DJ, golf, vela) sigue al final de Voluntariado, aunque no es voluntariado. Dime si lo muevo o lo quito.
 - **«Ahora mismo»:** donde iba la especialidad ahora pone «ETSII · Universidad Politécnica de Madrid», para no dejar el hueco.
 - **Fondos de sección:** cuenta lo que está directamente en la carpeta de la sección, no en las de las tarjetas, para que elijas tú qué se ve (en Voluntariado, vídeos sin caras). Si hay vídeo, las fotos se ignoran; varios vídeos se reproducen uno detrás de otro.
-- **Vídeos de proyecto:**
+- **Vídeos de proyecto** (los grabados de los fragmentos; retirados el 13-11):
   - Como los fragmentos apenas se movían, el clip añade el paralaje del puntero dando una vuelta a la tarjeta; el bucle no tiene costura.
-  - Pesan 3,0 MB en total entre los 16 (832 × 522 px, 24 fps; cada uno, entre 50 y 140 KB). Desde el 12-11: 2,0 MB los 12 grabados y 1,6 MB los 2 de Shortlist. Solo se descarga el del idioma y el tema que se ven, y solo cuando la tarjeta se acerca a la pantalla.
+  - Pesan 3,0 MB en total entre los 16 (832 × 522 px, 24 fps; cada uno, entre 50 y 140 KB). Solo se descarga el del idioma y el tema que se ven, y solo cuando la tarjeta se acerca a la pantalla.
   - En el móvil no se usa el clip: desde la segunda ronda vuelve el fragmento principal en HTML.
   - Con las animaciones en pausa, sin JavaScript o hasta que carga, se ve el póster.
-  - Para poner un vídeo real de un proyecto: `loop.mp4` en su carpeta (ver `public/media/README.md`). Para regrabar los actuales: `node scripts/record-project-loops.mjs`.
+  - Para poner un vídeo real de un proyecto: `loop.mp4` en su carpeta (ver `public/media/README.md`). Para regrabar los actuales: `node scripts/record-project-loops.mjs` (retirado también el 13-11).
 - **Reserva desde el agente:** un navegador solo deja abrir una pestaña justo después de un clic o una tecla, y la respuesta del agente puede llegar más tarde. Si la bloquea, la página baja a Contacto y resalta el botón.
 - **«Cómo trabajo» en el móvil:** no hay figura (las figuras siguen siendo solo de escritorio, salvo el chip).
 - **Límite del chip:** no es un tope fijo de ángulo. En cada fotograma el chip toma toda la inclinación y la apertura que caben sin acercarse a menos de 35 px de los textos; los puntos que empuja el cursor se comprimen en los 5 px siguientes y ninguno cruza los 30 px (24 más el radio del punto más grande). La apertura al pasar el ratón baja además de 0,20 a 0,16.
-- **Tarjetas de la fila de proyectos:** 520 px de ancho en escritorio (se ven dos y el borde de la tercera), 460 px en tablet y el 86 % del ancho en el móvil; todas con la misma altura.
+- **Tarjetas de la fila de proyectos:** 520 px de ancho en escritorio (se ven dos y el borde de la tercera), 460 px en tablet y el 86 % del ancho en el móvil; todas con la misma altura. (Desde el 13-11 son verticales y caben las cuatro: ver «Tarjetas de proyecto verticales con vídeo de fondo».)
 
 ### Contenido
 - **PropHero termina en «Actualidad»** porque así lo dice el CV. Antes ponía feb 2027.
@@ -356,7 +381,7 @@ Grupo (a) completo, del 1 al 16, y el reveal del grupo (b). Capturas antes/despu
 - **Imagen para compartir (OG):** usa las fuentes del sitio (Plus Jakarta Sans e Inter). Están en `assets/og` en TrueType (licencia OFL), porque el generador no lee los WOFF2 de la página.
 
 ### Pulido estético (aprobadas el 05-11)
-- **Fragmentos de proyecto:** en escritorio se dibujan en un lienzo del tamaño de la tarjeta (540 px) y se escalan con ella. En el móvil (< 768 px) se ve solo el fragmento principal de cada proyecto, legible (ver «Hero definitivo»).
+- **Fragmentos de proyecto** (retirados el 13-11): en escritorio se dibujan en un lienzo del tamaño de la tarjeta (540 px) y se escalan con ella. En el móvil (< 768 px) se ve solo el fragmento principal de cada proyecto, legible (ver «Hero definitivo»).
 - **Fondo de la ilustración:** solo el tinte del dominio sobre el gris de la tarjeta; antes era un panel blanco.
 - **Erasmus en el móvil:** las fechas van en su propia línea bajo «Erasmus», para que no se partan.
 - **Qué sigue en gris:** fechas, lugares, el «· contexto» tras la empresa, las etiquetas bajo las cifras, pies de foto y notas.
@@ -448,13 +473,17 @@ Grupo (a) completo, del 1 al 16, y el reveal del grupo (b). Capturas antes/despu
   - **Proyectos en 390 × 844:** fragmento de 305 × 122 px, texto de 12,5 px o más, y ninguna petición a los vídeos ni a sus pósters. A 800 px de ancho, el vídeo.
   - **Sin desbordes a lo ancho** en 390, 1024, 1280 y 1440 px.
   - Capturas de verificación: 9.
-- **Vídeo de Shortlist (12-11, build local de producción, Chromium):**
+- **Tarjetas de proyecto y vídeo de Shortlist (13-11, build local de producción, Chromium):**
   - `npm run lint` y `npm run build`, sin errores.
-  - **Archivos:** H.264 y VP9, 832 × 520 px, 24 fps, 168 fotogramas, 7 s, una sola pista (sin audio). mp4: 372 kB (claro) y 347 kB (oscuro).
-  - **Bucle:** en la escena, la fase 1 y la fase 0 dan la misma imagen (ningún byte distinto). En el mp4, del último fotograma al primero cambia lo mismo que entre dos seguidos cualesquiera (un 5 % más, por el fotograma clave) y el fondo no salta.
-  - **Nada tiembla:** siguiendo 17 puntos durante 2 s, el centro de cada uno en el mp4 se aparta del original 0,13 px como mucho (rms).
-  - **Tarjeta a 1440 × 900, en claro y en oscuro, con el webm y con el mp4:** el vídeo se reproduce a 520 × 325 px (16:10, sin recorte). Fondo del vídeo frente al de la tarjeta: en oscuro, idéntico (28, 28, 30); en claro, (246, 245, 248) frente a (245, 245, 247), un nivel de diferencia por el redondeo del vídeo. El póster, idéntico en los dos temas.
-  - **Revisión a ojo, sobre el mp4:** seis fotogramas repartidos por tema y el último junto al primero.
+  - **Fila:** a 1440 × 900, cuatro tarjetas de 269 × 403,5 px, sin desplazamiento; a 1024 × 768, de 225 × 337,5; a 390 × 844, de 281 × 421 en carrusel. La página no se desborda a lo ancho en ninguno.
+  - **Archivos:** H.264 y VP9, 600 × 900 px, 24 fps, 168 fotogramas, 7 s, una sola pista (sin audio). mp4 de 484 kB.
+  - **Bucle:** en la escena, la fase 1 y la fase 0 dan la misma imagen (ningún byte distinto). En el mp4, del último fotograma al primero cambia lo mismo que entre dos seguidos cualesquiera (un 2 % más, por el fotograma clave) y el fondo no salta.
+  - **Tercio de abajo:** ningún píxel dibujado por debajo de los 600 px en los 168 fotogramas.
+  - **Fotogramas del mp4 dentro de la tarjeta real,** a 1440 y a 390 px, en claro y en oscuro: siete por caso, mirados a ojo. La tarjeta es la misma en los dos temas.
+  - **Contraste del texto sobre el vídeo** (56 fotogramas por caso, píxel a píxel detrás de cada texto): 13,7:1 como mínimo; en las píldoras, 14,7:1.
+  - **Teclado:** cuatro paradas de tabulador, una por tarjeta. Intro abre el panel, `aria-expanded` pasa a `true` y solo se ve ese panel. «Cerrar» devuelve el foco a la tarjeta.
+  - **Movimiento reducido:** ningún `<video>`; se ve el póster. **Sin JavaScript:** el póster y los cuatro paneles.
+  - **axe 4.14:** 0 incidencias en `/` y `/es`, en claro y en oscuro, a 1440 × 900 y a 390 × 844, con los paneles cerrados, con uno abierto y con la cabecera sobre una tarjeta (24 pasadas). El contraste del texto sobre el vídeo lo deja «por revisar», porque no lo sabe medir: es el medido arriba.
 - **axe:** 0 incidencias en claro y oscuro, escritorio y móvil (04-11).
 - **axe 4.14 (10-11):** 0 incidencias en `/` y `/es`, en claro y oscuro, en escritorio (1440 × 900, tras recorrer toda la página) y en móvil (390 × 844).
   - Esta versión pasa por defecto una regla más, `label-content-name-mismatch`, que marcaba 7 nodos del grafo de skills en `/es` y 4 en `/`: leía pegadas las dos líneas de una etiqueta («pilotoautomático») y el monograma «IF» junto al nombre. Arreglado: ver «Grafo de skills» en «Técnicas».
@@ -473,7 +502,7 @@ Grupo (a) completo, del 1 al 16, y el reveal del grupo (b). Capturas antes/despu
 - `content/demos/job-hunt-copilot.txt` (el archivo conserva ese nombre), la grabación del terminal de Shortlist. Hasta que exista, la tarjeta dice «Ver detalles» y no hay ventana de terminal.
 - Fotos y vídeos en `public/media/…`. Las de voluntariado convierten la tarjeta en tarjeta de foto.
 - **Fondos de sección:** un vídeo o fotos en `public/media/education/` y un vídeo sin caras en `public/media/volunteering/` (en la carpeta de la sección, no en la de una tarjeta). Sin ellos no hay fondo.
-- **Vídeos reales de los proyectos:** `loop.mp4` en la carpeta de cada uno sustituye al grabado de la ilustración (ver `public/media/README.md`).
+- **Vídeos de fondo de los otros tres proyectos** (correo, agente de refrigeración y CS50): hasta que tengan el suyo (`loop.mp4`, `loop.webm` y `loop.poster.jpg`, 600 × 900 px; ver `public/media/README.md`), su tarjeta lleva fondo liso con el tinte de su dominio.
 
 **Avisos**
 - **Tu CV en PDF incluye tu teléfono.** Al servirlo, queda público en la web, y antes acordamos no publicar el teléfono. Si no lo quieres publicar, sube una versión sin él con el mismo nombre.

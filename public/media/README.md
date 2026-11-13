@@ -1,6 +1,6 @@
 # Fotos y vídeos
 
-Para añadir contenido basta con subir archivos a estas carpetas. En el siguiente despliegue la web los detecta y muestra una tira de miniaturas en la tarjeta correspondiente. Si una carpeta está vacía, la tarjeta se queda como está.
+Para añadir contenido basta con subir archivos a estas carpetas. En el siguiente despliegue la web los detecta y muestra una tira de miniaturas en la tarjeta correspondiente (en Proyectos, en el panel que se abre al pulsar la tarjeta). Si una carpeta está vacía, la tarjeta se queda como está.
 
 Los logos no van aquí, sino en [`public/logos/`](../logos/README.md).
 
@@ -38,27 +38,33 @@ Lo que subas **directamente** a `education/` o a `volunteering/` (a la carpeta d
 - En Voluntariado, usa vídeos en los que no se vean caras: el fondo no pide permiso a nadie.
 - Con las animaciones en pausa (o movimiento reducido) se ve la portada o el primer fotograma, quieto.
 
-## Vídeo en bucle de cada proyecto
+## Vídeo de fondo de cada proyecto
 
-Arriba de cada tarjeta de proyecto hay un vídeo corto (7 s), mudo y en bucle, desde 768 px de ancho. En el móvil no se carga: ahí se ve el fragmento principal de la ilustración, en HTML y a tamaño legible. Los vídeos están en la carpeta del proyecto y su nombre empieza por `loop`.
+Las tarjetas de proyecto son verticales (2:3) y oscuras en los dos temas. Cada una puede llevar de fondo un vídeo corto, mudo y en bucle, que ocupa toda la tarjeta en todos los tamaños de pantalla, también en el móvil. El texto va encima: las píldoras arriba y el nombre abajo, sobre un degradado oscuro.
 
-Lo que hay ahora:
+**Archivos**, en la carpeta del proyecto (uno por proyecto: no hay versiones por tema ni por idioma):
 
-| Carpeta | Archivos | De dónde salen |
-| --- | --- | --- |
-| `projects/job-hunt-copilot/` (Shortlist) | `loop-light.*` y `loop-dark.*`: uno por tema, sin texto, el mismo en los dos idiomas | Una escena dibujada con código, `scripts/loops/shortlist.html` (el embudo de ofertas) |
-| `projects/mail-autopilot/`, `projects/cooling-agent/`, `projects/cs50-ai/` | `loop-es-light.*`, `loop-es-dark.*`, `loop-en-light.*` y `loop-en-dark.*`: uno por idioma y por tema | Grabados de la ilustración de la propia tarjeta |
+| Archivo | Qué es |
+| --- | --- |
+| `loop.mp4` | El vídeo en H.264. |
+| `loop.webm` | El mismo vídeo en VP9. |
+| `loop.poster.jpg` | Su primer fotograma. Es lo que se ve hasta que carga el vídeo, con las animaciones en pausa y sin JavaScript. |
 
-Cada vídeo son tres archivos con el mismo nombre: `.mp4` (H.264), `.webm` (VP9) y `.poster.jpg` (su primer fotograma, lo que se ve hasta que carga y con las animaciones en pausa).
+**Formato:** 600 × 900 px (2:3), 7 s, 24 fps, sin audio; el último fotograma enlaza con el primero. El mp4, de 900 kB como mucho.
 
-- **Formato:** 16:10 (832 × 520 px el de Shortlist; 832 × 522 los grabados de las ilustraciones), 24 fps, 7 s, sin audio; el último fotograma enlaza con el primero. Lo que sobre de 16:10 se recorta.
-- **Qué vídeo se usa**, por este orden: `loop-<idioma>-<tema>`, `loop-<tema>`, `loop-<idioma>` y `loop` (con `es` o `en`, y `light` o `dark`). Por eso, para que se vea uno nuevo, hay que borrar de la carpeta los que van antes.
-- **Para poner un vídeo tuyo** basta `loop.mp4` (y, si quieres, `loop.webm` y `loop.poster.jpg`) y borrar los demás `loop-…` de esa carpeta.
-- **Para volver a grabar el de Shortlist:** `node scripts/loops/record.mjs shortlist job-hunt-copilot`. Hacen falta Playwright y ffmpeg. Graba fotograma a fotograma y avisa si un `.mp4` pasa de 400 kB. La escena toma el fondo, el tinte y el azul de `app/globals.css`: si cambias esos colores, vuelve a grabar.
+**Composición**, pensada para ir detrás del texto:
+
+- Fondo `#1D1D1F` (el de la tarjeta), puntos claros y el color de acento del dominio del proyecto. Sin texto.
+- La acción, en los dos tercios de arriba.
+- El tercio de abajo, tranquilo y oscuro: ahí van el nombre y su línea.
+- Nada importante en la franja de arriba: la tapan las píldoras.
+
+**Lo que hay ahora:** solo Shortlist (`projects/job-hunt-copilot/`) tiene vídeo. Es una escena dibujada con código, `scripts/loops/shortlist.html`: el embudo de ofertas. Las otras tres tarjetas, hasta que tengan el suyo, llevan fondo liso con el tinte de su dominio.
+
+- **Para volver a grabar el de Shortlist:** `node scripts/loops/record.mjs shortlist job-hunt-copilot`. Hacen falta Playwright y ffmpeg. Graba fotograma a fotograma y termina con error si el `.mp4` pasa de 900 kB. La escena toma el fondo y el azul de `app/globals.css`: si cambias esos colores, vuelve a grabar.
 - **Para hacer otro vídeo con código:** una escena nueva en `scripts/loops/` (un HTML que dibuje un fotograma a partir de una fase de 0 a 1, como `shortlist.html`) y el mismo grabador: `node scripts/loops/record.mjs <escena> <carpeta del proyecto>`.
-- **Para volver a grabar los de las ilustraciones:** `node scripts/record-project-loops.mjs` (lo explica el propio script). Se salta los proyectos que tienen un vídeo propio (`loop.*`, `loop-light.*` o `loop-dark.*`), como Shortlist.
-- Los archivos `loop…` no salen en la tira de fotos y vídeos de la tarjeta.
-- Si un proyecto no tiene vídeo, su tarjeta muestra la ilustración animada de antes.
+- **Para poner un vídeo tuyo:** deja en la carpeta del proyecto `loop.mp4` y, si puedes, `loop.webm` y `loop.poster.jpg`, con el formato de arriba. Sin póster, hasta que carga el vídeo se ve el fondo liso de la tarjeta.
+- Los archivos cuyo nombre empieza por `loop` no salen en la tira de fotos y vídeos del proyecto.
 
 ## Nombres de archivo
 
