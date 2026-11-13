@@ -1,8 +1,8 @@
 # Decisiones
 
-Lo aprobado, lo que he decidido yo al construir (para que lo revises) y lo que falta. Última actualización: 11-11-2026. Incluye las tres fases (contenido y CV, dirección visual Apple × Evolve, piezas visuales), el pulido estético (rama `claude/design-polish`), el hero definitivo con el chip de partículas (rama `claude/hero-asymmetric`), la nube de partículas con presencia y figuras (rama `claude/particle-figures`), la carga, la interacción y la pausa del chip (rama `claude/chip-interaction`), la ronda del 11-11 (rama `claude/nice-keller-emmje9`): partículas una a una, «Cómo trabajo», carruseles, vídeos de proyecto, Skills compacto y reserva con Google Calendar; y la segunda ronda del 11-11 (rama `claude/tender-faraday-k93q2e`): física real por partícula, «Cómo trabajo» más abajo y rediseñada, Skills como red en 3D y cinco ajustes.
+Lo aprobado, lo que he decidido yo al construir (para que lo revises) y lo que falta. Última actualización: 13-11-2026. Incluye las tres fases (contenido y CV, dirección visual Apple × Evolve, piezas visuales), el pulido estético (rama `claude/design-polish`), el hero definitivo con el chip de partículas (rama `claude/hero-asymmetric`), la nube de partículas con presencia y figuras (rama `claude/particle-figures`), la carga, la interacción y la pausa del chip (rama `claude/chip-interaction`), la ronda del 11-11 (rama `claude/nice-keller-emmje9`): partículas una a una, «Cómo trabajo», carruseles, vídeos de proyecto, Skills compacto y reserva con Google Calendar; la segunda ronda del 11-11 (rama `claude/tender-faraday-k93q2e`): física real por partícula, «Cómo trabajo» más abajo y rediseñada, Skills como red en 3D y cinco ajustes; y el vídeo de «Correo en piloto automático» hecho con código (rama `claude/upbeat-volta-y0qcrm`).
 
-Lo que cambia la última ronda está en «Segunda ronda del 11-11», al final de la sección 1; los apartados anteriores se han corregido donde ya no eran verdad.
+Lo último está en «Vídeo de Correo en piloto automático hecho con código», al final de la sección 1 (y su «revisar» en la 2 y sus medidas en la 3); los apartados anteriores se han corregido donde ya no eran verdad.
 
 ## 1. Aprobado (hecho)
 
@@ -159,7 +159,7 @@ Grupo (a) completo, del 1 al 16, y el reveal del grupo (b). Capturas antes/despu
 
 **5. Proyectos**
 - Una sola fila con desplazamiento horizontal: scroll-snap, flechas desde 768 px y arrastre con el dedo en el móvil. El panel de demo y case study se abre debajo de la fila.
-- **Vídeo en bucle arriba de cada tarjeta, desde 768 px** (mudo, autoplay, playsInline, con póster; en el móvil, el fragmento principal en HTML): 7 s, grabado con Playwright de los fragmentos animados de la propia tarjeta, en webm y mp4, uno por idioma y por tema (16 vídeos y 16 pósters en `public/media/projects/<id>/`).
+- **Vídeo en bucle arriba de cada tarjeta, desde 768 px** (mudo, autoplay, playsInline, con póster; en el móvil, el fragmento principal en HTML): 7 s, grabado con Playwright de los fragmentos animados de la propia tarjeta, en webm y mp4, uno por idioma y por tema (16 vídeos y 16 pósters en `public/media/projects/<id>/`). Desde el 13-11 el de «Correo en piloto automático» es una escena hecha con código (más abajo) y los grabados son 12.
 - job-hunt-copilot se llama **Shortlist** en la web y para el agente; el `id` interno, la carpeta y el enlace al repositorio no cambian. La imagen OG no nombra proyectos.
 
 **6. Skills**
@@ -235,7 +235,55 @@ Grupo (a) completo, del 1 al 16, y el reveal del grupo (b). Capturas antes/despu
 - **Contacto:** «, o reservar 15 minutos» solo aparece con `NEXT_PUBLIC_BOOKING_URL`. Sin ella, la frase termina en «Lo más rápido es el email.».
 - **Escudo de Retamar:** se ve. Dos cambios para que no vuelva a salir en blanco: ver «Segunda ronda del 11-11 (revisar)».
 
+### Vídeo de Correo en piloto automático hecho con código (rama `claude/upbeat-volta-y0qcrm`, PR #10; pendiente de tu OK)
+
+- **Qué cambia:** el clip de arriba de la tarjeta «Correo en piloto automático» ya no es la grabación de su ilustración. Es una escena dibujada con código (canvas 2D), sin generadores de vídeo ni recursos externos: `scripts/loops/mail-autopilot.html`.
+- **La escena, en vertical: del ruido al resumen.**
+  - **Arriba:** caen sobres pequeños dibujados con puntos, cada uno a su ritmo: 17 por vuelta, a 2, 3 o 4 px por fotograma (los cercanos, más deprisa) y entre 2 y 8 a la vez.
+  - **Centro:** convergen en un anillo que late despacio en morado, cada 3,5 s. Al entrar, cada sobre se deshace en polvo.
+  - **Abajo:** por debajo del anillo sale una sola hoja. Sus líneas de puntos se escriben de arriba abajo, en tres grupos, y la hoja se desvanece donde está, sin bajar, para dejar sitio a la siguiente.
+- **Estilo del chip:** puntos nítidos en cuatro tamaños (muchos finos, algunos medianos, pocos grandes), profundidad (los sobres lejanos, más pequeños y tenues; el anillo y la hoja, en perspectiva) y un solo color de acento. Sin texto ni logos. Entre 890 y 1.260 puntos por fotograma.
+- **Colores, del CSS de la propia web:** la escena enlaza `app/globals.css` y pinta con sus reglas: el fondo es `--card`, el tinte es el degradado de `.frag-stage` y el morado es `--d-rgb` de `data-domain="ai"`. La tinta es `--fg`: #1D1D1F en claro y #F5F5F7 al 85 % en oscuro.
+- **Formato, el del vídeo de Shortlist (PR #8):** 7 s, 24 fps, 832 × 520 px, sin audio. Un vídeo por tema, `loop-light` y `loop-dark`, cada uno en `.mp4` (H.264), `.webm` (VP9) y `.poster.jpg` (primer fotograma). Sin texto: vale para los dos idiomas.
+- **Peso:** mp4 de 212 kB (claro) y 196 kB (oscuro); el límite era 400.
+- **Bucle sin salto:** todo depende de una fase de 0 a 1, con semilla fija; la fase 1 dibuja lo mismo que la 0, píxel a píxel.
+- **Grabador, el de Shortlist:** `scripts/loops/record.mjs`. Uso: `node scripts/loops/record.mjs mail-autopilot mail-autopilot`.
+- **Borrados** los 12 archivos `loop-en-*` y `loop-es-*` de `public/media/projects/mail-autopilot/`.
+- **En el móvil no cambia nada:** sigue el fragmento principal en HTML.
+- **Sustituye a la primera versión de esta rama,** que era la misma idea en horizontal (sobres por la izquierda, hoja por la derecha).
+
 ## 2. Decidido por mí (revisar)
+
+### Vídeo de Correo en piloto automático (revisar)
+
+**Lo que más conviene que mires**
+- **«Antes del tercio de abajo».** Con el anillo en el centro, la hoja no cabe entera por encima del tercio inferior: ocupa del 56 % al 88 % del alto. Lo he resuelto así: la hoja nunca baja. Se escribe donde aparece y se desvanece ahí mismo, y por debajo del 88 % no se dibuja nada en ningún momento del bucle. Si lo que querías es el tercio de abajo siempre vacío, hay que subir el anillo (hasta el 22 % del alto, con la hoja a este tamaño) o encoger la hoja (a un tercio, con el anillo donde está). Un término medio: el anillo al 32 % y la hoja a dos tercios. Dime cuál.
+- **El anillo no está de frente:** está tumbado, visto desde arriba y de frente, como un aro. Así lo que cae entra en él y la hoja sale por debajo, y ocupa más ancho que alto (194 × 105 px), que es lo que sobra en un vídeo apaisado. Su centro está al 42 % del alto.
+- **El anillo y la hoja en reposo no se mueven; en el anillo se mueve el color.** Una ola morada entra por su lado lejano, lo llena cuando la hoja empieza a salir y se vacía hacia el lado cercano. Con la codificación de los clips, los puntos pequeños que se mueven menos de un píxel por fotograma salen emborronados y los fundidos lentos se quedan a medias hasta el siguiente fotograma clave: se notaba un salto al cerrar el bucle.
+
+**Movimiento**
+- **Los sobres caen en línea recta y a píxeles enteros** (un número entero de píxeles por fotograma en horizontal y en vertical) y no giran por el camino: cada uno conserva su postura. Es lo aprendido en el vídeo de Shortlist: se dibujan igual en todos los fotogramas (nítidos) y al códec no le cuestan nada. Con los sobres girando y en curva, la versión horizontal pesaba 249 kB; esta, con más sobres, 212.
+- **Cada sobre cae entre 1,9 y 4,6 s** y nunca se mueve más de lado que hacia abajo: cae, no entra barriendo.
+- **Dos sobres seguidos nunca vienen del mismo lado,** y la profundidad de cada uno va al azar, con semilla.
+- **El polvo** se dispersa, gira hacia la banda del anillo tomando el morado y desaparece en poco más de un segundo. Cada punto del sobre se suelta un poco antes o después, para que el borde no sea una línea.
+- **La hoja nace tumbada en el plano del anillo, pequeña y en morado,** y se endereza mientras baja a su sitio (1,5 s). Su borde de abajo va delante: se estira, no se dispersa.
+- **Las líneas se escriben en tinta, punto a punto,** sin fundido: un fundido de color dejaba un tinte morado en las líneas hasta el final del bucle. El morado de la hoja son los tres puntos que abren cada grupo.
+- **La hoja se desvanece punto a punto, de arriba abajo,** en 0,8 s, y cada punto se apaga en tres fotogramas. La siguiente ya está dentro del anillo cuando desaparece el último: siempre hay una sola hoja.
+
+**Composición**
+- **Los sobres entran por el borde de arriba, dentro del 80 % central del ancho.** Todo lo que se dibuja queda entre el 17 % y el 83 % del ancho, y de arriba hasta el 88 % del alto.
+- **El primer fotograma, que es el póster, es la hoja ya escrita,** con sobres a varias alturas y a los dos lados: lo he elegido entre los 168 momentos del ciclo de los sobres.
+- **Qué morado:** el de relleno del dominio (`--d-rgb`: #AF52DE en claro y #BF5AF2 en oscuro), que es también el del tinte de la tarjeta. El otro morado del dominio (`--d`) es el de texto.
+- **Los puntos se pintan píxel a píxel** con la fórmula del shader del hero (un disco con un píxel de borde suave), no con `arc()`: el antialias del canvas avanza a saltos.
+- **Tamaños de punto:** 2,2 · 3,2 · 4,8 · 7 px en el vídeo; en la tarjeta (520 px de ancho), 1,4 · 2 · 3 · 4,4 px.
+
+**Archivos y scripts**
+- **El grabador es el del vídeo de Shortlist** (PR #8, aún sin fusionar). He traído `scripts/loops/record.mjs` y su cambio en `scripts/record-project-loops.mjs` tal cual, sin tocar una línea, igual que hizo el PR #9, y la escena sigue su contrato (`window.loop.draw(fase)`, tema en `?theme=`, colores enlazando `globals.css`). Los tres PR se pueden fusionar en cualquier orden sin chocar en el código.
+- **En el texto sí chocan:** los tres tocan los mismos párrafos de `DECISIONS.md`, de `README.md` y de `public/media/README.md`. El segundo y el tercero que se fusionen tendrán que unirlos a mano; puedo hacerlo yo cuando entre el primero.
+- **Fuera el grabador y `encode.mjs` de la primera versión de esta rama:** no hacían falta con el de Shortlist.
+- **El `.webm` pesa algo más que el `.mp4`** (233 y 206 kB) con los ajustes de siempre, y la web sirve el `.webm` primero. No lo he tocado.
+- **Pesa más que el clip anterior:** el navegador baja el `.webm` y el póster del tema que se ve, 263 kB en claro y 235 kB en oscuro (antes, 68 y 54 kB). Se sigue cargando solo cuando la tarjeta se acerca a la pantalla.
+- **Si cambian `--card`, el tinte o el morado en `globals.css`, hay que regrabar:** el vídeo lleva los colores dentro.
 
 ### Segunda ronda del 11-11 (revisar)
 
@@ -278,7 +326,7 @@ Grupo (a) completo, del 1 al 16, y el reveal del grupo (b). Capturas antes/despu
 - **Fondos de sección:** cuenta lo que está directamente en la carpeta de la sección, no en las de las tarjetas, para que elijas tú qué se ve (en Voluntariado, vídeos sin caras). Si hay vídeo, las fotos se ignoran; varios vídeos se reproducen uno detrás de otro.
 - **Vídeos de proyecto:**
   - Como los fragmentos apenas se movían, el clip añade el paralaje del puntero dando una vuelta a la tarjeta; el bucle no tiene costura.
-  - Pesan 3,0 MB en total entre los 16 (832 × 522 px, 24 fps; cada uno, entre 50 y 140 KB). Solo se descarga el del idioma y el tema que se ven, y solo cuando la tarjeta se acerca a la pantalla.
+  - Pesan 3,0 MB en total entre los 16 (832 × 522 px, 24 fps; cada uno, entre 50 y 140 KB). Desde el 13-11: 2,6 MB los 12 grabados y 0,9 MB los 2 de «Correo en piloto automático». Solo se descarga el del idioma y el tema que se ven, y solo cuando la tarjeta se acerca a la pantalla.
   - En el móvil no se usa el clip: desde la segunda ronda vuelve el fragmento principal en HTML.
   - Con las animaciones en pausa, sin JavaScript o hasta que carga, se ve el póster.
   - Para poner un vídeo real de un proyecto: `loop.mp4` en su carpeta (ver `public/media/README.md`). Para regrabar los actuales: `node scripts/record-project-loops.mjs`.
@@ -404,6 +452,18 @@ Grupo (a) completo, del 1 al 16, y el reveal del grupo (b). Capturas antes/despu
   - **Proyectos en 390 × 844:** fragmento de 305 × 122 px, texto de 12,5 px o más, y ninguna petición a los vídeos ni a sus pósters. A 800 px de ancho, el vídeo.
   - **Sin desbordes a lo ancho** en 390, 1024, 1280 y 1440 px.
   - Capturas de verificación: 9.
+- **Vídeo de Correo en piloto automático (13-11, build local de producción, Chromium):**
+  - `npm run lint` y `npm run build`, sin errores.
+  - **Archivos** (el grabador termina con error si un mp4 pasa de 400 kB): `loop-light.mp4` 212 kB y `loop-dark.mp4` 196 kB; `loop-light.webm` 233 kB y `loop-dark.webm` 206 kB; pósters de 30 y 29 kB. Los cuatro vídeos: 832 × 520 px, 24 fps, 168 fotogramas, 7,000 s, una sola pista (sin audio), BT.709 de rango limitado.
+  - **Bucle:** en la escena, la fase 1 y la fase 0 dan la misma imagen (ningún byte distinto), y el paso del último fotograma al primero cambia lo mismo que sus vecinos (×1,002; el paso más brusco de todo el bucle, ×1,024). En el mp4, del último al primero cambia un 22 % más que entre dos seguidos (un 26 % en oscuro), por el fotograma clave, y el fondo no salta.
+  - **Codificación:** cada fotograma de cada archivo coincide con el suyo de origen y no con un vecino (ni repetidos ni saltos). Calidad: 37–40 dB en el mp4 claro, 36–39 en el oscuro; 38–42 y 37–40 en los webm.
+  - **Nada tiembla:** siguiendo 17 puntos en movimiento (11 esquinas de sobre y 6 motas) durante 2 s, el centro de cada uno en el mp4 se aparta del original 0,11 px como mucho (rms).
+  - **Determinista:** dos sesiones del navegador dan los mismos fotogramas, y dos grabaciones, el mismo `.mp4` y el mismo póster byte a byte.
+  - **Encuadre:** todo lo dibujado queda entre el 17 % y el 83 % del ancho y de arriba al 88 % del alto. La hoja, entre el 56 % y el 88 % del alto.
+  - **Tarjeta a 1440 × 900, en claro y en oscuro, con el webm y con el mp4** (`/es`; con el webm, también `/`): el vídeo se reproduce a 520 × 325 px (16:10, sin recorte), mudo y en bucle, con su póster; solo se piden los archivos del tema activo; sin errores de consola. Con movimiento reducido, solo el póster.
+  - **Fondo del vídeo frente al de la tarjeta:** en oscuro, idéntico (28, 28, 30); en claro, (246, 245, 248) frente a (245, 245, 247), un nivel de diferencia por el redondeo del vídeo, el mismo de los demás clips. El póster coincide con el primer fotograma de la escena (43 dB, lo que da el JPEG).
+  - **Revisión a ojo, sobre el mp4:** seis fotogramas repartidos por tema (0, 28, 56, 84, 112 y 140) y el último junto al primero; y la fila de proyectos a 1440 px, en claro y en oscuro.
+  - **Sin comprobar:** Safari y Firefox (solo Chromium) y una pantalla de 2× real. No he vuelto a pasar Lighthouse ni axe: la web no cambia de código, solo de archivos.
 - **axe:** 0 incidencias en claro y oscuro, escritorio y móvil (04-11).
 - **axe 4.14 (10-11):** 0 incidencias en `/` y `/es`, en claro y oscuro, en escritorio (1440 × 900, tras recorrer toda la página) y en móvil (390 × 844).
   - Esta versión pasa por defecto una regla más, `label-content-name-mismatch`, que marcaba 7 nodos del grafo de skills en `/es` y 4 en `/`: leía pegadas las dos líneas de una etiqueta («pilotoautomático») y el monograma «IF» junto al nombre. Arreglado: ver «Grafo de skills» en «Técnicas».
@@ -422,7 +482,7 @@ Grupo (a) completo, del 1 al 16, y el reveal del grupo (b). Capturas antes/despu
 - `content/demos/job-hunt-copilot.txt` (el archivo conserva ese nombre), la grabación del terminal de Shortlist. Hasta que exista, la tarjeta dice «Ver detalles» y no hay ventana de terminal.
 - Fotos y vídeos en `public/media/…`. Las de voluntariado convierten la tarjeta en tarjeta de foto.
 - **Fondos de sección:** un vídeo o fotos en `public/media/education/` y un vídeo sin caras en `public/media/volunteering/` (en la carpeta de la sección, no en la de una tarjeta). Sin ellos no hay fondo.
-- **Vídeos reales de los proyectos:** `loop.mp4` en la carpeta de cada uno sustituye al grabado de la ilustración (ver `public/media/README.md`).
+- **Vídeos reales de los proyectos:** `loop.mp4` en la carpeta de cada uno sustituye al grabado de la ilustración (ver `public/media/README.md`). En «Correo en piloto automático» hay que borrar además `loop-light.*` y `loop-dark.*`, que tienen prioridad.
 
 **Avisos**
 - **Tu CV en PDF incluye tu teléfono.** Al servirlo, queda público en la web, y antes acordamos no publicar el teléfono. Si no lo quieres publicar, sube una versión sin él con el mismo nombre.

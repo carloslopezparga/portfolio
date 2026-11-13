@@ -1,0 +1,605 @@
+<!doctype html>
+<!--
+  Email on autopilot's looping clip (the top of its project card): from noise to
+  digest, top to bottom.
+
+  Small envelopes drawn with dots fall from the top, each at its own pace, and
+  converge on a ring in the centre that beats slowly in the card's purple; as it
+  enters, each envelope breaks into dust. Under the ring comes out one sheet: its
+  dotted lines are typed top to bottom, in three groups, and it fades away where
+  it is, well before the bottom edge, to make room for the next.
+
+  The look is the hero chip's (lib/chip-cloud.ts): crisp dots in a hierarchy of
+  sizes, some depth (far: smaller and fainter), one accent colour. Colours and
+  background come from the site's own stylesheet, linked below: the card's grey,
+  .frag-stage's tint and the "ai" domain's purple.
+
+  Deterministic (seeded) and periodic: a frame depends only on a phase from 0
+  to 1, and phase 1 draws the same picture as phase 0. Open it in a browser to
+  watch it (add ?theme=dark, or ?phase=0.25 for one still), or record it:
+
+    node scripts/loops/record.mjs mail-autopilot mail-autopilot
+-->
+<html lang="en" data-theme="light">
+  <head>
+    <meta charset="utf-8" />
+    <title>Email on autopilot · loop</title>
+    <script>
+      document.documentElement.dataset.theme = new URLSearchParams(location.search).get("theme") === "dark" ? "dark" : "light";
+    </script>
+    <link rel="stylesheet" href="../../app/globals.css" />
+    <style>
+      html,
+      body {
+        margin: 0;
+        overflow: hidden;
+        background: var(--card);
+      }
+      /* the card (its grey, its domain's colour)… */
+      #card {
+        width: 832px;
+        height: 520px;
+        background: var(--card);
+      }
+      /* …and the top of it: .frag-stage paints the tint */
+      #stage {
+        position: relative;
+        width: 832px;
+        height: 520px;
+      }
+      canvas {
+        position: absolute;
+        inset: 0;
+        display: block;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="card" data-domain="ai">
+      <div id="stage" class="frag-stage"><canvas id="scene" width="832" height="520"></canvas></div>
+    </div>
+    <script>
+      "use strict";
+      /* ------------------------------ the clip ------------------------------ */
+      const W = 832;
+      const H = 520;
+      const SECONDS = 7;
+      const FPS = 24;
+      const FRAMES = SECONDS * FPS;
+      const TAU = Math.PI * 2;
+
+      const clamp = (v, lo, hi) => Math.min(hi, Math.max(lo, v));
+      const mix = (a, b, t) => a + (b - a) * t;
+      const frac = (v) => v - Math.floor(v);
+      const smooth = (a, b, v) => {
+        const t = clamp((v - a) / (b - a), 0, 1);
+        return t * t * (3 - 2 * t);
+      };
+      const smoother = (t) => t * t * t * (t * (t * 6 - 15) + 10);
+
+      /* ---------------- seeded randomness (as lib/chip-cloud.ts) ---------------- */
+      function mulberry32(seed) {
+        let a = seed >>> 0;
+        return () => {
+          a = (a + 0x6d2b79f5) >>> 0;
+          let t = a;
+          t = Math.imul(t ^ (t >>> 15), t | 1);
+          t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+          return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+        };
+      }
+      function pick(rnd, pairs) {
+        let r = rnd() * pairs.reduce((s, p) => s + p[1], 0);
+        for (const [v, w] of pairs) if ((r -= w) < 0) return v;
+        return pairs[pairs.length - 1][0];
+      }
+      const gauss = (rnd) => (rnd() + rnd() + rnd() + rnd() - 2) * 0.87;
+
+      /*
+       * Dot diameters in the clip's pixels: many tiny, some medium, a few large.
+       * The card shows the clip at 0.625× (520 px wide), where these are the
+       * hero's sizes a step down, as its objects are several times smaller.
+       */
+      const DOT = { xs: 2.2, s: 3.2, m: 4.8, l: 7 };
+      const look = (sizes, alphas = [[1, 1]]) => ({ sizes, alphas });
+      const EDGE = look([[DOT.s, 0.74], [DOT.m, 0.26]]);
+      const FINE = look([[DOT.xs, 0.55], [DOT.s, 0.45]]);
+      const GRAIN = look([[DOT.xs, 0.6], [DOT.s, 0.28], [DOT.m, 0.1], [DOT.l, 0.02]], [[0.6, 0.4], [1, 0.6]]);
+      const BEADS = look([[DOT.xs, 0.46], [DOT.s, 0.38], [DOT.m, 0.16]], [[0.6, 0.25], [1, 0.75]]);
+
+      /* ---------------- the frame's dots ---------------- */
+      // x, y, diameter, opacity, accent (0 ink … 1 accent)
+      const dots = new Float32Array(5 * 6000);
+      let count = 0;
+      function dot(x, y, d, a, t) {
+        if (a <= 0.004 || d <= 0.05) return;
+        // a dot under a pixel wide keeps its width and fades instead, so it never flickers
+        if (d < 1.3) {
+          a *= (d / 1.3) * (d / 1.3);
+          d = 1.3;
+        }
+        dots.set([x, y, d, a, t], count * 5);
+        count++;
+      }
+
+      /**
+       * Where a point of a flat thing lands: its own x, y (and z, out of its plane),
+       * turned by roll, then yaw, then pitch, scaled and seen in perspective from
+       * `focal` px. Returns the screen position and how much nearer (> 1) or
+       * farther (< 1) than its centre the point is. A negative pitch tips the top away.
+       */
+      const seen = { x: 0, y: 0, k: 1 };
+      function place(pose, lx, ly, lz) {
+        const x0 = lx * pose.cr - ly * pose.sr;
+        const y0 = lx * pose.sr + ly * pose.cr;
+        const x1 = x0 * pose.cy + lz * pose.sy;
+        const z1 = -x0 * pose.sy + lz * pose.cy;
+        const y2 = y0 * pose.cp - z1 * pose.sp;
+        const z2 = y0 * pose.sp + z1 * pose.cp;
+        const k = pose.focal / (pose.focal + z2 * pose.s);
+        seen.x = pose.x + x1 * pose.s * k;
+        seen.y = pose.y + y2 * pose.s * k;
+        seen.k = k;
+        return seen;
+      }
+      function turn(pose, roll, yaw, pitch) {
+        pose.cr = Math.cos(roll);
+        pose.sr = Math.sin(roll);
+        pose.cy = Math.cos(yaw);
+        pose.sy = Math.sin(yaw);
+        pose.cp = Math.cos(pitch);
+        pose.sp = Math.sin(pitch);
+        return pose;
+      }
+      const newPose = (focal) => ({ x: 0, y: 0, s: 1, focal, cr: 1, sr: 0, cy: 1, sy: 0, cp: 1, sp: 0 });
+      /** Depth, exaggerated a little: what is farther is smaller and fainter than perspective alone makes it. */
+      const nearer = (k) => clamp(1 + (k - 1) * 3.2, 0.45, 1.5);
+
+      /* ---------------- the ring ---------------- */
+      // A flat band, as one of the chip's slabs: two crisp rims and, between them, a grain of beads. It lies tipped well
+      // back, a hoop seen from above and in front: what falls goes into it, and the sheet comes out under it.
+      const RING = { x: 416, y: 214, inner: 60, outer: 96, tilt: -1.0, focal: 640 };
+      const MID = (RING.inner + RING.outer) / 2;
+      /** Envelopes break up around this radius (in the ring's plane), before they reach the ring: each dot a little sooner or later. */
+      const BREAK = RING.outer + 28;
+      const BREAK_SPREAD = 26;
+      /*
+       * The beat, in shares of the loop: every `every`, the accent sweeps into the ring from its far side (`rise`),
+       * fills it (`hold`) and drains out to the near side (`fall`); the ring is full at `full`, as the sheet starts to
+       * come out. A bead takes the accent, and gives it back, in `turn` (three frames): quick changes of colour
+       * survive the clip's compression, slow fades do not.
+       */
+      const BEAT = { every: 0.5, full: 0.235, rise: 0.1, hold: 0.1, fall: 0.3, turn: 0.018 };
+      /** How much of the accent a bead at `across` (0 the ring's far side … 1 its near side) has at this phase. */
+      function glow(phase, across) {
+        const t = frac((phase - (BEAT.full - BEAT.rise)) / BEAT.every) * BEAT.every;
+        const on = across * BEAT.rise;
+        const off = BEAT.rise + BEAT.hold + across * BEAT.fall;
+        const lit = (at) => smooth(0, BEAT.turn, at - on) * (1 - smooth(0, BEAT.turn, at - off));
+        // (the wave before this one may still be draining on the near side)
+        return Math.max(lit(t), lit(t + BEAT.every));
+      }
+      // Its dots hold still, and what holds still stays sharp in the clip: it is its colour that moves.
+      const ringPose = turn(newPose(RING.focal), 0, 0, RING.tilt);
+      ringPose.x = RING.x;
+      ringPose.y = RING.y;
+      /** A screen point back to the ring's plane (exact inverse of place() for z = 0, no roll). */
+      const flat = { u: 0, v: 0 };
+      function toRing(sx, sy) {
+        const pose = ringPose;
+        const dx = (sx - pose.x) / pose.s;
+        const dy = (sy - pose.y) / pose.s;
+        const F = pose.focal / pose.s;
+        const a = -dx * pose.sy - F * pose.cy;
+        const b = dx * pose.sp * pose.cy - F * pose.sp * pose.sy;
+        const c = -dy * pose.sy;
+        const d = dy * pose.sp * pose.cy - F * pose.cp;
+        const det = a * d - b * c;
+        flat.u = (-dx * F * d + b * dy * F) / det;
+        flat.v = (-a * dy * F + c * dx * F) / det;
+        return flat;
+      }
+
+      /*
+       * The ring's dots: two rims in ink, evenly spaced, and between them beads on
+       * three tracks, loosely spaced (regular enough to read as a face, never
+       * ruled). The beads carry the beat: each takes the accent when the wave
+       * reaches it (`across`, its place from the far side to the near one, a
+       * little shuffled so the wave's front is not a line). `lit` is set on the
+       * dots that never change: 0 the rims, 1 the few beads that always keep the accent.
+       */
+      const TRACKS = [RING.inner + 9, MID, RING.outer - 9];
+      const ringDots = [];
+      {
+        const rnd = mulberry32(20261112);
+        for (const r of [RING.outer, RING.inner]) {
+          const n = Math.round((TAU * r) / 6.2);
+          for (let i = 0; i < n; i++) ringDots.push({ x: r * Math.cos((i / n) * TAU), y: r * Math.sin((i / n) * TAU), w: 0, d: i % 8 === 0 ? DOT.m : DOT.s, a: 1, lit: 0 });
+        }
+        for (const radius of TRACKS) {
+          const n = Math.round((TAU * radius) / 8.6);
+          for (let i = 0; i < n; i++) {
+            const th = ((i + 0.5 + (rnd() - 0.5) * 0.5) / n) * TAU;
+            const r = radius + (rnd() - 0.5) * 2.4;
+            const across = clamp(0.82 * (0.5 + (0.5 * r * Math.sin(th)) / RING.outer) + 0.18 * rnd(), 0, 1);
+            ringDots.push({ x: r * Math.cos(th), y: r * Math.sin(th), w: gauss(rnd) * 2, d: pick(rnd, BEADS.sizes), a: pick(rnd, BEADS.alphas), across, lit: rnd() < 0.12 ? 1 : null });
+          }
+        }
+        for (const p of ringDots) {
+          const at = place(ringPose, p.x, p.y, p.w);
+          const n = nearer(at.k);
+          p.sx = at.x;
+          p.sy = at.y;
+          p.d *= n;
+          p.a *= clamp(n, 0.5, 1);
+        }
+      }
+      function drawRing(phase) {
+        for (const p of ringDots) {
+          const lit = p.lit ?? glow(phase, p.across);
+          dot(p.sx, p.sy, p.d * (1 + 0.2 * lit), p.a, lit);
+        }
+      }
+
+      /* ---------------- what falls: envelopes and loose specks ---------------- */
+      function envelopeDots(rnd) {
+        const w = 28;
+        const h = 19.5;
+        const tip = 5; // the flap's point, below the middle
+        const out = [];
+        const line = (ax, ay, bx, by, pitch, lk) => {
+          const n = Math.max(1, Math.round(Math.hypot(bx - ax, by - ay) / pitch));
+          for (let i = 1; i < n; i++) {
+            const t = (i + (rnd() - 0.5) * 0.24) / n;
+            out.push({ x: mix(ax, bx, t), y: mix(ay, by, t), d: pick(rnd, lk.sizes), a: pick(rnd, lk.alphas) });
+          }
+        };
+        for (const [x, y] of [[-w, -h], [w, -h], [w, h], [-w, h]]) out.push({ x, y, d: DOT.l, a: 1 });
+        line(-w, -h, w, -h, 5.1, EDGE);
+        line(w, -h, w, h, 5.1, EDGE);
+        line(w, h, -w, h, 5.1, EDGE);
+        line(-w, h, -w, -h, 5.1, EDGE);
+        line(-w, -h, 0, tip, 4.9, FINE);
+        line(w, -h, 0, tip, 4.9, FINE);
+        out.push({ x: 0, y: tip, d: DOT.m, a: 1 });
+        return out;
+      }
+
+      /** How far into the arrivals' cycle the clip starts (frames): a moment with envelopes at every height and on both sides, for the poster. */
+      const AHEAD = 49;
+      /** 0 … n − 1 in a seeded random order. */
+      function shuffled(n, rnd) {
+        const order = Array.from({ length: n }, (_, i) => i);
+        for (let i = n - 1; i > 0; i--) {
+          const j = Math.floor(rnd() * (i + 1));
+          [order[i], order[j]] = [order[j], order[i]];
+        }
+        return order;
+      }
+      /** 0 … n − 1 in an order that takes long steps: each number is far from the one before it (and from the one after). */
+      function strided(n) {
+        const gcd = (a, b) => (b ? gcd(b, a % b) : a);
+        let step = Math.ceil(n * 0.36);
+        while (gcd(step, n) !== 1) step++;
+        return Array.from({ length: n }, (_, i) => (i * step) % n);
+      }
+      /**
+       * The arrivals of one kind: each a straight fall from above the top edge to a point in the ring's hole, once
+       * per loop. An arrival moves a whole number of pixels per frame (`vx`, `vy`) and keeps one attitude all the
+       * way, so every frame draws it the same: crisp, and next to nothing for the video codec. `from` is the frame
+       * it sets off at, `far` its depth (0 near … 1 far): the near ones fall faster. They land one after another,
+       * evenly through the loop. Where along the top edge each sets off is dealt so that one comes from far from
+       * the one before it, and how far each is, at random: neighbours in time are apart in space.
+       */
+      function arrivals(shape, total, seed) {
+        const rnd = mulberry32(seed);
+        const sides = strided(total);
+        const depths = shuffled(total, rnd);
+        const out = [];
+        for (let order = 0; order < total; order++) {
+          const side = ((sides[order] + 0.5 + (rnd() - 0.5) * 0.6) / total) * 2 - 1; // −1 from the left … 1 from the right
+          const far = (depths[order] + 0.5 + (rnd() - 0.5) * 0.6) / total;
+          const s = mix(shape.scale[0], shape.scale[1], far);
+          const vy = shape.speeds[clamp(Math.floor((1 - far) * shape.speeds.length), 0, shape.speeds.length - 1)];
+          const aimX = Math.round(RING.x + side * 26 + (rnd() - 0.5) * 16);
+          const aimY = Math.round(RING.y + (rnd() - 0.5) * 12);
+          const top = -Math.round(46 * s + 10 * rnd());
+          const frames = Math.round((aimY - top) / vy);
+          // (never much more sideways than down: it falls, it does not sweep in)
+          const most = vy === 4 ? 3 : vy + 1;
+          const vx = clamp(Math.round((aimX - (W / 2 + side * shape.reach)) / frames), -most, most);
+          const lands = Math.round(((order + 0.5 + (rnd() - 0.5) * shape.jitter) / total) * FRAMES);
+          const f = {
+            far,
+            s,
+            vx,
+            vy,
+            frames,
+            from: ((lands - frames - AHEAD) % FRAMES + FRAMES) % FRAMES,
+            x0: aimX - vx * frames,
+            y0: aimY - vy * frames,
+            alpha: mix(shape.alpha[0], shape.alpha[1], far),
+            dots: shape.dots(rnd),
+            pose: newPose(380),
+          };
+          f.pose.s = s;
+          // tipped a little the way it falls, and turned its own way
+          turn(f.pose, 0.3 * Math.atan2(vx, vy) + (rnd() - 0.5) * 0.44, (rnd() - 0.5) * 0.95, -0.1 + (rnd() - 0.5) * 0.55);
+          out.push(f);
+        }
+        return out;
+      }
+      /** A flight's pose t frames after it sets off. */
+      function setFlight(f, t) {
+        f.pose.x = f.x0 + f.vx * t;
+        f.pose.y = f.y0 + f.vy * t;
+        return f.pose;
+      }
+
+      const ENVELOPES = { reach: 320, speeds: [2, 3, 4], jitter: 0.5, scale: [1.06, 0.56], alpha: [1, 0.44], dots: envelopeDots };
+      const SPECKS = { reach: 330, speeds: [2, 3], jitter: 1, scale: [1.05, 0.6], alpha: [0.9, 0.4], dots: (rnd) => [{ x: 0, y: 0, d: pick(rnd, GRAIN.sizes), a: pick(rnd, GRAIN.alphas) }] };
+      // far ones first, so the near ones are drawn over them
+      const flights = [...arrivals(ENVELOPES, 17, 7002), ...arrivals(SPECKS, 44, 4711)].sort((a, b) => b.far - a.far);
+      {
+
+        // When each dot breaks off (in frames since its flight set off), and how its dust then goes: found once, by flying every arrival.
+        const dust = mulberry32(99);
+        for (const f of flights) {
+          for (const p of f.dots) {
+            const edge = BREAK + (dust() - 0.5) * BREAK_SPREAD;
+            const radius = (t) => {
+              const at = place(setFlight(f, t), p.x, p.y, 0);
+              const uv = toRing(at.x, at.y);
+              return Math.hypot(uv.u, uv.v);
+            };
+            let lo = 0;
+            let hi = f.frames;
+            for (let t = 1; t <= f.frames; t++) {
+              if (radius(t) < edge) {
+                lo = t - 1;
+                hi = t;
+                break;
+              }
+            }
+            for (let i = 0; i < 14; i++) {
+              const mid = (lo + hi) / 2;
+              if (radius(mid) < edge) hi = mid;
+              else lo = mid;
+            }
+            p.t = hi;
+            const at = place(setFlight(f, hi), p.x, p.y, 0);
+            const k = at.k;
+            const uv = toRing(at.x, at.y);
+            p.r0 = Math.hypot(uv.u, uv.v);
+            p.th0 = Math.atan2(uv.v, uv.u);
+            p.k0 = k;
+            // dust: it scatters, spirals into the ring's band taking the accent, and is gone
+            p.life = (1.0 + 0.55 * dust()) * FPS; // frames
+            p.rt = TRACKS[Math.floor(dust() * 3)] + (dust() - 0.5) * 6;
+            p.swirl = 0.55 + 1.25 * dust();
+            p.w = gauss(dust) * 3;
+            const heading = dust() * TAU;
+            const stray = 5 + 11 * dust();
+            p.su = Math.cos(heading) * stray;
+            p.sv = Math.sin(heading) * stray;
+            // it keeps the speed it came in at, and slows as it settles
+            const speed = radius(hi - 1) - radius(hi); // px per frame, in the ring's plane
+            p.drag = clamp((speed * p.life) / Math.max(4, p.r0 - p.rt), 1.6, 7);
+          }
+        }
+      }
+      function drawFlights(phase) {
+        for (const f of flights) {
+          const t = frac(phase - f.from / FRAMES) * FRAMES;
+          const pose = setFlight(f, t);
+          for (const p of f.dots) {
+            if (t < p.t) {
+              const at = place(pose, p.x, p.y, 0);
+              dot(at.x, at.y, p.d * f.s * nearer(at.k), p.a * f.alpha, 0);
+              continue;
+            }
+            const x = (t - p.t) / p.life;
+            if (x >= 1) continue;
+            const r = p.rt + (p.r0 - p.rt) * Math.pow(1 - x, p.drag);
+            const th = p.th0 + p.swirl * smoother(x);
+            const stray = Math.sin(Math.PI * Math.pow(x, 0.7));
+            const at = place(ringPose, r * Math.cos(th) + p.su * stray, r * Math.sin(th) + p.sv * stray, p.w * x);
+            // from the envelope's own depth to the ring's
+            const n = mix(nearer(p.k0), nearer(at.k), smooth(0, 0.6, x));
+            const size = p.d * mix(f.s, 0.6, smooth(0, 0.9, x)) * n;
+            dot(at.x, at.y, size, p.a * mix(f.alpha, 1, smooth(0, 0.5, x)) * (1 - smooth(0.62, 1, x)), smooth(0.05, 0.6, x));
+          }
+        }
+      }
+
+      /* ---------------- the sheet ---------------- */
+      const SHEET = { x: 416, y: 368, w: 62, h: 84, ear: 20, yaw: 0.2, pitch: -0.3, focal: 640 };
+      /** Where the sheet is in its own cycle at phase 0: written and at rest (the clip's first frame is its poster). */
+      const SHEET_AT = 0.8;
+      /**
+       * The sheet's cycle: it comes out of the ring (0 to OUT), its lines are typed, it rests, and it fades away where
+       * it is (LEAVE to GONE), dot by dot from the top. It is gone a little after 1, while the next one is still
+       * inside the ring: there is always one sheet.
+       */
+      const OUT = 0.22;
+      const WRITE = [0.21, 0.7];
+      const LEAVE = 0.93;
+      const GONE = 1.04;
+      /** A dot of the sheet goes out in this long (three frames), as the ring's beads change colour. */
+      const SNUFF = 0.018;
+      const sheetDots = [];
+      {
+        const rnd = mulberry32(31);
+        const { w, h, ear } = SHEET;
+        const edge = (ax, ay, bx, by, pitch, lk) => {
+          const n = Math.max(1, Math.round(Math.hypot(bx - ax, by - ay) / pitch));
+          for (let i = 1; i < n; i++) {
+            const t = (i + (rnd() - 0.5) * 0.14) / n;
+            sheetDots.push({ x: mix(ax, bx, t), y: mix(ay, by, t), d: pick(rnd, lk.sizes), a: 1, at: -1, lit: 0 });
+          }
+        };
+        // the page, its top right corner folded
+        for (const [x, y, d] of [[-w, -h, DOT.l], [w, h, DOT.l], [-w, h, DOT.l], [w - ear, -h, DOT.m], [w, -h + ear, DOT.m], [w - ear, -h + ear, DOT.s]]) sheetDots.push({ x, y, d, a: 1, at: -1, lit: 0 });
+        edge(-w, -h, w - ear, -h, 5.6, EDGE);
+        edge(w - ear, -h, w, -h + ear, 5.2, EDGE);
+        edge(w, -h + ear, w, h, 5.6, EDGE);
+        edge(w, h, -w, h, 5.6, EDGE);
+        edge(-w, h, -w, -h, 5.6, EDGE);
+        edge(w - ear, -h, w - ear, -h + ear, 5, FINE);
+        edge(w - ear, -h + ear, w, -h + ear, 5, FINE);
+
+        // its text: three groups, each a bullet in the accent, a short heading and two lines
+        const left = -w + 15;
+        const LINES = [[6, 15, 11], [5, 14, 12], [7, 16, 8]];
+        let cost = 0;
+        const written = [];
+        LINES.forEach(([head, one, two], g) => {
+          const y = -h + 25 + g * 50;
+          written.push({ x: left + 1, y, d: DOT.l * 0.9, a: 1, at: cost, lit: 1 });
+          cost += 5;
+          for (let i = 0; i < head; i++) written.push({ x: left + 13 + i * 6.6, y, d: DOT.m, a: 1, at: cost++, lit: 0 });
+          [one, two].forEach((n, row) => {
+            cost += 5;
+            for (let i = 0; i < n; i++) written.push({ x: left + i * 6, y: y + 14 + row * 12.5, d: DOT.s, a: 0.82, at: cost++, lit: 0 });
+          });
+          cost += 16;
+        });
+        cost -= 16;
+        for (const p of written) p.at = mix(WRITE[0], WRITE[1], p.at / cost);
+        sheetDots.push(...written);
+
+        const order = mulberry32(58);
+        for (const p of sheetDots) {
+          const down = (p.y + h) / (2 * h); // 0 its top … 1 its bottom
+          // coming out, the bottom edge leads and the top one trails: the page stretches, it does not scatter
+          p.lag = 0.86 * (1 - down) + 0.14 * order();
+          // fading away, the top goes first
+          p.off = mix(LEAVE, GONE - SNUFF, 0.72 * down + 0.28 * order());
+        }
+      }
+      /** How much of the way out is spent waiting for the last dots. */
+      const LAG = 0.1;
+      // it is born lying in the ring's plane, small, and stands up as it glides down to its place
+      const bornPose = turn(newPose(SHEET.focal), 0, 0, RING.tilt);
+      bornPose.x = RING.x;
+      bornPose.y = RING.y;
+      bornPose.s = 0.22;
+      // at rest: tipped back a little (its top, the ring's side, is the far one) and turned a touch
+      const sheetPose = turn(newPose(SHEET.focal), 0, SHEET.yaw, SHEET.pitch);
+      sheetPose.x = SHEET.x;
+      sheetPose.y = SHEET.y;
+      function drawSheet(phase) {
+        const u = frac(phase + SHEET_AT);
+        sheetAt(u);
+        // the one before it, on its way out
+        if (u + 1 < GONE) sheetAt(u + 1);
+      }
+      function sheetAt(u) {
+        const coming = u < OUT;
+        for (const p of sheetDots) {
+          // typed: a dot is there or it is not (no fading in: what fades slowly, the clip's compression leaves half done)
+          if (p.at >= 0 && u < p.at) continue;
+          const gone = smooth(0, SNUFF, u - p.off);
+          if (gone >= 1) continue;
+          const at = place(sheetPose, p.x, p.y, 0);
+          let x = at.x;
+          let y = at.y;
+          let a = p.a * (1 - gone);
+          let size = nearer(at.k) * (1 - 0.5 * gone);
+          let lit = p.lit;
+          if (coming) {
+            const e = smoother(clamp((u / OUT) * (1 + LAG) - p.lag * LAG, 0, 1));
+            const from = place(bornPose, p.x, p.y, 0);
+            x = mix(from.x, x, e);
+            y = mix(from.y, y, e);
+            size *= mix(0.42, 1, e);
+            a *= smooth(0.02, 0.22, e);
+            lit = Math.max(lit, 1 - smooth(0.4, 0.94, e));
+          }
+          dot(x, y, p.d * size, a, lit);
+        }
+      }
+
+      /* ---------------- drawing ---------------- */
+      const ctx = document.getElementById("scene").getContext("2d");
+      const css = getComputedStyle(document.getElementById("card"));
+      const dark = document.documentElement.dataset.theme === "dark";
+      // ink: the page's text colour (in the dark, at 85 %, like the hero's cloud); accent: the card's domain
+      const ink = css.getPropertyValue("--fg-rgb").trim().split(/\s+/).map(Number);
+      const inkAlpha = dark ? 0.85 : 1;
+      const accent = css.getPropertyValue("--d-rgb").trim().split(/\s+/).map(Number);
+      if (![...ink, ...accent].every(Number.isFinite) || ink.length + accent.length !== 6) throw new Error("no colours: app/globals.css did not load, or its tokens changed");
+      /*
+       * The dots are painted here, pixel by pixel, the way the hero's shader paints
+       * its own (DOT_FRAG): a disc whose edge fades over one pixel, by distance.
+       * A canvas arc would do, but its antialiasing moves in steps, and a small dot
+       * that drifts slowly would flicker; this way it glides.
+       */
+      const paint = new Float32Array(W * H * 4); // red, green, blue (times alpha) and alpha, 0 to 1
+      const image = ctx.createImageData(W, H);
+      function draw(phase) {
+        phase = frac(phase);
+        count = 0;
+        drawFlights(phase);
+        drawRing(phase);
+        drawSheet(phase);
+
+        paint.fill(0);
+        for (let i = 0; i < count; i++) {
+          const o = i * 5;
+          const x = dots[o];
+          const y = dots[o + 1];
+          const radius = dots[o + 2] / 2;
+          const t = clamp(dots[o + 4], 0, 1);
+          const alpha = clamp(dots[o + 3], 0, 1) * mix(inkAlpha, 1, t);
+          const r = mix(ink[0], accent[0], t) / 255;
+          const g = mix(ink[1], accent[1], t) / 255;
+          const b = mix(ink[2], accent[2], t) / 255;
+          const x0 = Math.max(0, Math.floor(x - radius - 0.5));
+          const x1 = Math.min(W - 1, Math.ceil(x + radius + 0.5));
+          const y0 = Math.max(0, Math.floor(y - radius - 0.5));
+          const y1 = Math.min(H - 1, Math.ceil(y + radius + 0.5));
+          for (let py = y0; py <= y1; py++) {
+            for (let px = x0; px <= x1; px++) {
+              const cover = clamp(radius - Math.hypot(px + 0.5 - x, py + 0.5 - y) + 0.5, 0, 1) * alpha;
+              if (cover <= 0) continue;
+              const q = (py * W + px) * 4;
+              const under = 1 - cover;
+              paint[q] = r * cover + paint[q] * under;
+              paint[q + 1] = g * cover + paint[q + 1] * under;
+              paint[q + 2] = b * cover + paint[q + 2] * under;
+              paint[q + 3] = cover + paint[q + 3] * under;
+            }
+          }
+        }
+        const out = image.data;
+        for (let q = 0; q < paint.length; q += 4) {
+          const a = paint[q + 3];
+          if (a <= 0) {
+            out[q + 3] = 0;
+            continue;
+          }
+          out[q] = Math.round((255 * paint[q]) / a);
+          out[q + 1] = Math.round((255 * paint[q + 1]) / a);
+          out[q + 2] = Math.round((255 * paint[q + 2]) / a);
+          out[q + 3] = Math.round(255 * a);
+        }
+        ctx.putImageData(image, 0, 0);
+      }
+
+      // What the recorder uses: the clip's size and length, and one frame at a phase.
+      window.loop = { width: W, height: H, seconds: SECONDS, fps: FPS, draw };
+
+      const still = new URLSearchParams(location.search).get("phase");
+      if (still !== null) draw(Number(still));
+      else if (!navigator.webdriver) {
+        const from = performance.now();
+        const tick = (now) => {
+          draw((((now - from) / 1000 / SECONDS) % 1 + 1) % 1);
+          requestAnimationFrame(tick);
+        };
+        requestAnimationFrame(tick);
+      } else draw(0);
+    </script>
+  </body>
+</html>
