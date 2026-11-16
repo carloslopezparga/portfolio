@@ -1,8 +1,8 @@
 # Decisiones
 
-Lo aprobado, lo que he decidido yo al construir (para que lo revises) y lo que falta. Última actualización: 13-11-2026. Incluye las tres fases (contenido y CV, dirección visual Apple × Evolve, piezas visuales), el pulido estético (rama `claude/design-polish`), el hero definitivo con el chip de partículas (rama `claude/hero-asymmetric`), la nube de partículas con presencia y figuras (rama `claude/particle-figures`), la carga, la interacción y la pausa del chip (rama `claude/chip-interaction`), la ronda del 11-11 (rama `claude/nice-keller-emmje9`): partículas una a una, «Cómo trabajo», carruseles, vídeos de proyecto, Skills compacto y reserva con Google Calendar; y la segunda ronda del 11-11 (rama `claude/tender-faraday-k93q2e`): física real por partícula, «Cómo trabajo» más abajo y rediseñada, Skills como red en 3D y cinco ajustes; y las tarjetas de proyecto verticales con vídeo de fondo, con el de Shortlist hecho con código (rama `claude/cool-wozniak-1p9zt8`); y el vídeo del agente de refrigeración, con el mismo formato (rama `claude/trusting-fermi-r1j0o9`).
+Lo aprobado, lo que he decidido yo al construir (para que lo revises) y lo que falta. Última actualización: 13-11-2026. Incluye las tres fases (contenido y CV, dirección visual Apple × Evolve, piezas visuales), el pulido estético (rama `claude/design-polish`), el hero definitivo con el chip de partículas (rama `claude/hero-asymmetric`), la nube de partículas con presencia y figuras (rama `claude/particle-figures`), la carga, la interacción y la pausa del chip (rama `claude/chip-interaction`), la ronda del 11-11 (rama `claude/nice-keller-emmje9`): partículas una a una, «Cómo trabajo», carruseles, vídeos de proyecto, Skills compacto y reserva con Google Calendar; y la segunda ronda del 11-11 (rama `claude/tender-faraday-k93q2e`): física real por partícula, «Cómo trabajo» más abajo y rediseñada, Skills como red en 3D y cinco ajustes; y las tarjetas de proyecto verticales con vídeo de fondo, con el de Shortlist hecho con código (rama `claude/cool-wozniak-1p9zt8`); y el vídeo del agente de refrigeración, con el mismo formato (rama `claude/trusting-fermi-r1j0o9`); y, juntándolo todo, los vídeos del correo y de CS50 en vertical y los cuatro vídeos apaisados en los paneles (rama `claude/tender-faraday-k93q2e`, PR #12).
 
-Lo último está en «Tarjetas de proyecto verticales con vídeo de fondo» y en «Vídeo del agente de refrigeración», al final de la sección 1; los apartados anteriores se han corregido donde ya no eran verdad.
+Lo último está en «Los cuatro vídeos de Proyectos, juntos», al final de la sección 1; los apartados anteriores se han corregido donde ya no eran verdad.
 
 ## 1. Aprobado (hecho)
 
@@ -235,7 +235,7 @@ Grupo (a) completo, del 1 al 16, y el reveal del grupo (b). Capturas antes/despu
 - **Contacto:** «, o reservar 15 minutos» solo aparece con `NEXT_PUBLIC_BOOKING_URL`. Sin ella, la frase termina en «Lo más rápido es el email.».
 - **Escudo de Retamar:** se ve. Dos cambios para que no vuelva a salir en blanco: ver «Segunda ronda del 11-11 (revisar)».
 
-### Tarjetas de proyecto verticales con vídeo de fondo (rama `claude/cool-wozniak-1p9zt8`, PR #8; pendiente de tu OK)
+### Tarjetas de proyecto verticales con vídeo de fondo (rama `claude/cool-wozniak-1p9zt8`, PR #8; entra con el PR #12)
 
 Sustituye a la primera versión de este mismo PR (un vídeo horizontal de 832 × 520 px arriba de la tarjeta de Shortlist, uno por tema), que no llegó a fusionarse.
 
@@ -249,7 +249,7 @@ Sustituye a la primera versión de este mismo PR (un vídeo horizontal de 832 ×
 - **Toda la tarjeta es un botón** que abre el panel de debajo de la fila. Pulsarla otra vez, o «Cerrar» en el panel, lo cierra.
 - **Al panel pasan** el problema, las cifras (las tres), las etiquetas de stack, la tira de fotos y la demo. «Qué construí», «Siguiente» y el repo ya estaban. Ningún texto ni cifra cambia.
 - **El vídeo se ve en todos los tamaños,** también en el móvil. Con movimiento reducido o sin JavaScript, el póster.
-- **Sin vídeo** (hoy, las otras tres tarjetas): fondo liso `#1D1D1F` con el tinte de su dominio.
+- **Sin vídeo:** fondo liso `#1D1D1F` con el tinte de su dominio. Desde el PR #12, las cuatro tienen el suyo.
 - **Retirado:** los fragmentos de interfaz (`ProjectArt`) y su CSS, `?live-art`, el grabador `scripts/record-project-loops.mjs` y los clips grabados de los fragmentos.
 
 **2. Un vídeo por proyecto**
@@ -276,7 +276,7 @@ Sustituye a la primera versión de este mismo PR (un vídeo horizontal de 832 ×
 - Contraste del texto sobre el vídeo: 13,7:1 en el peor fotograma (AA pide 4,5:1).
 - axe 4.14: sin incidencias.
 
-### Vídeo del agente de refrigeración: aire entre racks (rama `claude/trusting-fermi-r1j0o9`, PR #9; pendiente de tu OK)
+### Vídeo del agente de refrigeración: aire entre racks (rama `claude/trusting-fermi-r1j0o9`, PR #9; entra con el PR #12)
 
 Sustituye a la primera versión de este mismo PR (un vídeo horizontal de 832 × 520 px, uno por tema), que no llegó a fusionarse. La rama lleva dentro la del PR #8 (tarjetas verticales y grabador): hay que fusionar antes el #8.
 
@@ -291,7 +291,37 @@ Sustituye a la primera versión de este mismo PR (un vídeo horizontal de 832 ×
 - **Peso:** mp4 de 632 kB, webm de 671 kB y póster de 117 kB.
 - **Bucle sin salto:** todo depende de una fase de 0 a 1, con semilla fija; la fase 1 dibuja lo mismo que la 0, píxel a píxel.
 
+### Los cuatro vídeos de Proyectos, juntos (rama `claude/tender-faraday-k93q2e`, PR #12)
+
+Junta en una sola rama lo de los PR #8 (tarjetas y Shortlist) y #9 (refrigeración), que lleva dentro, y termina los otros dos vídeos. Sustituye a los PR #10 (correo) y #11 (CS50), que se quedaron en el formato horizontal antiguo.
+
+**1. Correo en piloto automático, en vertical** (`scripts/loops/mail-autopilot.html`)
+- La escena del PR #10, pasada al formato de las tarjetas: 600 × 900 px, fondo `--project-card`, tinta del tema oscuro al 85 % y el morado del dominio.
+- Los sobres caen desde arriba, cada uno a su ritmo, hacia un anillo que late en morado; al entrar se deshacen en polvo. Debajo sale una hoja cuyas líneas se escriben en tres grupos, y se desvanece para dejar sitio a la siguiente.
+- **Sitio:** el anillo, al 30 % del alto; la hoja, al 52 %. En ningún fotograma hay nada por debajo de los 600 px.
+- **Peso:** mp4 de 248 kB, webm de 323 kB y póster de 39 kB.
+
+**2. Proyectos de IA (CS50), en vertical** (`scripts/loops/cs50-ai.html`)
+- La escena del PR #11, con el mismo formato y colores: tres capas de nodos, una bajo otra; arriba se forma una señal (un octógono y después un triángulo), se deshace en la capa de entrada y la onda baja hasta encender una salida distinta para cada una.
+- **Sitio:** la red, entre el 12 % y el 63 % del alto. En el tercio de abajo solo queda polvo, al 20 %.
+- **Peso:** mp4 de 261 kB, webm de 289 kB y póster de 39 kB.
+
+**3. Los vídeos apaisados, en los paneles**
+- **Al abrir una tarjeta,** el panel muestra a la izquierda la primera versión, horizontal, de su escena (832 × 520 px, una clara y otra oscura): las cuatro que se hicieron antes de pasar a vertical. Archivos `panel-light.*` y `panel-dark.*` en la carpeta de cada proyecto.
+- **Con demo** (correo y refrigeración), un selector «Vídeo / Demo» encima; se abre en el vídeo. Shortlist y CS50 no tienen demo: solo el vídeo.
+- Solo se descargan al abrir el panel; se paran fuera de pantalla; con las animaciones en pausa, el póster.
+
+**4. Arreglo:** las píldoras de la tarjeta ya no parten en dos líneas entre 1024 y 1180 px. Ahora ocupan una línea, y la que no cabe (la cifra de Shortlist) no se muestra; la cifra sigue en el panel.
+
 ## 2. Decidido por mí (revisar)
+
+### Los cuatro vídeos de Proyectos, juntos (revisar)
+- **Lo he juntado yo en esta sesión,** en vez de las sesiones de cada vídeo: sus ramas chocaban entre sí en cinco archivos, y la del correo estaba parada esperando que eligieras dónde iban el anillo y la hoja. He elegido el anillo al 30 % del alto y la hoja al 52 %.
+- **El correo y CS50 no son escenas nuevas:** son las que hicieron sus sesiones, con su movimiento y sus tiempos, cambiadas de tamaño, de colocación y de colores. El correo se dibuja 1,3 veces más grande que en su versión horizontal, para que en la tarjeta los puntos midan lo mismo que en las otras.
+- **En los paneles va la primera versión de cada escena** (la horizontal), no la segunda de correo y CS50, que ya era vertical dentro de un vídeo apaisado y en un panel ancho se veía como una columna en medio.
+- **El panel se abre en el vídeo, no en la demo.** Si prefieres que en el correo y la refrigeración se abra en la demo, es una línea (`Showcase`, en `ProjectsRow.tsx`).
+- **El código de los vídeos apaisados no está en `scripts/loops/`,** solo en el historial de git (los commits están en `public/media/README.md`). Se diseñaron con el tinte de `.frag-stage`, que ya no existe: grabados de nuevo saldrían sin él.
+- **La píldora que no cabe desaparece entera,** sin puntos suspensivos: es un dato que también está en el panel.
 
 ### Tarjetas de proyecto y vídeo de Shortlist (revisar)
 
@@ -307,7 +337,7 @@ Sustituye a la primera versión de este mismo PR (un vídeo horizontal de 832 ×
 - **«Ver demo», «Ver detalles» y «Cerrar» ya no se ven en la tarjeta,** porque toda ella es el botón. Siguen en su nombre accesible («Shortlist. Ver detalles»). «Cerrar» se ve en el panel.
 - **El panel repite el nombre y la línea del proyecto** como cabecera, junto a «Cerrar»: en el móvil, al abrirlo, la tarjeta queda fuera de pantalla.
 - **Los cuatro paneles están siempre en el HTML** y solo se ve el abierto. El problema, las cifras y el stack antes estaban a la vista en la tarjeta; así siguen en la página para los buscadores. Sin JavaScript se ven los cuatro paneles, sin la demo.
-- **Entre 1024 y unos 1180 px, las dos píldoras de Shortlist parten en dos líneas:** la tarjeta mide 225 px.
+- **Entre 1024 y unos 1180 px, las dos píldoras de Shortlist partían en dos líneas** (la tarjeta mide 225 px). Arreglado en el PR #12: la que no cabe no se muestra.
 - **Un borde muy tenue en la tarjeta:** en el tema oscuro, sin él, su pie se fundía con la página negra.
 - **La luz del cursor enciende la tarjeta entera,** no solo el título, que es donde está el botón (`data-glow-card`, una línea en `HoverGlow`).
 
@@ -497,6 +527,13 @@ Sustituye a la primera versión de este mismo PR (un vídeo horizontal de 832 ×
   - **Proyectos:** los cuatro vídeos se reproducen mudos y en bucle, con póster, y cambian con el tema; la flecha avanza una tarjeta (540 px) y encaja; `open_project` trae la tarjeta y abre el panel. En 390 × 844 la fila encaja al deslizar y la página no se desborda a lo ancho.
   - **Fondos y reserva:** probados con un vídeo temporal en cada carpeta (opacidad 0,1, en gris, reproduciéndose solo en pantalla) y con una URL de prueba (botón en Contacto, entrada en ⌘K, `open_booking` abre la pestaña y, si el navegador la bloquea, resalta el botón). Retirados después: en `main` no hay fondos ni botón hasta que subas los archivos y pongas la variable.
   - **Sin repetir en esta ronda** (presupuesto de comprobaciones): Lighthouse y axe. Las capturas de verificación han sido 8. Conviene pasar axe y Lighthouse antes del lanzamiento: hay secciones nuevas y vídeo en las tarjetas.
+- **Los cuatro vídeos de Proyectos (16-11, build local de producción, Chromium):**
+  - `npm run lint` y `npm run build`, sin errores.
+  - **Tarjetas:** a 1440 px las cuatro reproducen su vídeo (600 × 900, webm) en bucle; en el móvil, solo las que están cerca de la pantalla. Antes de abrir un panel no se descarga ningún vídeo apaisado.
+  - **Paneles,** en `/` y `/es`, claro y oscuro, a 1440 y a 390 px: cada uno reproduce su vídeo en el tema de la página (573 × 358 px a 1440; 310 × 194 a 390). En el correo y la refrigeración, «Demo» quita el vídeo y monta la demo.
+  - **Bucles:** en los dos vídeos nuevos, el cambio del último fotograma al primero es como el de dos fotogramas seguidos (CS50: 0,58 de diferencia media por píxel; entre fotogramas seguidos, mediana 0,30 y percentil 90 de 1,04).
+  - **axe 4.14** sobre Proyectos, con un panel abierto: 0 incidencias en claro y oscuro, escritorio y móvil. Sin errores de consola y sin desbordes a lo ancho.
+  - Capturas de verificación: 4.
 - **Segunda ronda del 11-11 (build local de producción, Chromium sin GPU):**
   - `npm run lint` y `npm run build`, sin errores. `/` y `/es`, recorridas enteras en escritorio y en móvil, sin errores de consola ni peticiones fallidas.
   - **Simulación, con ratón real (Playwright) sobre el chip:**
@@ -550,9 +587,9 @@ Sustituye a la primera versión de este mismo PR (un vídeo horizontal de 832 ×
 - `content/demos/job-hunt-copilot.txt` (el archivo conserva ese nombre), la grabación del terminal de Shortlist. Hasta que exista, la tarjeta dice «Ver detalles» y no hay ventana de terminal.
 - Fotos y vídeos en `public/media/…`. Las de voluntariado convierten la tarjeta en tarjeta de foto.
 - **Fondos de sección:** un vídeo o fotos en `public/media/education/` y un vídeo sin caras en `public/media/volunteering/` (en la carpeta de la sección, no en la de una tarjeta). Sin ellos no hay fondo.
-- **Vídeos de fondo de los otros dos proyectos** (correo y CS50): hasta que tengan el suyo (`loop.mp4`, `loop.webm` y `loop.poster.jpg`, 600 × 900 px; ver `public/media/README.md`), su tarjeta lleva fondo liso con el tinte de su dominio.
 
 **Avisos**
+- **Next.js 16.4.3 tiene una vulnerabilidad conocida.** El 16-11, `next build` se paró una vez para avisarlo (a la segunda compila). Conviene actualizar Next.js en un PR aparte.
 - **Tu CV en PDF incluye tu teléfono.** Al servirlo, queda público en la web, y antes acordamos no publicar el teléfono. Si no lo quieres publicar, sube una versión sin él con el mismo nombre.
 - **La rama por defecto del repo en GitHub es `claude/affectionate-euler-bieu8r`, no `main`.** Por eso tus subidas desde la web de GitHub fueron a esa rama. Si Vercel despliega `main`, conviene poner `main` como rama por defecto: Settings → General → Default branch. Así lo que subas irá directo a producción.
 

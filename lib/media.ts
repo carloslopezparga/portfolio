@@ -18,8 +18,8 @@ const VIDEO = new Set([".mp4", ".webm"]);
 /** "<video name>.poster.jpg" (or png/webp) is the cover of "<video name>.mp4". */
 const POSTER = /\.poster\.(jpe?g|png|webp)$/i;
 
-/** "loop.mp4", "loop.webm", "loop.poster.jpg" (and anything else called loop…): the clip behind a project's card. */
-const LOOP = /^loop([-.]|$)/i;
+/** "loop.mp4", "loop.webm", "loop.poster.jpg" (and anything else called loop… or panel…): the clips behind a project's card and in its panel. */
+const LOOP = /^(loop|panel)([-.]|$)/i;
 
 const byName = (a: string, b: string) => a.localeCompare(b, "en", { numeric: true, sensitivity: "base" });
 
@@ -44,7 +44,7 @@ export async function mediaFor(section: MediaSection, folder: string, lang: Loca
   const dir = path.join(ROOT, section, folder);
   let files: string[] = [];
   try {
-    // (a project's loop… files are its card's looping clip, not part of its gallery)
+    // (a project's loop… and panel… files are its clips, not part of its gallery)
     files = fs.readdirSync(dir).filter((f) => !f.startsWith(".") && !LOOP.test(f)).sort(byName);
   } catch {
     files = [];
@@ -121,6 +121,22 @@ export async function projectLoop(id: string): Promise<Clip | null> {
   cacheLife("max");
   const files = listFiles(path.join(ROOT, "projects", id));
   return clipOf(files, "loop", (f) => `/media/projects/${id}/${encodeURIComponent(f)}`);
+}
+
+/**
+ * The landscape clip in a project's panel, one per theme, from
+ * public/media/projects/<id>/: "panel-light" and "panel-dark" (.mp4 and/or
+ * .webm, plus an optional ".poster.jpg"), or one plain "panel" for both. These
+ * are drawn on the page's own card colours, so they sit in the panel without
+ * an edge. null for a theme without one: the panel shows only its demo, if any.
+ */
+export async function projectPanelClip(id: string): Promise<Record<"light" | "dark", Clip | null>> {
+  "use cache";
+  cacheLife("max");
+  const files = listFiles(path.join(ROOT, "projects", id));
+  const url = (f: string) => `/media/projects/${id}/${encodeURIComponent(f)}`;
+  const pick = (theme: string) => [`panel-${theme}`, "panel"].map((base) => clipOf(files, base, url)).find(Boolean) ?? null;
+  return { light: pick("light"), dark: pick("dark") };
 }
 
 /**

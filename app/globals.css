@@ -1651,11 +1651,14 @@ html:not(.js) :is(.chip-poster-still, .chip-poster-cores),
 .project-card[data-open]::after {
   box-shadow: inset 0 0 0 1.5px rgb(255 255 255 / 0.85);
 }
+/* one line of pills: one that does not fit wraps onto a second line, which is cut off (its figure is in the panel) */
 .project-pills {
   z-index: 1;
   display: flex;
   flex-wrap: wrap;
   gap: 5px;
+  max-height: 40px;
+  overflow: hidden;
   padding: 14px 14px 0;
 }
 /* dark enough for its white text over any frame of a clip */
@@ -1757,8 +1760,27 @@ html:not(.js) :is(.chip-poster-still, .chip-poster-cores),
 html.js .project-panel:not([data-open]) {
   display: none;
 }
-html:not(.js) :is(.project-close, .project-demo) {
+html:not(.js) :is(.project-close, .project-demo, .project-switch) {
   display: none;
+}
+/* A panel's landscape clip: drawn on the page's own card colour, so it needs no frame; until it plays (and with
+   reduced motion or no JavaScript), its poster in the page's theme. */
+.panel-clip {
+  position: relative;
+  overflow: hidden;
+  aspect-ratio: 16 / 10;
+  border-radius: 16px;
+  background: var(--poster-light) center / cover no-repeat;
+}
+[data-theme="dark"] .panel-clip {
+  background-image: var(--poster-dark);
+}
+.panel-clip > video {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
 }
 
 /* ------------------------------------------------------------------ */

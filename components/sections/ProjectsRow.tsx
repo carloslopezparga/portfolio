@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, type CSSProperties } from "react";
 import type { DomainId, Locale, ProjectId, StackId } from "@/content/types";
 import { StackIcon, stackColor } from "@/components/ui/icons";
 import { CountUp } from "@/components/ui/CountUp";
@@ -10,6 +10,8 @@ import { MediaStrip, type MediaLabels } from "@/components/media/MediaStrip";
 import { Carousel } from "@/components/ui/Carousel";
 import type { Clip, MediaItem } from "@/lib/media";
 import { formatNumber } from "@/lib/metrics";
+import { usePrefs } from "@/lib/prefs";
+import { useTheme } from "@/lib/theme";
 import { onUI } from "@/lib/ui-bus";
 import { ProjectLoop } from "./ProjectLoop";
 
@@ -30,11 +32,16 @@ export interface ProjectItem {
   media: MediaItem[];
   /** the looping clip behind the card (null: a plain background with the domain's tint) */
   loop: Clip | null;
+  /** the landscape clip in the panel, one per theme (null: the panel shows only its demo, if any) */
+  panel: Record<"light" | "dark", Clip> | null;
 }
 
 export interface ProjectLabels {
   open: string;
   openNoDemo: string;
+  film: string;
+  demo: string;
+  show: string;
   close: string;
   problem: string;
   built: string;
@@ -84,6 +91,76 @@ function Demo({ item, labels }: { item: ProjectItem; labels: ProjectLabels }) {
 }
 
 /**
+ * A panel's landscape clip, in the page's theme: muted, in a loop, playing
+ * only while it is on screen (and mounted only while its panel is open, so
+ * nothing downloads until then). Its poster is painted by CSS, in the right
+ * theme from the first frame; with reduced motion, only the poster.
+ * Decorative: the panel's text says what the project is.
+ */
+function PanelClip({ clips, live }: { clips: Record<"light" | "dark", Clip>; live: boolean }) {
+  const theme = useTheme();
+  const { reduced } = usePrefs();
+  const box = useRef<HTMLDivElement>(null);
+  const video = useRef<HTMLVideoElement>(null);
+  const [seen, setSeen] = useState(false);
+  const clip = clips[theme];
+
+  useEffect(() => {
+    const io = new IntersectionObserver(([e]) => setSeen(e.isIntersecting), { threshold: 0.2 });
+    io.observe(box.current!);
+    return () => io.disconnect();
+  }, []);
+
+  useEffect(() => {
+    const v = video.current;
+    if (!v) return;
+    if (seen) v.play().catch(() => {});
+    else v.pause();
+  }, [seen, theme, live, reduced]);
+
+  return (
+    <div
+      ref={box}
+      className="panel-clip"
+      style={{ "--poster-light": clips.light.poster ? `url(${clips.light.poster})` : "none", "--poster-dark": clips.dark.poster ? `url(${clips.dark.poster})` : "none" } as CSSProperties}
+      aria-hidden
+    >
+      {live && !reduced ? (
+        <video key={theme} ref={video} muted autoPlay loop playsInline preload="auto" poster={clip.poster} tabIndex={-1}>
+          {clip.webm ? <source src={clip.webm} type="video/webm" /> : null}
+          {clip.mp4 ? <source src={clip.mp4} type="video/mp4" /> : null}
+        </video>
+      ) : null}
+    </div>
+  );
+}
+
+/**
+ * The visual half of a panel: the project's landscape clip, its demo, or
+ * both, with a switch between them (the clip first). The demo is only
+ * mounted while the panel is open and it is chosen.
+ */
+function Showcase({ item, labels, open }: { item: ProjectItem; labels: ProjectLabels; open: boolean }) {
+  const [view, setView] = useState<"film" | "demo">(item.panel ? "film" : "demo");
+  const both = !!item.panel && !!item.demo;
+  return (
+    <div className="min-w-0">
+      {both ? (
+        <div role="group" aria-label={labels.show} className="project-switch mb-3 inline-flex gap-1 rounded-full bg-[var(--bg)] p-1 shadow-[inset_0_0_0_1px_var(--line)]">
+          {(["film", "demo"] as const).map((v) => (
+            <button key={v} type="button" aria-pressed={view === v} onClick={() => setView(v)} className={`rounded-full px-3.5 py-1.5 text-[12.5px] font-medium ${view === v ? "bg-[var(--btn)] text-[var(--btn-fg)]" : "text-muted"}`}>
+              {v === "film" ? labels.film : labels.demo}
+            </button>
+          ))}
+        </div>
+      ) : null}
+      {item.panel && view === "film" ? <PanelClip clips={item.panel} live={open} /> : null}
+      {item.demo && view === "demo" ? <div className="project-demo h-[300px] md:h-[400px]">{open ? <Demo item={item} labels={labels} /> : null}</div> : null}
+    </div>
+  );
+}
+
+/**
  * The projects as a row of small, tall cards (2:3), dark in both themes like
  * the photo cards: the project's looping clip edge to edge, pills on top
  * (status and, when there are figures, the first one) and the name and its
@@ -91,9 +168,9 @@ function Demo({ item, labels }: { item: ProjectItem; labels: ProjectLabels }) {
  * row; below, the row scrolls sideways (scroll-snap, a swipe on phones).
  *
  * A whole card is one button: it unfolds the project's panel under the row,
- * with its figures, stack, demo, case study and media. The panels' text is
- * always in the page (and all of it shows without JavaScript); the demo is
- * only mounted while its panel is open.
+ * with its figures, stack, landscape clip and demo, case study and media. The
+ * panels' text is always in the page (and all of it shows without
+ * JavaScript); the clip and the demo are only mounted while their panel is open.
  */
 export function ProjectsRow({ items, labels, lang }: { items: ProjectItem[]; labels: ProjectLabels; lang: Locale }) {
   const [open, setOpen] = useState<ProjectId | null>(null);
@@ -215,9 +292,9 @@ export function ProjectsRow({ items, labels, lang }: { items: ProjectItem[]; lab
                   ))}
                 </ul>
                 <div className="mt-7 grid gap-6 md:grid-cols-[minmax(0,1.25fr)_minmax(0,1fr)] md:gap-10">
-                  {item.demo ? <div className="project-demo h-[300px] md:h-[400px]">{on ? <Demo item={item} labels={labels} /> : null}</div> : null}
-                  <div className={item.demo ? "" : "md:col-span-2"}>
-                    <dl className={`space-y-6 ${item.demo ? "" : "md:grid md:grid-cols-2 md:gap-10 md:space-y-0"}`}>
+                  {item.demo || item.panel ? <Showcase item={item} labels={labels} open={on} /> : null}
+                  <div className={item.demo || item.panel ? "" : "md:col-span-2"}>
+                    <dl className={`space-y-6 ${item.demo || item.panel ? "" : "md:grid md:grid-cols-2 md:gap-10 md:space-y-0"}`}>
                       <div>
                         <dt className="eyebrow">{labels.problem}</dt>
                         <dd className="mt-2 text-[16px] leading-relaxed text-fg">{item.problem}</dd>

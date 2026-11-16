@@ -131,6 +131,10 @@ export const copy = {
     },
     open: { en: "See demo", es: "Ver demo" },
     openNoDemo: { en: "See details", es: "Ver detalles" },
+    // the switch over a panel's clip and its demo
+    film: { en: "Video", es: "Vídeo" },
+    demo: { en: "Demo", es: "Demo" },
+    show: { en: "Show", es: "Mostrar" },
     close: { en: "Close", es: "Cerrar" },
     problem: { en: "Problem", es: "Problema" },
     built: { en: "What I built", es: "Qué construí" },

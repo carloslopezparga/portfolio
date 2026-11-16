@@ -59,13 +59,34 @@ Las tarjetas de proyecto son verticales (2:3) y oscuras en los dos temas. Cada u
 - El tercio de abajo, tranquilo y oscuro: ahí van el nombre y su línea.
 - Nada importante en la franja de arriba: la tapan las píldoras.
 
-**Lo que hay ahora:** tienen vídeo Shortlist (`projects/job-hunt-copilot/`) y el agente de refrigeración (`projects/cooling-agent/`). Los dos son escenas dibujadas con código: `scripts/loops/shortlist.html`, el embudo de ofertas, y `scripts/loops/cooling-agent.html`, aire entre una fila de racks (el único con dos colores: ámbar que pasa a cian). Las otras dos tarjetas, hasta que tengan el suyo, llevan fondo liso con el tinte de su dominio.
+**Lo que hay ahora:** los cuatro proyectos tienen vídeo, y los cuatro son escenas dibujadas con código, en `scripts/loops/`:
 
-- **Para volver a grabar el de Shortlist:** `node scripts/loops/record.mjs shortlist job-hunt-copilot`. Hacen falta Playwright y ffmpeg. Graba fotograma a fotograma y termina con error si el `.mp4` pasa de 900 kB. La escena toma el fondo y el azul de `app/globals.css`: si cambias esos colores, vuelve a grabar.
-- **Para volver a grabar el del agente de refrigeración:** `node scripts/loops/record.mjs cooling-agent cooling-agent`. Toma de `app/globals.css` el fondo, el cian del dominio y el naranja que hace de ámbar.
+| Proyecto (carpeta) | Escena | Qué se ve |
+| --- | --- | --- |
+| Shortlist (`job-hunt-copilot/`) | `shortlist.html` | El embudo de ofertas: una nube que cruza siete líneas y sale ordenada. |
+| Correo en piloto automático (`mail-autopilot/`) | `mail-autopilot.html` | Del ruido al resumen: sobres que caen a un anillo y una hoja que se escribe debajo. |
+| Agente de refrigeración (`cooling-agent/`) | `cooling-agent.html` | Aire entre una fila de racks; el único con dos colores, ámbar que pasa a cian. |
+| Proyectos de IA (CS50) (`cs50-ai/`) | `cs50-ai.html` | Una red que aprende a ver: una señal se deshace en la capa de entrada y la onda baja por la red. |
+
+- **Para volver a grabar uno:** `node scripts/loops/record.mjs <escena> <carpeta>`, por ejemplo `node scripts/loops/record.mjs shortlist job-hunt-copilot`. Hacen falta Playwright y ffmpeg. Graba fotograma a fotograma y termina con error si el `.mp4` pasa de 900 kB.
+- **Las escenas toman sus colores de `app/globals.css`** (el fondo `--project-card`, la tinta del tema oscuro y el color de cada dominio; el agente de refrigeración, también el naranja que hace de ámbar). Si cambias esos colores, vuelve a grabar.
 - **Para hacer otro vídeo con código:** una escena nueva en `scripts/loops/` (un HTML que dibuje un fotograma a partir de una fase de 0 a 1, como `shortlist.html`) y el mismo grabador: `node scripts/loops/record.mjs <escena> <carpeta del proyecto>`.
 - **Para poner un vídeo tuyo:** deja en la carpeta del proyecto `loop.mp4` y, si puedes, `loop.webm` y `loop.poster.jpg`, con el formato de arriba. Sin póster, hasta que carga el vídeo se ve el fondo liso de la tarjeta.
 - Los archivos cuyo nombre empieza por `loop` no salen en la tira de fotos y vídeos del proyecto.
+
+### Vídeo apaisado del panel
+
+Al abrir una tarjeta, el panel de debajo de la fila muestra a la izquierda un vídeo apaisado del proyecto, en el color de la página: uno claro y otro oscuro. Si el proyecto además tiene demo (hoy, el correo y el agente de refrigeración), un selector «Vídeo / Demo» cambia de uno a otra; se abre en el vídeo.
+
+| Archivo | Qué es |
+| --- | --- |
+| `panel-light.mp4`, `panel-light.webm`, `panel-light.poster.jpg` | El vídeo para el tema claro, y su primer fotograma. |
+| `panel-dark.mp4`, `panel-dark.webm`, `panel-dark.poster.jpg` | Lo mismo para el tema oscuro. |
+
+- **Formato:** 832 × 520 px (16:10), 7 s, 24 fps, sin audio, en bucle. El fondo es el de las tarjetas de la página (`--card` de cada tema), así que el vídeo no tiene borde dentro del panel. Si solo hay uno para los dos temas, llámalo `panel.*`.
+- **Solo se descarga al abrir el panel,** se para cuando sale de la pantalla y, con las animaciones en pausa, se ve el póster.
+- **Los cuatro de ahora** son la primera versión, horizontal, de cada escena: las que se hicieron antes de que las tarjetas pasaran a verticales. Su código está en el historial de git (commits `d82b2d4` Shortlist, `68daed1` refrigeración, `fee393b` correo y `493f0a4` CS50), no en `scripts/loops/`.
+- Los archivos cuyo nombre empieza por `panel` tampoco salen en la tira de fotos y vídeos.
 
 ## Nombres de archivo
 
