@@ -385,6 +385,7 @@ Junta en una sola rama lo de los PR #8 (tarjetas y Shortlist) y #9 (refrigeraci�
 - **Los paquetes de datos del chip también tienen estado,** así que se apartan con los puntos de alrededor.
 - **La guarda bajo el nombre se aplica al dibujar,** como antes, no dentro de la simulación.
 - **El panel de ajuste** está siempre en español y solo se descarga con `?tune=1`. Desde el 16-11 dice también qué método mueve los puntos en ese equipo: «simulación en GPU» o «sin estado».
+- **La nube responde a cualquier ratón real (16-11):** antes solo lo escuchaba si el equipo no parecía táctil, y algunos portátiles con pantalla táctil le dicen a Chrome que lo son (el tuyo: `hover: none` o `pointer: coarse`), así que el cursor no hacía nada aunque se usara el trackpad. Ahora escucha siempre los movimientos de ratón; en un equipo que se declara táctil, la simulación arranca con el primero. En el móvil, sin ratón, no cambia nada. Con la ventana por debajo de 1024 px la web sigue en modo tableta: solo el chip (que ahora también responde al ratón) y «Cómo trabajo» sin figura ni línea de progreso.
 - **La simulación se comprueba a sí misma (16-11):** la primera vez que el cursor pasa medio segundo sobre una figura, mira si algún punto se ha apartado. Si no se ha movido ninguno (una GPU que no puede escribir el estado), pasa para siempre al método sin estado, que también aparta los puntos. Cada punto encuentra su texel por un atributo propio, no por `gl_VertexID`, que algunas GPU no numeran bien al dibujar puntos.
 
 **«Cómo trabajo»**

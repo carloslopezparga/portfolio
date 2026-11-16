@@ -50,7 +50,11 @@ export interface SceneOptions {
   n: number;
   /** true: a fixed, full-screen canvas and every figure (desktop). false: the canvas inside the chip's stage and only the chip (phones). */
   layer: boolean;
-  /** a mouse: gaze, proximity, hover and drag */
+  /**
+   * The device looks like it has a mouse (no touch screen reported): the simulation starts at once. Whatever this says,
+   * the cloud answers any real mouse that moves over the page (some laptops with a touch screen report themselves as
+   * touch devices): the simulation then starts on its first move.
+   */
   pointer: boolean;
   /** called once the first frame (identical to the poster) is on screen */
   onFirstFrame: () => void;
@@ -202,10 +206,11 @@ export function mountFigures(canvas: HTMLCanvasElement, opts: SceneOptions): Sce
 
     // With a mouse, and where the GPU can draw into a float texture: the points' state, one texel each (the cloud's, then the
     // packets'), in two textures that take turns (one is read while the other is written).
-    const floats = opts.pointer ? (gl.extensions.has("EXT_color_buffer_float") ? FloatType : gl.extensions.has("EXT_color_buffer_half_float") ? HalfFloatType : null) : null;
+    const floats = gl.extensions.has("EXT_color_buffer_float") ? FloatType : gl.extensions.has("EXT_color_buffer_half_float") ? HalfFloatType : null;
     const stateSize: [number, number] = [STATE_W, Math.ceil((p.n + pk.n) / STATE_W)];
     const makeState = () => new WebGLRenderTarget(stateSize[0], stateSize[1], { type: floats!, minFilter: NearestFilter, magFilter: NearestFilter, depthBuffer: false });
-    let state = floats ? [makeState(), makeState()] : null;
+    // (with a mouse expected, from the start; otherwise on the first move of a real mouse: startSim)
+    let state = floats && opts.pointer ? [makeState(), makeState()] : null;
     // (FIGURES: the shader's code for every figure but the chip, and for the flights between them: desktop only)
     const defines: Record<string, string> = { ...(state ? { STATEFUL: "" } : {}), ...(opts.layer ? { FIGURES: "" } : {}) };
     canvas.dataset.sim = state ? "gpu" : "trail";
@@ -294,9 +299,9 @@ export function mountFigures(canvas: HTMLCanvasElement, opts: SceneOptions): Sce
     scene.add(cloud, packets);
     // the simulation's pass: the same points with the same uniforms, each drawn into its own texel of the state
     const simScene = new Scene();
-    const simMats = state ? [new ShaderMaterial({ vertexShader: CLOUD_SIM, uniforms: cu }), new ShaderMaterial({ vertexShader: PACKET_SIM, uniforms: pu })] : [];
+    const simMats = floats ? [new ShaderMaterial({ vertexShader: CLOUD_SIM, uniforms: cu }), new ShaderMaterial({ vertexShader: PACKET_SIM, uniforms: pu })] : [];
     simMats.forEach((m, i) => {
-      m.setValues({ fragmentShader: STATE_FRAG, defines: { ...defines, SIM: "" }, blending: NoBlending, depthWrite: false, depthTest: false });
+      m.setValues({ fragmentShader: STATE_FRAG, defines: { ...defines, STATEFUL: "", SIM: "" }, blending: NoBlending, depthWrite: false, depthTest: false });
       const points = new Points(i ? pGeo : cloudGeo, m);
       points.frustumCulled = false;
       simScene.add(points);
@@ -468,7 +473,8 @@ export function mountFigures(canvas: HTMLCanvasElement, opts: SceneOptions): Sce
 
     /* ------------------------------- the cursor ------------------------------ */
 
-    const ptr = { x: 0, y: 0, on: false, presence: 0, gx: 0, gy: 0, over: null as HTMLElement | null, open: 0 };
+    /** (seen: a real mouse has moved over the page at least once) */
+    const ptr = { x: 0, y: 0, on: false, seen: false, presence: 0, gx: 0, gy: 0, over: null as HTMLElement | null, open: 0 };
     // The simulation's cursor, in document coordinates (so the page scrolling under a still mouse moves it across the
     // points): where it was at the last step, how fast it moves, and whether it has just come onto the page.
     const sim = { x: 0, y: 0, vx: 0, vy: 0, fresh: true, due: 0, waited: 0, clock: 0, flip: 0 };
@@ -638,7 +644,7 @@ export function mountFigures(canvas: HTMLCanvasElement, opts: SceneOptions): Sce
       // (less when the cursor is above: tipped any further back, the figure would be seen edge-on)
       ptr.gy = damp(ptr.gy, lean * GAZE.pitch * clamp((cy - u.uBoxA.value[1]) / (vh * 0.5), -0.6, 1), 5, dt);
       ptr.open = damp(ptr.open, settled && ptr.over === here.zone ? 1 : 0, 6, dt);
-      const live = settled && opts.pointer ? here.zone : null;
+      const live = settled && (opts.pointer || ptr.seen) ? here.zone : null;
       if (liveZone !== live) {
         liveZone = live;
         for (const z of zones) z.toggleAttribute("data-live", z === live);
@@ -779,8 +785,8 @@ export function mountFigures(canvas: HTMLCanvasElement, opts: SceneOptions): Sce
       u.uRepel.value = [cfg.repelRadius, cfg.repelForce, cfg.drag];
       u.uSpring.value = [2 * Math.PI * cfg.springHz, cfg.springDamping, SIM.step];
       for (let i = 0; i < steps; i++) {
-        const x0 = sim.x + ((tx - sim.x) * i) / steps - sx;
-        const y0 = sim.y + ((ty - sim.y) * i) / steps - sy;
+        const x0 = sim.x + ((tx - sim.x) * i) / steps - (opts.layer ? sx : ox);
+        const y0 = sim.y + ((ty - sim.y) * i) / steps - (opts.layer ? sy : oy);
         u.uCursor.value = [x0, y0, x0 + (tx - sim.x) / steps, y0 + (ty - sim.y) / steps];
         sim.clock += SIM.step;
         u.uClick.value[2] = sim.clock - click.at;
@@ -816,6 +822,20 @@ export function mountFigures(canvas: HTMLCanvasElement, opts: SceneOptions): Sce
           if (half ? (v & 0x7fff) >= 0x3800 : Math.abs(v) > 0.5) moved = true;
         }
       return moved;
+    };
+    /** A real mouse on a device that did not look like it had one: from now on, the simulation (once). */
+    const startSim = () => {
+      if (state || !floats || selfCheck.done) return;
+      state = [makeState(), makeState()];
+      u.uState.value = state[0].texture;
+      defines.STATEFUL = "";
+      for (const m of [cloudMat, pMat]) {
+        m.defines = { ...defines };
+        m.needsUpdate = true;
+      }
+      sim.due = 0;
+      sim.fresh = true;
+      canvas.dataset.sim = "gpu";
     };
     const fallBack = () => {
       console.info("Figures: the GPU simulation moved no point on this device; the cursor now parts the points without it.");
@@ -893,6 +913,10 @@ export function mountFigures(canvas: HTMLCanvasElement, opts: SceneOptions): Sce
 
     const onMove = (e: PointerEvent) => {
       if (e.pointerType !== "mouse") return;
+      if (!ptr.seen) {
+        ptr.seen = true;
+        startSim();
+      }
       ptr.x = e.clientX;
       ptr.y = e.clientY;
       if (!ptr.on) sim.fresh = true;
@@ -901,14 +925,13 @@ export function mountFigures(canvas: HTMLCanvasElement, opts: SceneOptions): Sce
       if (!ptr.over && e.target instanceof Element) ptr.over = zones.find((z) => z.contains(e.target as Element)) ?? null;
     };
     const onLeave = () => (ptr.on = false);
-    if (opts.pointer) {
-      window.addEventListener("pointermove", onMove, { passive: true });
-      html.addEventListener("pointerleave", onLeave);
-      disposers.push(() => {
-        window.removeEventListener("pointermove", onMove);
-        html.removeEventListener("pointerleave", onLeave);
-      });
-    }
+    // (always: a laptop with a touch screen may say it is a touch device and still be used with its trackpad)
+    window.addEventListener("pointermove", onMove, { passive: true });
+    html.addEventListener("pointerleave", onLeave);
+    disposers.push(() => {
+      window.removeEventListener("pointermove", onMove);
+      html.removeEventListener("pointerleave", onLeave);
+    });
     const release = () => {
       if (!press) return;
       const s = press.spot;
@@ -924,7 +947,7 @@ export function mountFigures(canvas: HTMLCanvasElement, opts: SceneOptions): Sce
       const ready = () => present() === index && figA === figB && form > 0.9;
       const down = (e: PointerEvent) => {
         if (e.button !== 0 || !ready()) return;
-        const drag = opts.pointer && e.pointerType === "mouse";
+        const drag = e.pointerType === "mouse";
         let nearest = 0;
         if (s.id === "gears") {
           // the gear under the pointer is the one the drag turns
@@ -985,10 +1008,8 @@ export function mountFigures(canvas: HTMLCanvasElement, opts: SceneOptions): Sce
       z.addEventListener("pointermove", move);
       z.addEventListener("pointerup", up);
       z.addEventListener("pointercancel", release);
-      if (opts.pointer) {
-        z.addEventListener("pointerenter", enter);
-        z.addEventListener("pointerleave", leave);
-      }
+      z.addEventListener("pointerenter", enter);
+      z.addEventListener("pointerleave", leave);
       disposers.push(() => {
         z.removeEventListener("pointerdown", down);
         z.removeEventListener("pointermove", move);
