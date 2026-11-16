@@ -3,7 +3,7 @@ import { has, type Locale } from "@/content/types";
 import { photoSrc, readDemo } from "@/lib/assets";
 import { copy, mediaLabels } from "@/lib/copy";
 import { formatMonth } from "@/lib/i18n";
-import { mediaFor, projectLoop } from "@/lib/media";
+import { mediaFor, projectLoop, projectPanelClip } from "@/lib/media";
 import { isSkill, metricSuffix } from "@/lib/metrics";
 import { ProjectsRow, type ProjectItem } from "./ProjectsRow";
 import { SectionHeader } from "./SectionHeader";
@@ -11,7 +11,8 @@ import { SectionHeader } from "./SectionHeader";
 export async function Projects({ lang }: { lang: Locale }) {
   const t = copy.projects;
   const media = await Promise.all(profile.projects.map((p) => mediaFor("projects", p.id, lang)));
-  const loops = await Promise.all(profile.projects.map((p) => projectLoop(p.id, lang)));
+  const loops = await Promise.all(profile.projects.map((p) => projectLoop(p.id)));
+  const panelClips = await Promise.all(profile.projects.map((p) => projectPanelClip(p.id)));
   const items: ProjectItem[] = profile.projects.map((p, i) => {
     let demo: ProjectItem["demo"] = null;
     if (p.demo?.kind === "terminal") {
@@ -39,6 +40,7 @@ export async function Projects({ lang }: { lang: Locale }) {
       screenshot: p.screenshot ? photoSrc(p.screenshot) : null,
       media: media[i],
       loop: loops[i],
+      panel: panelClips[i].light && panelClips[i].dark ? { light: panelClips[i].light!, dark: panelClips[i].dark! } : null,
     };
   });
 
@@ -52,6 +54,9 @@ export async function Projects({ lang }: { lang: Locale }) {
           labels={{
             open: t.open[lang],
             openNoDemo: t.openNoDemo[lang],
+            film: t.film[lang],
+            demo: t.demo[lang],
+            show: t.show[lang],
             close: t.close[lang],
             problem: t.problem[lang],
             built: t.built[lang],
