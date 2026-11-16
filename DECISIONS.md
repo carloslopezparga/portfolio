@@ -384,7 +384,8 @@ Junta en una sola rama lo de los PR #8 (tarjetas y Shortlist) y #9 (refrigeraci�
 - **Con el cursor encima de la figura la repulsión ya no se suaviza** (antes sí): el hueco es el mismo dentro y fuera.
 - **Los paquetes de datos del chip también tienen estado,** así que se apartan con los puntos de alrededor.
 - **La guarda bajo el nombre se aplica al dibujar,** como antes, no dentro de la simulación.
-- **El panel de ajuste** está siempre en español y solo se descarga con `?tune=1`.
+- **El panel de ajuste** está siempre en español y solo se descarga con `?tune=1`. Desde el 16-11 dice también qué método mueve los puntos en ese equipo: «simulación en GPU» o «sin estado».
+- **La simulación se comprueba a sí misma (16-11):** la primera vez que el cursor pasa medio segundo sobre una figura, mira si algún punto se ha apartado. Si no se ha movido ninguno (una GPU que no puede escribir el estado), pasa para siempre al método sin estado, que también aparta los puntos. Cada punto encuentra su texel por un atributo propio, no por `gl_VertexID`, que algunas GPU no numeran bien al dibujar puntos.
 
 **«Cómo trabajo»**
 - **En el móvil el paso activo también avanza solo** (antes lo elegía el scroll): un único comportamiento en todos los tamaños.

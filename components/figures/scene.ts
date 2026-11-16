@@ -196,13 +196,16 @@ export function mountFigures(canvas: HTMLCanvasElement, opts: SceneOptions): Sce
     cloudGeo.setAttribute("aSize2", new BufferAttribute(p.sizes2, 4));
     cloudGeo.setAttribute("aAlpha2", new BufferAttribute(p.alphas2, 4));
     cloudGeo.setAttribute("aSeed", new BufferAttribute(p.seed, 4));
+    // each point's place in the simulation's state
+    const index = (n: number) => new BufferAttribute(Float32Array.from({ length: n }, (_, i) => i), 1);
+    cloudGeo.setAttribute("aIndex", index(p.n));
 
     // With a mouse, and where the GPU can draw into a float texture: the points' state, one texel each (the cloud's, then the
     // packets'), in two textures that take turns (one is read while the other is written).
     const floats = opts.pointer ? (gl.extensions.has("EXT_color_buffer_float") ? FloatType : gl.extensions.has("EXT_color_buffer_half_float") ? HalfFloatType : null) : null;
     const stateSize: [number, number] = [STATE_W, Math.ceil((p.n + pk.n) / STATE_W)];
     const makeState = () => new WebGLRenderTarget(stateSize[0], stateSize[1], { type: floats!, minFilter: NearestFilter, magFilter: NearestFilter, depthBuffer: false });
-    const state = floats ? [makeState(), makeState()] : null;
+    let state = floats ? [makeState(), makeState()] : null;
     // (FIGURES: the shader's code for every figure but the chip, and for the flights between them: desktop only)
     const defines: Record<string, string> = { ...(state ? { STATEFUL: "" } : {}), ...(opts.layer ? { FIGURES: "" } : {}) };
     canvas.dataset.sim = state ? "gpu" : "trail";
@@ -210,6 +213,12 @@ export function mountFigures(canvas: HTMLCanvasElement, opts: SceneOptions): Sce
       state?.forEach((s) => s.dispose());
       delete canvas.dataset.sim;
     });
+    /**
+     * The simulation checks itself once: after the cursor has been over a figure for half a second, at least one point
+     * has to have moved. If none has (a GPU that cannot draw into the state, or a program it could not build), the
+     * cloud falls back for good to the stateless method, so the cursor always parts the points.
+     */
+    const selfCheck = { done: false, over: 0 };
 
     // Colours go to the shaders as plain sRGB numbers and come out unchanged (no colour management): #1D1D1F on screen is #1D1D1F.
     const u = {
@@ -274,6 +283,7 @@ export function mountFigures(canvas: HTMLCanvasElement, opts: SceneOptions): Sce
     pGeo.setAttribute("aMarks", new BufferAttribute(pk.marks, 2));
     pGeo.setAttribute("aMotion", new BufferAttribute(pk.motion, 3));
     pGeo.setAttribute("aColor", new BufferAttribute(pk.color, 3));
+    pGeo.setAttribute("aIndex", index(pk.n));
     const pu = { ...u, uPulseClock: { value: 0 }, uSize: { value: opts.n < 4000 ? 0.125 : 0.105 }, uChip: { value: 1 }, uStateBase: { value: p.n } };
     const pMat = new ShaderMaterial({ vertexShader: PACKET_VERT, fragmentShader: GLOW_FRAG, uniforms: pu, defines, transparent: true, depthWrite: false, depthTest: false });
     const packets = new Points(pGeo, pMat);
@@ -783,6 +793,42 @@ export function mountFigures(canvas: HTMLCanvasElement, opts: SceneOptions): Sce
       u.uState.value = pair[sim.flip].texture;
       sim.x = tx;
       sim.y = ty;
+      if (!selfCheck.done && ptr.on && ptr.presence > 0.95 && cfg.repelForce > 0 && form > 0.9 && figA === figB && ptr.over === spots[figA].zone) {
+        selfCheck.over += steps * SIM.step;
+        if (selfCheck.over >= 0.5) {
+          selfCheck.done = true;
+          if (!moves(pair)) fallBack();
+        }
+      }
+    };
+    /** Whether any point of the cloud is away from its place in the state (null: this GPU cannot read it back, so it cannot tell). */
+    const moves = (pair: WebGLRenderTarget[]): boolean | null => {
+      if (!floats || !gl.capabilities.textureTypeReadable(floats)) return null;
+      const half = floats === HalfFloatType;
+      const size = stateSize[0] * stateSize[1] * 4;
+      const out = half ? new Uint16Array(size) : new Float32Array(size);
+      gl.readRenderTargetPixels(pair[sim.flip], 0, 0, stateSize[0], stateSize[1], out);
+      let moved = false;
+      for (let i = 0; i < p.n * 4; i += 4)
+        for (const v of [out[i], out[i + 1]]) {
+          // (half floats as bits: 0x3800 is 0.5, and 0x7c00 up is not a number)
+          if (half ? (v & 0x7fff) >= 0x7c00 : !Number.isFinite(v)) return false;
+          if (half ? (v & 0x7fff) >= 0x3800 : Math.abs(v) > 0.5) moved = true;
+        }
+      return moved;
+    };
+    const fallBack = () => {
+      console.info("Figures: the GPU simulation moved no point on this device; the cursor now parts the points without it.");
+      state?.forEach((s) => s.dispose());
+      state = null;
+      u.uState.value = null;
+      delete defines.STATEFUL;
+      for (const m of [cloudMat, pMat]) {
+        m.defines = { ...defines };
+        m.needsUpdate = true;
+      }
+      path.count = 0;
+      canvas.dataset.sim = "trail";
     };
     readState = () => {
       if (!state || floats !== FloatType) return null;

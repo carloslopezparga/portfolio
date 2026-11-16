@@ -16,6 +16,15 @@ import { PARTICLE_SLIDERS, particleConfig, tuneParticles, type ParticleConfig } 
 export default function TunePanel({ state }: { state: () => SimState | null }) {
   const [values, setValues] = useState<ParticleConfig>({ ...particleConfig });
   const [copied, setCopied] = useState(false);
+  // which method moves the points here: the GPU simulation, or the stateless one (no float textures, or its fallback)
+  const [mode, setMode] = useState("…");
+
+  useEffect(() => {
+    const read = () => setMode(document.querySelector<HTMLCanvasElement>("canvas.fig-layer, canvas.chip-canvas[data-sim]")?.dataset.sim ?? "—");
+    read();
+    const t = window.setInterval(read, 1000);
+    return () => window.clearInterval(t);
+  }, []);
 
   useEffect(() => {
     const w = window as unknown as { __particles?: unknown };
@@ -33,7 +42,10 @@ export default function TunePanel({ state }: { state: () => SimState | null }) {
 
   return createPortal(
     <form className="tune" aria-label="Ajuste de las partículas" onSubmit={(e) => e.preventDefault()}>
-      <p className="font-semibold text-fg">Partículas</p>
+      <p className="flex justify-between gap-3">
+        <span className="font-semibold text-fg">Partículas</span>
+        <span>{mode === "gpu" ? "simulación en GPU" : mode === "trail" ? "sin estado" : mode}</span>
+      </p>
       {PARTICLE_SLIDERS.map(({ key, label, min, max, step }) => (
         <label key={key}>
           <span className="flex justify-between gap-3">
