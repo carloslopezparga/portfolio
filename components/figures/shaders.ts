@@ -52,7 +52,10 @@ uniform float uRun;        // a clock for what a figure does by itself (faster u
 uniform vec2 uDrift;       // the drift: how far it carries a point (px), and its clock
 #ifdef STATEFUL
 uniform sampler2D uState;  // per point: how far it is from its place (xy, px) and how fast it moves (zw, px/s)
+attribute float aIndex;    // the point's own texel in the state (an attribute, not gl_VertexID: some GPUs' point drawing does not number points reliably)
+#define POINT_ID int(aIndex + 0.5)
 #else
+#define POINT_ID 0
 uniform vec3 uTrail[${TRAIL.taps}];    // where the cursor was (xy) and whether it was on the page (z), newest first
 #endif
 
@@ -509,7 +512,7 @@ ${CLOUD}
 
 void main() {
   Seen t = target();
-  vec2 s = moved(t.s, aSeed, gl_VertexID);
+  vec2 s = moved(t.s, aSeed, POINT_ID);
   float alpha = t.alpha * edgeFade(s);
   float r = max(t.size, 0.0) * uDpr * 0.5;
   vRadius = r;
@@ -523,7 +526,7 @@ export const CLOUD_SIM = /* glsl */ `
 ${CLOUD}
 
 void main() {
-  simulate(target().s, aSeed, gl_VertexID);
+  simulate(target().s, aSeed, POINT_ID);
 }`;
 
 export const STATE_FRAG = /* glsl */ `
@@ -575,7 +578,7 @@ ${PACKETS}
 void main() {
   float u;
   vec3 sp = target(u);
-  vec2 s = moved(sp.xy, vec4(0.5), uStateBase + gl_VertexID);
+  vec2 s = moved(sp.xy, vec4(0.5), uStateBase + POINT_ID);
   gl_Position = toClip(s);
   gl_PointSize = uSize * (1.0 - aMotion.z * 0.16) * sp.z * uDpr;
   float ends = smoothstep(0.0, 0.05, u) * (1.0 - smoothstep(0.92, 1.0, u));
@@ -588,7 +591,7 @@ ${PACKETS}
 
 void main() {
   float u;
-  simulate(target(u).xy, vec4(0.5), uStateBase + gl_VertexID);
+  simulate(target(u).xy, vec4(0.5), uStateBase + POINT_ID);
 }`;
 
 /* A bead of colour with a soft halo. */
